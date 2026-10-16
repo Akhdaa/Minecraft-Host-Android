@@ -342,7 +342,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
     </div>
     <div class="small muted" id="searchHint" style="margin:0 2px 10px">Hanya mod Fabric untuk versi server kamu yang bisa jalan di server.</div>
     <div class="store" id="searchResults"></div>
-    <button class="btn hide" id="storeMore" style="width:100%;justify-content:center;margin-top:12px">Muat lagi</button>
+    <div id="storeMore" class="small muted" style="text-align:center;padding:18px 0 6px;min-height:40px"></div>
   </div>
 </section>
 
@@ -853,8 +853,9 @@ const store={q:"",cat:"",sort:"downloads",offset:0,total:0,hits:[],loaded:false,
 const compact=n=>Intl.NumberFormat("id",{notation:"compact",maximumFractionDigits:1}).format(n);
 async function storeSearch(reset){
   if(store.busy&&!reset)return;
-  if(reset){store.offset=0;store.hits=[];$("#searchResults").innerHTML='<div class="empty">Memuat…</div>'}
-  const my=++store.seq;store.busy=true;$("#storeMore").classList.add("hide");
+  if(reset){store.offset=0;store.hits=[];store.total=0;$("#searchResults").innerHTML='<div class="empty">Memuat…</div>';$("#storeMore").textContent=""}
+  else if(store.hits.length>=store.total)return;
+  const my=++store.seq;store.busy=true;if(!reset)$("#storeMore").textContent="Memuat mod lainnya…";
   const f=[["project_type:mod"],["categories:fabric"],["versions:"+mcVersion()],["server_side:required","server_side:optional"]];
   if(store.cat)f.push(["categories:"+store.cat]);
   const sort=store.q?store.sort:(store.sort==="relevance"?"downloads":store.sort);
@@ -862,8 +863,13 @@ async function storeSearch(reset){
     if(my!==store.seq)return;
     store.hits=store.hits.concat(r.hits);store.total=r.total_hits;store.offset+=r.hits.length;store.loaded=true;renderStore();
   }catch(err){if(my===store.seq)$("#searchResults").innerHTML='<div class="empty">'+esc(err.message)+'</div>'}
-  finally{if(my===store.seq)store.busy=false}
+  finally{if(my===store.seq){store.busy=false;setTimeout(storeMaybeMore,50)}}
 }
+// infinite scroll: load the next page when the bottom of the list comes into view
+function storeNearBottom(){const el=$("#storeMore");if(!el||$("#mv-store").classList.contains("hide")||tab!=="mods")return false;
+  return el.getBoundingClientRect().top<window.innerHeight+600}
+function storeMaybeMore(){if(store.loaded&&!store.busy&&store.hits.length<store.total&&storeNearBottom())storeSearch(false)}
+window.addEventListener("scroll",storeMaybeMore,{passive:true});window.addEventListener("resize",storeMaybeMore);
 function renderStore(){
   $("#searchHint").textContent=store.total?compact(store.total)+" mod Fabric "+mcVersion()+" yang bisa jalan di server":"Hanya mod Fabric untuk versi server kamu yang bisa jalan di server.";
   $("#searchResults").innerHTML=store.hits.length?store.hits.map(h=>{const inst=isInstalled(h.slug);
@@ -873,14 +879,13 @@ function renderStore(){
       '<div class="meta"><span>⬇ '+compact(h.downloads)+'</span>'+side+'</div>'+
       '<button class="btn small'+(inst?"":" primary")+'" data-install="'+esc(h.project_id)+'"'+(inst?" disabled":"")+'>'+(inst?"Terpasang":"Pasang")+'</button></div>'}).join("")
     :'<div class="empty">Tidak ada hasil untuk Fabric '+esc(mcVersion())+'</div>';
-  $("#storeMore").classList.toggle("hide",store.hits.length>=store.total||!store.hits.length);
+  $("#storeMore").textContent=!store.hits.length?"":store.hits.length>=store.total?"Semua "+store.total+" mod sudah ditampilkan":"";
 }
 let storeTimer;
 $("#searchInput").oninput=e=>{clearTimeout(storeTimer);storeTimer=setTimeout(()=>{store.q=e.target.value.trim();if(store.q&&store.sort==="downloads"){store.sort="relevance";$("#storeSort").value="relevance"}storeSearch(true)},450)};
 $("#searchInput").onkeydown=e=>{if(e.key==="Enter"){clearTimeout(storeTimer);store.q=e.target.value.trim();storeSearch(true);e.target.blur()}};
 $("#storeSort").onchange=e=>{store.sort=e.target.value;storeSearch(true)};
 $("#storeCats").onclick=e=>{const c=e.target.closest("[data-cat]");if(!c)return;store.cat=c.dataset.cat;$$("#storeCats .chip").forEach(x=>x.classList.toggle("on",x===c));storeSearch(true)};
-$("#storeMore").onclick=()=>storeSearch(false);
 $("#searchResults").onclick=async e=>{const b=e.target.closest("[data-install]");if(!b)return;b.disabled=true;b.textContent="Memasang…";
   try{await installProject(b.dataset.install);b.textContent="Terpasang";loadMods()}catch(err){toast(err.message,true);b.disabled=false;b.textContent="Pasang"}};
 
