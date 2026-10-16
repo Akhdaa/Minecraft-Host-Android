@@ -287,6 +287,7 @@ public class MiniHttp {
             case 404: return "Not Found";
             case 409: return "Conflict";
             case 413: return "Payload Too Large";
+            case 429: return "Too Many Requests";
             default: return code >= 500 ? "Server Error" : "Status";
         }
     }

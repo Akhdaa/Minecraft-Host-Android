@@ -112,5 +112,5 @@ jobs:
           else
             cp "${{ steps.apk.outputs.name }}" MCHost-latest.apk
             gh release delete latest --yes --cleanup-tag 2>/dev/null || true
-            gh release create latest MCHost-latest.apk "${{ steps.apk.outputs.name }}" --target "$GITHUB_SHA" --title "MC Host build #${{ github.run_number }}" --notes "$NOTES" --latest
+            gh release create latest MCHost-latest.apk --target "$GITHUB_SHA" --title "MC Host 1.0.${{ github.run_number }}" --notes "$NOTES" --latest
           fi

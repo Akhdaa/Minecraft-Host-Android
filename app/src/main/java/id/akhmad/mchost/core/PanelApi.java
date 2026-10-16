@@ -107,25 +107,92 @@ public class PanelApi implements MiniHttp.Handler {
         return c != null && sessions.contains(c);
     }
 
+    // Brute-force guard: 3 wrong PINs per IP -> cooldown that doubles each time (30 s .. 15 min),
+    // plus a global lock if many IPs fail in a short time.
+    private static final int MAX_TRIES = 3;
+    private static final class Guard {
+        int fails;
+        int level;
+        long lockUntil;
+    }
+    private final java.util.Map<String, Guard> guards = new ConcurrentHashMap<>();
+    private final java.util.ArrayDeque<Long> recentFails = new java.util.ArrayDeque<>();
+    private volatile long globalLockUntil;
+
+    private static String ipOf(MiniHttp.Req req) {
+        return req.remote == null ? "?" : req.remote.getHostAddress();
+    }
+
+    private long lockLeftSec(String ip) {
+        long now = System.currentTimeMillis();
+        Guard g = guards.get(ip);
+        long until = Math.max(globalLockUntil, g == null ? 0 : g.lockUntil);
+        return until > now ? (until - now + 999) / 1000 : 0;
+    }
+
+    private int triesLeft(String ip) {
+        Guard g = guards.get(ip);
+        return MAX_TRIES - (g == null ? 0 : g.fails);
+    }
+
+    private Json loginState(MiniHttp.Req req) {
+        String ip = ipOf(req);
+        return Json.obj().put("authorized", authorized(req)).put("retryAfter", lockLeftSec(ip)).put("triesLeft", triesLeft(ip));
+    }
+
     private void login(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
         if (!"POST".equals(req.method)) {
-            res.json(200, Json.obj().put("authorized", authorized(req)).toString());
+            res.json(200, loginState(req).toString());
+            return;
+        }
+        String ip = ipOf(req);
+        long wait = lockLeftSec(ip);
+        if (wait > 0) {
+            res.json(429, loginState(req).put("ok", false).put("error", "Terlalu banyak percobaan. Coba lagi dalam " + wait + " detik.").toString());
             return;
         }
         String pin = req.param("pin", "").trim();
         if (!pin.equals(host.cfg.get(Config.PIN, ""))) {
+            long now = System.currentTimeMillis();
+            Guard g = guards.computeIfAbsent(ip, k -> new Guard());
+            String msg;
+            synchronized (g) {
+                g.fails++;
+                if (g.fails >= MAX_TRIES) {
+                    g.level++;
+                    long secs = Math.min(15 * 60, 30L << Math.min(g.level - 1, 5));
+                    g.lockUntil = now + secs * 1000;
+                    g.fails = 0;
+                    msg = "PIN salah 3x. Dikunci " + secs + " detik.";
+                    host.mcLog.panel("Login panel dari " + ip + " dikunci " + secs + " detik (PIN salah 3x).");
+                } else {
+                    msg = "PIN salah. Sisa " + (MAX_TRIES - g.fails) + " percobaan.";
+                }
+            }
+            synchronized (recentFails) {
+                recentFails.addLast(now);
+                while (!recentFails.isEmpty() && now - recentFails.peekFirst() > 10 * 60_000) recentFails.removeFirst();
+                if (recentFails.size() >= 30) {
+                    globalLockUntil = now + 5 * 60_000;
+                    recentFails.clear();
+                    host.mcLog.panel("Terlalu banyak login gagal dari berbagai alamat, login jarak jauh dikunci 5 menit.");
+                }
+            }
             try {
-                Thread.sleep(1500);
+                Thread.sleep(400);
             } catch (InterruptedException ignored) {
             }
-            res.error(403, "PIN salah");
+            int code = lockLeftSec(ip) > 0 ? 429 : 403;
+            res.json(code, loginState(req).put("ok", false).put("error", msg).toString());
             return;
         }
+        guards.remove(ip);
         byte[] b = new byte[24];
         random.nextBytes(b);
         StringBuilder tok = new StringBuilder();
         for (byte x : b) tok.append(String.format("%02x", x));
         sessions.add(tok.toString());
+        host.mcLog.panel("Login panel berhasil dari " + ip);
         res.header("Set-Cookie", COOKIE + "=" + tok + "; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000");
         res.ok();
     }

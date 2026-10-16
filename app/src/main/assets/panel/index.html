@@ -33,10 +33,21 @@ nav button{background:none;border:0;display:flex;flex-direction:column;align-ite
 nav button svg{width:22px;height:22px}
 nav button.on{color:var(--accent)}
 @media(min-width:860px){
-  nav{top:56px;bottom:auto;left:max(16px,calc(50% - 490px));right:auto;flex-direction:column;justify-content:flex-start;gap:4px;background:none;border:0;width:120px;padding:16px 0}
-  nav button{flex-direction:row;font-size:14px;gap:10px;justify-content:flex-start;padding:9px 12px}
-  nav button.on{background:var(--card)}
-  main{padding-left:150px;max-width:1130px}
+  header{padding:12px 24px}
+  nav{top:0;bottom:0;left:0;right:auto;z-index:4;width:216px;flex-direction:column;justify-content:flex-start;gap:4px;background:var(--bg2);border-top:0;border-right:1px solid var(--line);padding:80px 12px 16px}
+  nav button{flex-direction:row;font-size:14px;gap:12px;justify-content:flex-start;padding:10px 12px;width:100%;min-width:0}
+  nav button.on{background:var(--card);box-shadow:inset 3px 0 0 var(--accent)}
+  main{margin:0 0 0 216px;max-width:none;padding:24px 32px 48px}
+  main>section,main>.banner{max-width:1100px;margin-left:auto;margin-right:auto}
+  .seg{top:76px}
+  #toast{bottom:28px;left:calc(50% + 108px)}
+}
+@media(min-width:1240px){
+  #tab-home.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+  #tab-home>.card{margin:0}#tab-home>#setupCard,#tab-home>.card:last-child{grid-column:1/-1}
+  #tab-home .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #tab-console.on{display:grid;grid-template-columns:minmax(320px,400px) minmax(0,1fr);gap:14px;align-items:start}
+  #tab-console>.card{margin:0}
 }
 section{display:none}section.on{display:block}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
@@ -47,7 +58,7 @@ section{display:none}section.on{display:block}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 @media(min-width:620px){.grid{grid-template-columns:repeat(4,1fr)}}
 .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-.stat .k{font-size:12px;color:var(--muted)}.stat .v{font-size:18px;font-weight:700;margin-top:2px;word-break:break-all}
+.stat .k{font-size:12px;color:var(--muted)}.stat .v{font-size:18px;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .btn{white-space:nowrap;border:1px solid var(--line);background:var(--bg2);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px}
 .btn:hover{border-color:#3d4e41}
 .btn.primary{background:var(--accent2);border-color:var(--accent2);color:#06100a}
@@ -89,8 +100,16 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 #toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:20;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:min(92vw,460px)}
 #toast div{background:#223026;border:1px solid var(--line);padding:9px 14px;border-radius:10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 #toast div.err{border-color:#6a2f2a;background:#311a17}
-#login{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;place-items:center;padding:20px}
-#login .card{width:min(360px,100%)}
+#login{position:fixed;inset:0;z-index:30;display:none;place-items:center;padding:20px;
+  background:radial-gradient(1200px 600px at 50% -10%,rgba(95,208,104,.16),transparent 60%),radial-gradient(800px 500px at 100% 110%,rgba(63,163,74,.12),transparent 60%),var(--bg)}
+.login-card{width:min(400px,100%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px 28px 24px;box-shadow:0 24px 60px rgba(0,0,0,.45);text-align:center}
+.login-card .logo{width:60px;height:60px;border-radius:16px;font-size:28px;margin:0 auto 14px}
+.login-card h1{margin:0;font-size:22px}.login-card>p{margin:6px 0 22px;color:var(--muted)}
+.login-card form{text-align:left}.login-card .pin{font-size:26px;padding:12px}
+.login-card button{width:100%;justify-content:center;padding:12px;margin-top:6px}
+#loginMsg{min-height:20px;margin:-4px 0 8px;text-align:center}
+.login-help{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.shake{animation:shake .35s}@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 .pin{font-size:28px;letter-spacing:8px;text-align:center;font-family:var(--mono)}
 .bar{height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--accent2)}
 .hide{display:none!important}
@@ -458,11 +477,17 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
   </div>
  </div>
 </div>
-<div id="login"><div class="card">
-  <h2>Masuk panel</h2>
-  <p class="small muted" style="margin-top:0">PIN ada di aplikasi MC Host di HP server, tab Server.</p>
-  <form id="loginForm"><input type="password" inputmode="numeric" class="pin" id="loginPin" autocomplete="current-password" placeholder="••••••">
-  <button class="btn primary" style="width:100%;justify-content:center;margin-top:12px">Masuk</button></form>
+<div id="login"><div class="login-card">
+  <div class="logo">M</div>
+  <h1>MC Host</h1>
+  <p>Masuk ke panel server Minecraft</p>
+  <form id="loginForm" autocomplete="on">
+    <label class="f"><span>PIN panel</span>
+      <input type="password" inputmode="numeric" maxlength="12" class="pin" id="loginPin" autocomplete="current-password" placeholder="••••••" required></label>
+    <div id="loginMsg" class="small" role="alert" aria-live="polite"></div>
+    <button class="btn primary" id="loginBtn">Masuk</button>
+  </form>
+  <div class="login-help">PIN ada di aplikasi MC Host di HP server, tab <b>Server</b> &gt; <b>Akses panel</b>. Salah 3x, login dikunci sementara.</div>
 </div></div>
 <div id="toast"></div>
 
@@ -623,11 +648,29 @@ $("#helpTabs").onclick=e=>{const b=e.target.closest("[data-h]");if(b)showHelp(b.
 document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#helpModal").classList.add("hide")});
 
 // ---------------------------------------------------------- login
-function showLogin(){if(loggingIn)return;loggingIn=true;$("#login").style.display="grid";setTimeout(()=>$("#loginPin").focus(),50)}
-$("#loginForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/login",{form:{pin:$("#loginPin").value}});$("#login").style.display="none";loggingIn=false;refresh();go(tab)}catch(err){toast(err.message,true)}};
+let lockTimer;
+const fmtSec=t=>t>=60?Math.floor(t/60)+":"+String(t%60).padStart(2,"0")+" menit":t+" detik";
+function loginMsg(html,bad){$("#loginMsg").innerHTML=html?'<span style="color:'+(bad?"var(--bad)":"var(--muted)")+'">'+html+'</span>':""}
+function setLock(sec){clearInterval(lockTimer);const btn=$("#loginBtn"),inp=$("#loginPin");
+  if(!(sec>0)){btn.disabled=false;inp.disabled=false;return}
+  btn.disabled=true;inp.disabled=true;let t=sec;
+  const tick=()=>{if(t<=0){clearInterval(lockTimer);btn.disabled=false;inp.disabled=false;loginMsg("Silakan coba lagi.");inp.focus();return}
+    loginMsg("Terlalu banyak PIN salah. Coba lagi dalam <b>"+fmtSec(t)+"</b>.",true);t--};
+  tick();lockTimer=setInterval(tick,1000)}
+async function showLogin(){if(loggingIn)return;loggingIn=true;$("#login").style.display="grid";loginMsg("");
+  try{const r=await (await fetch("/api/login")).json();if(r.retryAfter>0)setLock(r.retryAfter);else{setLock(0);if(r.triesLeft<3)loginMsg("Sisa "+r.triesLeft+" percobaan.",true)}}catch(e){}
+  setTimeout(()=>{if(!$("#loginPin").disabled)$("#loginPin").focus()},60)}
+$("#loginForm").onsubmit=async e=>{e.preventDefault();const inp=$("#loginPin");if(!inp.value)return;$("#loginBtn").disabled=true;
+  try{const r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({pin:inp.value})});
+    const d=await r.json().catch(()=>({}));
+    if(r.ok){$("#login").style.display="none";loggingIn=false;inp.value="";loginMsg("");refresh();go(tab);return}
+    inp.value="";inp.classList.remove("shake");void inp.offsetWidth;inp.classList.add("shake");
+    if(d.retryAfter>0)setLock(d.retryAfter);else{setLock(0);loginMsg(esc(d.error||"PIN salah"),true);inp.focus()}
+  }catch(err){setLock(0);loginMsg("Tidak bisa menghubungi panel: "+esc(err.message),true)}};
 
 // ---------------------------------------------------------- status
-function fmtDur(s){if(!s)return"-";const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?h+"j "+m+"m":m?m+"m "+(s%60)+"d":s+"d"}
+function fmtDur(s){if(!s)return"-";const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);
+  return d?d+" hari "+h+" jam":h?h+" jam "+m+" mnt":m?m+" mnt "+(s%60)+" dtk":s+" dtk"}
 function fmtSize(b){return b>1048576?(b/1048576).toFixed(1)+" MB":Math.max(1,Math.round(b/1024))+" KB"}
 async function refresh(){
   try{S=await api("/api/status")}catch(e){return}
@@ -803,21 +846,24 @@ $("#backupList").onclick=async e=>{const r=e.target.closest("[data-restore]"),d=
 $("#worldUpload").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{toast("Upload "+f.name+" ("+fmtSize(f.size)+")…");await api("/api/backups/upload?name="+encodeURIComponent(f.name.replace(/[^\w.\-]/g,"_")),{method:"PUT",body:f});toast("Upload selesai, tekan Restore");loadBackups()}catch(err){toast(err.message,true)}e.target.value=""};
 $("#bResetWorld").onclick=()=>{if(confirm("Hapus world sekarang? Backup dulu kalau masih butuh.")&&prompt("Ketik HAPUS untuk lanjut")==="HAPUS")act("/api/world/reset",null,"World dihapus")};
 
-const PROPS=[["motd","Nama server (MOTD)","text"],["max-players","Maks pemain","number"],["view-distance","View distance (chunk)","number"],["simulation-distance","Simulation distance","number"],
-  ["difficulty","Kesulitan","select:peaceful,easy,normal,hard"],["gamemode","Gamemode default","select:survival,creative,adventure,spectator"],["online-mode","Online mode (akun premium)","bool"],
-  ["white-list","Whitelist","bool"],["pvp","PvP","bool"],["allow-flight","Izinkan terbang (mod)","bool"],["spawn-protection","Spawn protection","number"],["level-seed","Seed world baru","text"],["server-port","Port","number"]];
+const PROPS=[["motd","Nama server (MOTD)","text"],["max-players","Maks pemain","number"],["view-distance","View distance (chunk)","number","HP: 5 sampai 8. Makin besar makin berat."],["simulation-distance","Simulation distance","number","HP: 4 sampai 6."],
+  ["difficulty","Kesulitan","select:peaceful,easy,normal,hard"],["gamemode","Gamemode default","select:survival,creative,adventure,spectator"],["online-mode","Online mode (akun premium)","bool","Nyala: cuma akun Minecraft asli (premium) yang bisa join. Kalau ada teman pakai Minecraft crack / non-premium (TLauncher dan sejenisnya), <b>matikan</b> ini. Saat mati, wajib nyalakan Whitelist, karena siapa pun bisa masuk pakai nama orang lain."],
+  ["white-list","Whitelist","bool","Cuma pemain yang ditambahkan di Konsol &gt; Pemain yang bisa masuk."],["pvp","PvP","bool"],["allow-flight","Izinkan terbang (mod)","bool"],["spawn-protection","Spawn protection","number"],["level-seed","Seed world baru","text"],["server-port","Port","number"]];
 let propLines=[];
+const PROP_DEF={"online-mode":"true","pvp":"true","white-list":"false","allow-flight":"false","difficulty":"easy","gamemode":"survival","max-players":"20","view-distance":"10","simulation-distance":"10","spawn-protection":"16","server-port":"25565","motd":"A Minecraft Server"};
 async function loadProps(){try{const t=await api("/api/properties");$("#propRaw").value=t;propLines=t.split("\n");renderPropForm()}catch(e){toast(e.message,true)}}
 function propGet(k){for(const l of propLines){if(l.startsWith(k+"="))return l.slice(k.length+1)}return""}
-function renderPropForm(){$("#propForm").innerHTML='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">'+PROPS.map(([k,l,t])=>{const v=propGet(k);
-  if(t==="bool")return '<div class="sw"><div class="t" style="font-weight:500">'+l+'</div><input type="checkbox" class="toggle" data-prop="'+k+'"'+(v==="true"?" checked":"")+'></div>';
+function renderPropForm(){$("#propForm").innerHTML='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">'+PROPS.map(([k,l,t,d])=>{const raw=propGet(k),v=raw!==""?raw:(t==="text"||t==="number"?"":(PROP_DEF[k]||""));const dd=d?'<div class="d">'+d+'</div>':"";
+  if(t==="bool")return '<div class="sw"'+(d?' style="grid-column:1/-1"':'')+'><div><div class="t" style="font-weight:500">'+l+'</div>'+dd+'</div><input type="checkbox" class="toggle" data-prop="'+k+'"'+(v==="true"?" checked":"")+'></div>';
   if(t.startsWith("select:"))return '<label class="f"><span>'+l+'</span><select data-prop="'+k+'">'+t.slice(7).split(",").map(o=>'<option'+(o===v?" selected":"")+'>'+o+'</option>').join("")+'</select></label>';
-  return '<label class="f"><span>'+l+'</span><input type="'+t+'" data-prop="'+k+'" value="'+esc(v)+'"></label>'}).join("")+'</div>';
+  return '<label class="f"><span>'+l+'</span><input type="'+t+'" data-prop="'+k+'" value="'+esc(v)+'" placeholder="'+esc(PROP_DEF[k]||"")+'">'+(d?'<span class="small muted" style="display:block;margin-top:4px">'+d+'</span>':'')+'</label>'}).join("")+'</div><div id="crackWarn" class="banner err hide" style="margin:12px 0 0">Online mode mati dan Whitelist mati: siapa pun yang tahu alamat server bisa masuk, termasuk pakai nama kamu. Nyalakan Whitelist lalu tambahkan nama teman di Konsol.</div>';
+  checkCrack();
   if(!propLines.join("").trim())$("#propForm").insertAdjacentHTML("afterbegin",'<p class="small muted">server.properties dibuat saat Install Fabric. Isi form lalu simpan juga bisa.</p>')}
-$("#propForm").addEventListener("input",syncPropsToRaw);$("#propForm").addEventListener("change",syncPropsToRaw);
-function syncPropsToRaw(){let lines=$("#propRaw").value.split("\n");
-  for(const el of $$("[data-prop]")){const k=el.dataset.prop,v=el.type==="checkbox"?String(el.checked):el.value.replace(/\n/g," ");
-    const i=lines.findIndex(l=>l.startsWith(k+"="));if(i>=0)lines[i]=k+"="+v;else if(v!=="")lines.push(k+"="+v)}
+$("#propForm").addEventListener("input",e=>syncPropsToRaw(e.target));$("#propForm").addEventListener("change",e=>syncPropsToRaw(e.target));
+function checkCrack(){const om=$('[data-prop="online-mode"]'),wl=$('[data-prop="white-list"]');if(!om||!wl)return;$("#crackWarn").classList.toggle("hide",om.checked||wl.checked)}
+function syncPropsToRaw(el){checkCrack();if(!el||!el.dataset||!el.dataset.prop)return;
+  const lines=$("#propRaw").value.split("\n"),k=el.dataset.prop,v=el.type==="checkbox"?String(el.checked):el.value.replace(/\n/g," ");
+  const i=lines.findIndex(l=>l.startsWith(k+"="));if(i>=0)lines[i]=k+"="+v;else if(v!==""){if(lines.length&&lines[lines.length-1]==="")lines.splice(lines.length-1,0,k+"="+v);else lines.push(k+"="+v)}
   $("#propRaw").value=lines.join("\n")}
 $("#propRaw").addEventListener("change",()=>{propLines=$("#propRaw").value.split("\n");renderPropForm()});
 $("#bSaveProps").onclick=async()=>{try{await api("/api/properties",{body:$("#propRaw").value,type:"text/plain; charset=utf-8"});toast("Tersimpan, restart server untuk menerapkan");loadProps()}catch(e){toast(e.message,true)}};
