@@ -86,6 +86,8 @@ public class PanelApi implements MiniHttp.Handler {
             case "/api/playit/start": requirePost(post); host.playit.start(); res.ok(); return;
             case "/api/playit/stop": requirePost(post); host.playit.stop(); res.ok(); return;
             case "/api/playit/tunnels": playitTunnels(req, res); return;
+            case "/api/domain/info": domainInfo(req, res); return;
+            case "/api/domain/sync": requirePost(post); domainSync(req, res); return;
             case "/api/logout": requirePost(post); logout(req, res); return;
             default: res.error(404, "Endpoint tidak ada");
         }
@@ -226,13 +228,15 @@ public class PanelApi implements MiniHttp.Handler {
             }
             if ("true".equals(req.param("clearPlayitSecret"))) c.set(Config.PLAYIT_SECRET, "");
             String domain = req.param("customDomain");
-            if (domain != null) {
-                domain = domain.trim().toLowerCase(Locale.US).replaceAll("^[a-z]+://", "").replaceAll("/.*$", "");
-                if (!domain.isEmpty() && !domain.matches("[a-z0-9.\\-]{3,253}(:[0-9]{1,5})?")) {
-                    throw new IllegalArgumentException("Domain tidak valid, contoh: mc.domainkamu.com");
-                }
-                c.set(Config.CUSTOM_DOMAIN, domain);
+            if (domain != null) c.set(Config.CUSTOM_DOMAIN, Cloudflare.cleanHost(domain));
+            String cf = req.param("cfToken");
+            if (cf != null && !cf.trim().isEmpty()) {
+                if (!cf.trim().matches("[A-Za-z0-9_\\-]{20,200}")) throw new IllegalArgumentException("Format API token Cloudflare aneh");
+                c.set(Config.CF_TOKEN, cf.trim());
             }
+            if ("true".equals(req.param("clearCfToken"))) c.set(Config.CF_TOKEN, "");
+            String auto = req.param("cfAutosync");
+            if (auto != null) c.set(Config.CF_AUTOSYNC, String.valueOf("true".equals(auto)));
             String pin = req.param("pin");
             if (pin != null && !pin.trim().isEmpty()) {
                 if (!req.isLocal()) throw new IllegalStateException("PIN hanya bisa diganti dari aplikasi di HP");
@@ -253,6 +257,8 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("playitAutostart", c.getBool(Config.PLAYIT_AUTOSTART))
                 .put("hasPlayitSecret", !c.get(Config.PLAYIT_SECRET, "").isEmpty())
                 .put("customDomain", c.get(Config.CUSTOM_DOMAIN, ""))
+                .put("hasCfToken", !c.get(Config.CF_TOKEN, "").isEmpty())
+                .put("cfAutosync", c.getBool(Config.CF_AUTOSYNC))
                 .toString());
     }
 
@@ -408,6 +414,50 @@ public class PanelApi implements MiniHttp.Handler {
             return;
         }
         res.json(200, json);
+    }
+
+    private void domainInfo(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
+        String domain = host.cfg.get(Config.CUSTOM_DOMAIN, "");
+        String addr = req.param("addr", "").trim();
+        Json j = Json.obj().put("domain", domain)
+                .put("srvName", domain.isEmpty() ? "" : Cloudflare.srvName(domain))
+                .put("hasToken", !host.cfg.get(Config.CF_TOKEN, "").isEmpty())
+                .put("autosync", host.cfg.getBool(Config.CF_AUTOSYNC))
+                .put("tunnel", addr);
+        Cloudflare.Srv expected = null, current = null;
+        String err = "";
+        if (!addr.isEmpty()) {
+            try {
+                expected = Cloudflare.targetFor(addr);
+            } catch (Exception e) {
+                err = "Gagal membaca alamat playit: " + e.getMessage();
+            }
+        }
+        if (!domain.isEmpty()) {
+            try {
+                current = Cloudflare.lookup(domain);
+            } catch (Exception e) {
+                err = "Gagal cek DNS: " + e.getMessage();
+            }
+        }
+        j.raw("expected", expected == null ? "null" : expected.json())
+                .raw("current", current == null ? "null" : current.json())
+                .put("match", expected != null && expected.sameTarget(current))
+                .put("error", err);
+        res.json(200, j.toString());
+    }
+
+    private void domainSync(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
+        String domain = host.cfg.get(Config.CUSTOM_DOMAIN, "");
+        String token = host.cfg.get(Config.CF_TOKEN, "");
+        if (domain.isEmpty()) throw new IllegalArgumentException("Isi domain dulu");
+        if (token.isEmpty()) throw new IllegalArgumentException("Isi API token Cloudflare dulu");
+        String addr = req.param("addr", "").trim();
+        if (addr.isEmpty()) throw new IllegalArgumentException("Belum ada alamat tunnel playit");
+        Cloudflare.Srv target = Cloudflare.targetFor(addr);
+        String msg = Cloudflare.upsert(domain, target, token);
+        host.tunnelLog.panel(msg + ": " + Cloudflare.srvName(domain) + " -> " + target.target + ":" + target.port);
+        res.json(200, Json.obj().put("ok", true).put("message", msg).raw("record", target.json()).toString());
     }
 
     // ------------------------------------------------------------ static

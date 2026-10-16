@@ -24,6 +24,8 @@ public class Config {
     public static final String PLAYIT_AUTOSTART = "playit_autostart";
     public static final String PORT = "port";
     public static final String CUSTOM_DOMAIN = "custom_domain";
+    public static final String CF_TOKEN = "cf_token";
+    public static final String CF_AUTOSYNC = "cf_autosync";
 
     private final File file;
     private final Properties p = new Properties();
@@ -49,6 +51,8 @@ public class Config {
         def(PLAYIT_AUTOSTART, "false");
         def(PORT, "8080");
         def(CUSTOM_DOMAIN, "");
+        def(CF_TOKEN, "");
+        def(CF_AUTOSYNC, "true");
         if (get(PIN, "").isEmpty()) {
             SecureRandom r = new SecureRandom();
             p.setProperty(PIN, String.valueOf(100000 + r.nextInt(900000)));

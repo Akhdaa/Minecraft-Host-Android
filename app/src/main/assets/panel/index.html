@@ -96,6 +96,9 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .hide{display:none!important}
 .players{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .players span{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px}
+#srvRows{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#srvRows .item{padding:7px 10px}#srvRows .wide{grid-column:1/-1}
+#srvRows .n b{white-space:normal;word-break:break-all;font-family:var(--mono);font-size:13.5px}
 details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 </style>
 </head>
@@ -255,22 +258,34 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
   <div class="card">
     <h2><span class="grow">Alamat tunnel</span><button class="btn small" id="bTunnelRefresh">Refresh</button></h2>
     <div class="list" id="tunnelList"></div>
-    <label class="f" style="margin-top:14px"><span>Domain sendiri (opsional, tampil di Beranda)</span>
-      <input type="text" id="customDomain" placeholder="mc.domainkamu.com" autocapitalize="off" spellcheck="false"></label>
-    <button class="btn" id="bSaveDomain">Simpan domain</button>
   </div>
   <div class="card">
     <h2>Log tunnel</h2>
     <div class="console mini" id="tunnelLog"></div>
   </div>
   <div class="card">
-    <h2>Cara pakai dengan domain Cloudflare</h2>
-    <ol class="steps small">
-      <li>Login <a href="https://playit.gg/account" target="_blank" rel="noopener">playit.gg</a>, tambah agent tipe <b>Docker</b>, salin <code>SECRET_KEY</code>, tempel di atas lalu Start.</li>
-      <li>Di dashboard playit, buat tunnel <b>Minecraft Java</b> ke <code>127.0.0.1:25565</code>. Catat alamat dan port yang diberikan.</li>
-      <li>Cloudflare DNS: record <b>SRV</b> name <code>_minecraft._tcp.mc</code>, priority 0, weight 5, port dari playit, target hostname playit. Biarkan DNS only (awan abu-abu).</li>
-      <li>Teman join ke <code>mc.domainkamu.com</code> tanpa port.</li>
-    </ol>
+    <h2><span class="grow">Domain Cloudflare</span><span class="pill" id="dnsPill">-</span></h2>
+    <label class="f"><span>Domain untuk join</span>
+      <input type="text" id="customDomain" placeholder="mc.domainkamu.com" autocapitalize="off" spellcheck="false"></label>
+    <label class="f"><span>Tunnel playit tujuan</span><select id="domainTunnel"></select></label>
+    <div class="row"><button class="btn primary" id="bSaveDomain">Simpan</button><button class="btn" id="bCheckDns">Cek DNS</button></div>
+    <p class="small" id="dnsStatus" style="margin:12px 0 4px"></p>
+    <div id="srvBox" class="hide">
+      <p class="small muted" style="margin:10px 0 8px">Cloudflare &gt; domain kamu &gt; <b>DNS &gt; Records &gt; Add record</b>, isi persis seperti ini:</p>
+      <div class="list" id="srvRows"></div>
+      <p class="small muted" style="margin:8px 0 0">Form lama dengan kolom Service/Protocol: Service <code>_minecraft</code>, Protocol <code>TCP</code>, Name diisi subdomain saja. Jangan ada record A/CNAME dengan nama sama yang awan oranye.</p>
+    </div>
+    <details style="margin-top:12px"><summary>Atur otomatis pakai API token Cloudflare</summary>
+      <ol class="steps small">
+        <li>Cloudflare &gt; ikon profil &gt; <b>My Profile &gt; API Tokens &gt; Create Token</b>.</li>
+        <li>Pilih template <b>Edit zone DNS</b>. Zone Resources: Include, Specific zone, pilih domain kamu.</li>
+        <li><b>Continue to summary &gt; Create Token</b>, salin token, tempel di bawah.</li>
+      </ol>
+      <label class="f"><span>API token <b class="small" id="cfTokenState"></b></span><input type="password" id="cfToken" autocomplete="off" placeholder="token Cloudflare (Edit zone DNS)"></label>
+      <div class="row"><button class="btn" id="bSaveCf">Simpan token</button><button class="btn primary" id="bSyncDns">Buat / update record sekarang</button><button class="btn small danger" id="bClearCf">Hapus token</button></div>
+      <div class="sw" style="margin-top:8px"><div><div class="t">Update otomatis</div><div class="d">Kalau alamat atau port playit berubah, record SRV ikut diperbarui saat panel terbuka</div></div><input type="checkbox" class="toggle" id="cfAutosync"></div>
+      <p class="small muted" style="margin:6px 0 0">Token hanya disimpan di HP ini dan cuma dipakai ke api.cloudflare.com.</p>
+    </details>
   </div>
 </section>
 
@@ -356,7 +371,7 @@ const proxy=u=>api("/api/proxy?u="+encodeURIComponent(u));
 // ---------------------------------------------------------- nav
 function go(t){tab=t;$$("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));$$("main section").forEach(s=>s.classList.toggle("on",s.id==="tab-"+t));
   window.scrollTo(0,0);
-  if(t==="mods")loadMods();if(t==="world"){loadBackups();loadProps()}if(t==="server"){loadSettings();loadFabric()}if(t==="tunnel")loadSettings();
+  if(t==="mods")loadMods();if(t==="world"){loadBackups();loadProps()}if(t==="server"){loadSettings();loadFabric()}if(t==="tunnel"){loadSettings();loadTunnels(false);loadDomain(true)}
   if(t==="console")setTimeout(()=>{const l=$("#log");l.scrollTop=l.scrollHeight},30)}
 $$("nav button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){e.preventDefault();go(g.dataset.go)}});
@@ -371,7 +386,8 @@ function renderAddresses(){
   const port=S.mcPort==="25565"?"":":"+S.mcPort;
   const run=S.playit&&S.playit.state==="running";
   let h="";
-  if(S.customDomain)h+=addrItem("Minecraft (internet, domain kamu)",S.customDomain,run?"":"tunnel belum aktif");
+  if(S.customDomain){const dn=dnsInfo&&dnsInfo.domain===S.customDomain?(dnsInfo.match?"DNS sudah benar":dnsInfo.current?"DNS belum mengarah ke tunnel, cek tab Tunnel":"record SRV belum ada, cek tab Tunnel"):"";
+    h+=addrItem("Minecraft (internet, domain kamu)",S.customDomain,[run?"":"tunnel belum aktif",dn].filter(Boolean).join(" · "))}
   for(const t of mcTunnels()){
     const off=t.disabled_reason?"nonaktif: "+esc(t.disabled_reason):(run?"":"tunnel belum aktif, start di tab Tunnel");
     h+=addrItem("Minecraft (internet, playit"+(t.name?" · "+esc(t.name):"")+")",t.display_address,off)}
@@ -398,8 +414,46 @@ async function loadTunnels(force){
     else if(r.status==="no-secret"){tunnels=null}
     else{tunnels={tunnels:[],pending:[],notices:[{priority:"High",message:"playit: "+(r.data&&(r.data.message||r.data.type)||JSON.stringify(r.data||r.status))}]};tunnelsAt=Date.now()}
   }catch(e){tunnels={tunnels:[],pending:[],notices:[{priority:"High",message:e.message}]};tunnelsAt=Date.now()}
-  tunnelsBusy=false;renderAddresses();
+  tunnelsBusy=false;renderAddresses();fillDomainTunnels();if(S.customDomain)loadDomain(false);
 }
+
+// ---------------------------------------------------------- domain cloudflare
+let dnsInfo=null, dnsAt=0, dnsBusy=false, lastAutoSync=0;
+function tunnelChoices(){const m=mcTunnels();return m.length?m:((tunnels&&tunnels.tunnels)||[])}
+function fillDomainTunnels(){const sel=$("#domainTunnel"),cur=sel.value,list=tunnelChoices();
+  const html=list.length?list.map(t=>'<option value="'+esc(t.display_address)+'">'+esc(t.display_address)+' ('+esc(t.tunnel_type_display||"tunnel")+')</option>').join(""):'<option value="">belum ada tunnel playit</option>';
+  if(sel.dataset.h!==html){sel.innerHTML=html;sel.dataset.h=html;if(cur&&[...sel.options].some(o=>o.value===cur))sel.value=cur}}
+async function loadDomain(force){
+  if(dnsBusy)return;if(!force&&Date.now()-dnsAt<60000)return;
+  fillDomainTunnels();dnsBusy=true;
+  try{dnsInfo=await api("/api/domain/info?addr="+encodeURIComponent($("#domainTunnel").value||""));dnsAt=Date.now()}catch(e){dnsInfo={error:e.message}}
+  dnsBusy=false;renderDomain();
+  const d=dnsInfo;if(d&&d.hasToken&&d.autosync&&d.domain&&d.expected&&!d.match&&Date.now()-lastAutoSync>300000){lastAutoSync=Date.now();syncDns(true)}
+}
+function renderDomain(){const d=dnsInfo||{};const pill=$("#dnsPill"),st=$("#dnsStatus");
+  $("#cfTokenState").textContent=d.hasToken?"(tersimpan)":"(belum diisi)";
+  if(!d.domain){pill.className="pill";pill.textContent="Belum diisi";st.textContent=d.error||"Isi domain lalu Simpan.";$("#srvBox").classList.add("hide");renderAddresses();return}
+  const e=d.expected,c=d.current;
+  pill.className="pill "+(d.match?"running":c?"crashed":"starting");pill.textContent=d.match?"DNS benar":c?"Beda tujuan":"Belum ada";
+  st.innerHTML=d.error?'<span style="color:var(--bad)">'+esc(d.error)+'</span>':d.match?'✅ <b>'+esc(d.domain)+'</b> sudah mengarah ke tunnel. Teman cukup join ke <b>'+esc(d.domain)+'</b>.':
+    c?'⚠️ DNS sekarang ke <code>'+esc(c.target)+':'+c.port+'</code>, seharusnya <code>'+(e?esc(e.target)+':'+e.port:"?")+'</code>. Update record di Cloudflare.':
+    '⏳ Record SRV untuk '+esc(d.domain)+' belum terlihat di DNS publik (perubahan bisa telat 1 sampai 5 menit).';
+  const box=$("#srvBox");
+  if(e){box.classList.remove("hide");
+    const rows=[["Type","SRV"],["Priority","0"],["Weight","5"],["Name",d.srvName],["Target",e.target],["Port",String(e.port)],["TTL","Auto"],["Proxy","DNS only"]];
+    $("#srvRows").innerHTML=rows.map(([k,v])=>'<div class="item'+(k==="Name"||k==="Target"||k==="Port"?" wide":"")+'"><div class="n"><span class="small muted">'+k+'</span><b>'+esc(v)+'</b></div>'+(k!=="Name"&&k!=="Target"&&k!=="Port"?"":'<button class="btn small copy" data-copy="'+esc(v)+'">Salin</button>')+'</div>').join("")}
+  else box.classList.add("hide");
+  renderAddresses();
+}
+async function syncDns(auto){const addr=$("#domainTunnel").value;
+  try{const r=await api("/api/domain/sync",{form:{addr}});toast((auto?"Otomatis: ":"")+r.message);setTimeout(()=>loadDomain(true),4000)}catch(e){toast(e.message,true)}}
+$("#domainTunnel").onchange=()=>loadDomain(true);
+$("#bCheckDns").onclick=()=>loadDomain(true);
+$("#bSaveDomain").onclick=()=>act("/api/settings",{customDomain:$("#customDomain").value},"Domain disimpan").then(()=>loadDomain(true));
+$("#bSaveCf").onclick=()=>{const v=$("#cfToken").value.trim();if(!v)return toast("Token kosong",true);act("/api/settings",{cfToken:v},"Token disimpan").then(()=>loadDomain(true));$("#cfToken").value=""};
+$("#bClearCf").onclick=()=>{if(confirm("Hapus token Cloudflare dari HP ini?"))act("/api/settings",{clearCfToken:"true"},"Token dihapus").then(()=>loadDomain(true))};
+$("#bSyncDns").onclick=()=>syncDns(false);
+$("#cfAutosync").onchange=e=>act("/api/settings",{cfAutosync:String(e.target.checked)},"Tersimpan");
 
 // ---------------------------------------------------------- login
 function showLogin(){if(loggingIn)return;loggingIn=true;$("#login").style.display="grid";setTimeout(()=>$("#loginPin").focus(),50)}
@@ -559,7 +613,7 @@ $("#bSaveProps").onclick=async()=>{try{await api("/api/properties",{body:$("#pro
 async function loadSettings(){try{const s=await api("/api/settings");
   for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart"])$("#"+k).checked=s[k];
   deviceRam=s.deviceRamMb>0?s.deviceRamMb:0;if(deviceRam){$("#ram").max=deviceRam;$("#ramNum").max=deviceRam;$("#ramDevice").textContent="(HP: "+gb(deviceRam)+")"}
-  setRam(s.ram);$("#jvmArgs").value=s.jvmArgs;$("#customDomain").value=s.customDomain||""}catch(e){toast(e.message,true)}}
+  setRam(s.ram);$("#jvmArgs").value=s.jvmArgs;$("#customDomain").value=s.customDomain||"";$("#cfAutosync").checked=!!s.cfAutosync}catch(e){toast(e.message,true)}}
 let deviceRam=0;
 const gb=mb=>(mb/1024).toFixed(2).replace(/\.?0+$/,"")+" GB";
 function setRam(v){v=Math.round(Number(v)||0);$("#ram").value=v;$("#ramNum").value=v;$("#ramLabel").textContent=gb(v);
