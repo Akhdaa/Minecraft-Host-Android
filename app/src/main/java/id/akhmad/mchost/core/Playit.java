@@ -49,6 +49,27 @@ public class Playit extends ManagedProcess {
         kill();
     }
 
+    private static final String RUNDATA = System.getProperty("mchost.playitApi", "https://api.playit.gg") + "/v1/agents/rundata";
+    private String cachedSecret;
+    private String cachedJson;
+    private long cachedAt;
+
+    /**
+     * Tunnel list from playit's API (same call playitd makes), as the raw JSON envelope
+     * {"status":"success","data":{"tunnels":[{"display_address":...}],...}}. Cached for 20 s.
+     */
+    public synchronized String tunnelsJson(boolean force) throws IOException {
+        String secret = host.cfg.get(Config.PLAYIT_SECRET, "").trim();
+        if (secret.isEmpty()) return null;
+        long now = System.currentTimeMillis();
+        if (!force && cachedJson != null && secret.equals(cachedSecret) && now - cachedAt < 20_000) return cachedJson;
+        byte[] body = IO.postJson(RUNDATA, "{}", "Agent-Key " + secret, 2 * 1024 * 1024);
+        cachedJson = new String(body, java.nio.charset.StandardCharsets.UTF_8);
+        cachedSecret = secret;
+        cachedAt = now;
+        return cachedJson;
+    }
+
     @Override
     protected void onLine(String line) {
     }

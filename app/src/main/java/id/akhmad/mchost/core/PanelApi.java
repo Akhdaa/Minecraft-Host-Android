@@ -85,6 +85,7 @@ public class PanelApi implements MiniHttp.Handler {
             case "/api/world/reset": requirePost(post); host.resetWorld(); res.ok(); return;
             case "/api/playit/start": requirePost(post); host.playit.start(); res.ok(); return;
             case "/api/playit/stop": requirePost(post); host.playit.stop(); res.ok(); return;
+            case "/api/playit/tunnels": playitTunnels(req, res); return;
             case "/api/logout": requirePost(post); logout(req, res); return;
             default: res.error(404, "Endpoint tidak ada");
         }
@@ -153,6 +154,7 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("panelPort", host.cfg.getInt(Config.PORT, 8080))
                 .put("mcPort", host.property("server-port", "25565"))
                 .put("maxPlayers", host.property("max-players", "20"))
+                .put("customDomain", host.cfg.get(Config.CUSTOM_DOMAIN, ""))
                 .raw("battery", host.platform.batteryJson())
                 .raw("playit", Json.obj().put("available", host.playit.available())
                         .put("state", host.playit.alive() ? "running" : host.playit.state())
@@ -223,6 +225,14 @@ public class PanelApi implements MiniHttp.Handler {
                 c.set(Config.PLAYIT_SECRET, secret.trim());
             }
             if ("true".equals(req.param("clearPlayitSecret"))) c.set(Config.PLAYIT_SECRET, "");
+            String domain = req.param("customDomain");
+            if (domain != null) {
+                domain = domain.trim().toLowerCase(Locale.US).replaceAll("^[a-z]+://", "").replaceAll("/.*$", "");
+                if (!domain.isEmpty() && !domain.matches("[a-z0-9.\\-]{3,253}(:[0-9]{1,5})?")) {
+                    throw new IllegalArgumentException("Domain tidak valid, contoh: mc.domainkamu.com");
+                }
+                c.set(Config.CUSTOM_DOMAIN, domain);
+            }
             String pin = req.param("pin");
             if (pin != null && !pin.trim().isEmpty()) {
                 if (!req.isLocal()) throw new IllegalStateException("PIN hanya bisa diganti dari aplikasi di HP");
@@ -242,6 +252,7 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("eula", c.getBool(Config.EULA))
                 .put("playitAutostart", c.getBool(Config.PLAYIT_AUTOSTART))
                 .put("hasPlayitSecret", !c.get(Config.PLAYIT_SECRET, "").isEmpty())
+                .put("customDomain", c.get(Config.CUSTOM_DOMAIN, ""))
                 .toString());
     }
 
@@ -382,6 +393,21 @@ public class PanelApi implements MiniHttp.Handler {
         }
         byte[] body = IO.fetch(target, 8 * 1024 * 1024);
         res.send(200, "application/json; charset=utf-8", body);
+    }
+
+    private void playitTunnels(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
+        String json;
+        try {
+            json = host.playit.tunnelsJson("1".equals(req.param("force")));
+        } catch (IOException e) {
+            res.error(502, "Gagal hubungi playit.gg: " + e.getMessage());
+            return;
+        }
+        if (json == null) {
+            res.json(200, "{\"status\":\"no-secret\"}");
+            return;
+        }
+        res.json(200, json);
     }
 
     // ------------------------------------------------------------ static

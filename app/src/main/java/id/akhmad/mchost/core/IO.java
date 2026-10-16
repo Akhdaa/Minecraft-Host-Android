@@ -110,6 +110,29 @@ public final class IO {
         }
     }
 
+    /** POSTs a JSON body and returns the response body (also for 4xx, so API errors are readable). */
+    public static byte[] postJson(String url, String json, String authorization, int max) throws IOException {
+        HttpURLConnection c = open(url);
+        try {
+            c.setRequestMethod("POST");
+            c.setDoOutput(true);
+            c.setRequestProperty("Content-Type", "application/json");
+            c.setRequestProperty("Accept", "application/json");
+            if (authorization != null) c.setRequestProperty("Authorization", authorization);
+            try (OutputStream out = c.getOutputStream()) {
+                out.write(json.getBytes(StandardCharsets.UTF_8));
+            }
+            int code = c.getResponseCode();
+            InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();
+            if (in == null) throw new IOException("HTTP " + code + " dari " + url);
+            try (InputStream body = in) {
+                return readAll(body, max);
+            }
+        } finally {
+            c.disconnect();
+        }
+    }
+
     /** Downloads to a temp file and renames on success. */
     public static long download(String url, File dest, LogBuffer log) throws IOException {
         HttpURLConnection c = open(url);

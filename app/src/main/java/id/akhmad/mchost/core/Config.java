@@ -23,6 +23,7 @@ public class Config {
     public static final String PLAYIT_SECRET = "playit_secret";
     public static final String PLAYIT_AUTOSTART = "playit_autostart";
     public static final String PORT = "port";
+    public static final String CUSTOM_DOMAIN = "custom_domain";
 
     private final File file;
     private final Properties p = new Properties();
@@ -47,6 +48,7 @@ public class Config {
         def(PLAYIT_SECRET, "");
         def(PLAYIT_AUTOSTART, "false");
         def(PORT, "8080");
+        def(CUSTOM_DOMAIN, "");
         if (get(PIN, "").isEmpty()) {
             SecureRandom r = new SecureRandom();
             p.setProperty(PIN, String.valueOf(100000 + r.nextInt(900000)));

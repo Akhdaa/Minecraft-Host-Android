@@ -153,7 +153,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
   <div class="card">
     <h2>Alamat join</h2>
     <div class="list" id="addrList"></div>
-    <p class="small muted" style="margin:10px 0 0">Satu WiFi/router: pakai alamat LAN. Teman dari luar rumah: aktifkan tab <a href="#" data-go="tunnel">Tunnel</a>.</p>
+    <p class="small muted" style="margin:10px 0 0">Teman dari luar rumah pakai alamat internet (playit atau domain). Satu WiFi/router pakai alamat LAN. Atur tunnel di tab <a href="#" data-go="tunnel">Tunnel</a>.</p>
   </div>
 
   <div class="card">
@@ -251,6 +251,13 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
       <button class="btn" id="bTunnelStop">Stop</button>
     </div>
     <div class="sw" style="margin-top:8px"><div><div class="t">Nyalakan otomatis</div><div class="d">Tunnel ikut hidup saat aplikasi dibuka</div></div><input type="checkbox" class="toggle" id="playitAutostart"></div>
+  </div>
+  <div class="card">
+    <h2><span class="grow">Alamat tunnel</span><button class="btn small" id="bTunnelRefresh">Refresh</button></h2>
+    <div class="list" id="tunnelList"></div>
+    <label class="f" style="margin-top:14px"><span>Domain sendiri (opsional, tampil di Beranda)</span>
+      <input type="text" id="customDomain" placeholder="mc.domainkamu.com" autocapitalize="off" spellcheck="false"></label>
+    <button class="btn" id="bSaveDomain">Simpan domain</button>
   </div>
   <div class="card">
     <h2>Log tunnel</h2>
@@ -354,6 +361,46 @@ function go(t){tab=t;$$("nav button").forEach(b=>b.classList.toggle("on",b.datas
 $$("nav button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){e.preventDefault();go(g.dataset.go)}});
 
+// ---------------------------------------------------------- addresses (LAN + playit + domain)
+let tunnels=null, tunnelsAt=0, tunnelsBusy=false;
+function addrItem(k,v,note){return '<div class="item"><div class="n"><span class="small muted">'+k+'</span><b>'+esc(v)+'</b>'+(note?'<span class="small muted">'+note+'</span>':'')+'</div><button class="btn small copy" data-copy="'+esc(v)+'">Salin</button></div>'}
+function mcTunnels(){if(!tunnels||!tunnels.tunnels)return[];
+  const toMc=t=>((t.agent_config&&t.agent_config.fields)||[]).some(f=>/port/i.test(f.name)&&String(f.value)===String(S.mcPort));
+  return tunnels.tunnels.filter(t=>/minecraft-java/i.test(t.tunnel_type||"")||/minecraft java/i.test(t.tunnel_type_display||"")||(!t.tunnel_type&&toMc(t)))}
+function renderAddresses(){
+  const port=S.mcPort==="25565"?"":":"+S.mcPort;
+  const run=S.playit&&S.playit.state==="running";
+  let h="";
+  if(S.customDomain)h+=addrItem("Minecraft (internet, domain kamu)",S.customDomain,run?"":"tunnel belum aktif");
+  for(const t of mcTunnels()){
+    const off=t.disabled_reason?"nonaktif: "+esc(t.disabled_reason):(run?"":"tunnel belum aktif, start di tab Tunnel");
+    h+=addrItem("Minecraft (internet, playit"+(t.name?" · "+esc(t.name):"")+")",t.display_address,off)}
+  if(tunnels&&tunnels.pending)for(const p of tunnels.pending)h+='<div class="item"><div class="n"><span class="small muted">playit · '+esc(p.name||p.tunnel_type_display)+'</span><b class="muted">menyiapkan alamat…</b><span class="small muted">'+esc(p.status_msg||"")+'</span></div></div>';
+  if(S.playit&&S.playit.hasSecret&&tunnels&&!mcTunnels().length&&!(tunnels.pending||[]).length)h+='<div class="item"><div class="n"><b>Belum ada tunnel Minecraft Java</b><span class="small muted">Buat di dashboard playit.gg ke 127.0.0.1:'+esc(S.mcPort)+'</span></div><a class="btn small" href="https://playit.gg/account/tunnels" target="_blank" rel="noopener">Buka</a></div>';
+  h+=S.lan.map(ip=>addrItem("Minecraft (LAN, satu WiFi)",ip+port)).join("");
+  h+=S.lan.map(ip=>addrItem("Panel web (LAN)","http://"+ip+":"+S.panelPort)).join("");
+  $("#addrList").innerHTML=h||'<div class="empty">Tidak terhubung ke WiFi</div>';
+  renderTunnelList();
+}
+function renderTunnelList(){const box=$("#tunnelList");if(!box)return;
+  if(!S.playit||!S.playit.hasSecret){box.innerHTML='<div class="empty">Isi secret key dulu</div>';return}
+  if(!tunnels){box.innerHTML='<div class="empty">Memuat daftar tunnel…</div>';return}
+  let h=(tunnels.tunnels||[]).map(t=>addrItem(esc(t.tunnel_type_display||t.tunnel_type||"tunnel")+(t.name?" · "+esc(t.name):""),t.display_address,t.disabled_reason?"nonaktif: "+esc(t.disabled_reason):"")).join("");
+  h+=(tunnels.pending||[]).map(p=>'<div class="item"><div class="n"><span class="small muted">'+esc(p.tunnel_type_display||"")+'</span><b class="muted">'+esc(p.name||"menyiapkan")+'</b><span class="small muted">'+esc(p.status_msg||"")+'</span></div></div>').join("");
+  h+=(tunnels.notices||[]).map(n=>'<div class="banner '+(n.priority==="Low"?"info":"err")+'" style="margin:0">'+esc(n.message)+(n.resolve_link?' <a href="'+esc(n.resolve_link)+'" target="_blank" rel="noopener">Atasi</a>':'')+'</div>').join("");
+  box.innerHTML=h||'<div class="empty">Belum ada tunnel. Buat tunnel Minecraft Java di dashboard playit.gg.</div>'}
+async function loadTunnels(force){
+  if(tunnelsBusy||!S.playit||!S.playit.hasSecret)return;
+  if(!force&&tunnels&&Date.now()-tunnelsAt<30000)return;
+  tunnelsBusy=true;
+  try{const r=await api("/api/playit/tunnels"+(force?"?force=1":""));
+    if(r.status==="success"){tunnels=r.data;tunnelsAt=Date.now()}
+    else if(r.status==="no-secret"){tunnels=null}
+    else{tunnels={tunnels:[],pending:[],notices:[{priority:"High",message:"playit: "+(r.data&&(r.data.message||r.data.type)||JSON.stringify(r.data||r.status))}]};tunnelsAt=Date.now()}
+  }catch(e){tunnels={tunnels:[],pending:[],notices:[{priority:"High",message:e.message}]};tunnelsAt=Date.now()}
+  tunnelsBusy=false;renderAddresses();
+}
+
 // ---------------------------------------------------------- login
 function showLogin(){if(loggingIn)return;loggingIn=true;$("#login").style.display="grid";setTimeout(()=>$("#loginPin").focus(),50)}
 $("#loginForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/login",{form:{pin:$("#loginPin").value}});$("#login").style.display="none";loggingIn=false;refresh();go(tab)}catch(err){toast(err.message,true)}};
@@ -384,8 +431,7 @@ async function refresh(){
   if(st==="running")try{localStorage.setItem("setupDone","1")}catch(e){}
   // addresses
   const port=S.mcPort==="25565"?"":":"+S.mcPort;
-  const rows=S.lan.map(ip=>['Minecraft (LAN)',ip+port]).concat(S.lan.map(ip=>['Panel web (LAN)',"http://"+ip+":"+S.panelPort]));
-  $("#addrList").innerHTML=rows.length?rows.map(([k,v])=>'<div class="item"><div class="n"><span class="small muted">'+k+'</span><b>'+esc(v)+'</b></div><button class="btn small copy" data-copy="'+esc(v)+'">Salin</button></div>').join(""):'<div class="empty">Tidak terhubung ke WiFi</div>';
+  renderAddresses();
   // server tab
   $("#pinBox").classList.toggle("hide",!S.local);$("#remoteBox").classList.toggle("hide",S.local);
   if(S.local)$("#pinShow").textContent=S.pin;
@@ -513,7 +559,7 @@ $("#bSaveProps").onclick=async()=>{try{await api("/api/properties",{body:$("#pro
 async function loadSettings(){try{const s=await api("/api/settings");
   for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart"])$("#"+k).checked=s[k];
   deviceRam=s.deviceRamMb>0?s.deviceRamMb:0;if(deviceRam){$("#ram").max=deviceRam;$("#ramNum").max=deviceRam;$("#ramDevice").textContent="(HP: "+gb(deviceRam)+")"}
-  setRam(s.ram);$("#jvmArgs").value=s.jvmArgs}catch(e){toast(e.message,true)}}
+  setRam(s.ram);$("#jvmArgs").value=s.jvmArgs;$("#customDomain").value=s.customDomain||""}catch(e){toast(e.message,true)}}
 let deviceRam=0;
 const gb=mb=>(mb/1024).toFixed(2).replace(/\.?0+$/,"")+" GB";
 function setRam(v){v=Math.round(Number(v)||0);$("#ram").value=v;$("#ramNum").value=v;$("#ramLabel").textContent=gb(v);
@@ -528,8 +574,10 @@ $("#bSavePin").onclick=()=>{const p=$("#newPin").value.trim();act("/api/settings
 $("#bLogout").onclick=async()=>{await api("/api/logout",{post:true}).catch(()=>{});location.reload()};
 $("#bBattery").onclick=()=>bridge&&bridge.requestIgnoreBattery();
 $("#bAppInfo").onclick=()=>bridge&&bridge.openAppInfo();
-$("#bSaveSecret").onclick=()=>{const v=$("#playitSecret").value.trim();if(!v)return toast("Secret kosong",true);act("/api/settings",{playitSecret:v},"Secret disimpan");$("#playitSecret").value=""};
-$("#bTunnelStart").onclick=()=>act("/api/playit/start",null,"Tunnel dinyalakan");
+$("#bSaveSecret").onclick=()=>{const v=$("#playitSecret").value.trim();if(!v)return toast("Secret kosong",true);act("/api/settings",{playitSecret:v},"Secret disimpan").then(()=>loadTunnels(true));$("#playitSecret").value=""};
+$("#bTunnelStart").onclick=()=>act("/api/playit/start",null,"Tunnel dinyalakan").then(()=>setTimeout(()=>loadTunnels(true),4000));
+$("#bTunnelRefresh").onclick=()=>loadTunnels(true);
+$("#bSaveDomain").onclick=()=>act("/api/settings",{customDomain:$("#customDomain").value},"Domain disimpan");
 $("#bTunnelStop").onclick=()=>act("/api/playit/stop",null,"Tunnel dimatikan");
 
 // ---------------------------------------------------------- fabric
@@ -554,7 +602,7 @@ $("#bInstall").onclick=async()=>{try{const inst=await proxy("https://meta.fabric
 // ---------------------------------------------------------- loops
 let tick=0;
 async function loop(){tick++;
-  if(!loggingIn){await refresh();if(tab==="console"||tab==="home"||tick%5===0)await pollLog();if(tab==="tunnel")await pollTunnel()}
+  if(!loggingIn){await refresh();if(tab==="console"||tab==="home"||tick%5===0)await pollLog();if(tab==="tunnel")await pollTunnel();if(tab==="home"||tab==="tunnel")loadTunnels(false)}
   setTimeout(loop,tab==="console"?900:1600)}
 api("/api/login").then(r=>{if(!r.authorized)showLogin()}).catch(()=>{}).finally(loop);
 </script>
