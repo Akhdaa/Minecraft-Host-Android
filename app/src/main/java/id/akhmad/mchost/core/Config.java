@@ -1,0 +1,90 @@
+package id.akhmad.mchost.core;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.SecureRandom;
+import java.util.Properties;
+
+/** Persistent panel settings (panel.properties). */
+public class Config {
+    public static final String RAM_MB = "ram_mb";
+    public static final String JVM_ARGS = "jvm_args";
+    public static final String AUTO_RESTART = "auto_restart";
+    public static final String AUTO_START = "auto_start";
+    public static final String BOOT_START = "boot_start";
+    public static final String PIN = "pin";
+    public static final String EULA = "eula";
+    public static final String MC_VERSION = "mc_version";
+    public static final String LOADER = "loader";
+    public static final String INSTALLER = "installer";
+    public static final String PLAYIT_SECRET = "playit_secret";
+    public static final String PLAYIT_AUTOSTART = "playit_autostart";
+    public static final String PORT = "port";
+
+    private final File file;
+    private final Properties p = new Properties();
+
+    public Config(File file) {
+        this.file = file;
+        if (file.exists()) {
+            try (InputStream in = new FileInputStream(file)) {
+                p.load(in);
+            } catch (Exception ignored) {
+            }
+        }
+        def(RAM_MB, "3072");
+        def(JVM_ARGS, "");
+        def(AUTO_RESTART, "true");
+        def(AUTO_START, "false");
+        def(BOOT_START, "false");
+        def(EULA, "false");
+        def(MC_VERSION, "1.20.1");
+        def(LOADER, "");
+        def(INSTALLER, "");
+        def(PLAYIT_SECRET, "");
+        def(PLAYIT_AUTOSTART, "false");
+        def(PORT, "8080");
+        if (get(PIN, "").isEmpty()) {
+            SecureRandom r = new SecureRandom();
+            p.setProperty(PIN, String.valueOf(100000 + r.nextInt(900000)));
+        }
+        save();
+    }
+
+    private void def(String k, String v) {
+        if (p.getProperty(k) == null) p.setProperty(k, v);
+    }
+
+    public synchronized String get(String k, String def) {
+        String v = p.getProperty(k);
+        return v == null ? def : v;
+    }
+
+    public synchronized int getInt(String k, int def) {
+        try {
+            return Integer.parseInt(get(k, String.valueOf(def)).trim());
+        } catch (NumberFormatException e) {
+            return def;
+        }
+    }
+
+    public synchronized boolean getBool(String k) {
+        return "true".equalsIgnoreCase(get(k, "false"));
+    }
+
+    public synchronized void set(String k, String v) {
+        p.setProperty(k, v == null ? "" : v);
+    }
+
+    public synchronized void save() {
+        File parent = file.getParentFile();
+        if (parent != null) parent.mkdirs();
+        try (OutputStream out = new FileOutputStream(file)) {
+            p.store(out, "MC Host panel settings");
+        } catch (Exception ignored) {
+        }
+    }
+}

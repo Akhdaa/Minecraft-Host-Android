@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1411">
+<title>MC Host Panel</title>
+<style>
+:root{
+  --bg:#0f1411;--bg2:#161d18;--card:#1b241e;--line:#2a362d;--text:#e8efe9;--muted:#93a597;
+  --accent:#5fd068;--accent2:#3fa34a;--warn:#f2b84b;--bad:#ef6b5b;--info:#6fb7ff;
+  --radius:14px;--mono:ui-monospace,"JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+input[type=range],input[type=checkbox]{accent-color:var(--accent2)}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--info)}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:rgba(15,20,17,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;padding:10px 16px}
+.logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#6ad46f,#2f7f37);display:grid;place-items:center;font-weight:800;color:#0b130d}
+header h1{font-size:16px;margin:0;font-weight:700}
+header .sub{font-size:12px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--bg2);border:1px solid var(--line)}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pill.running::before{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.pill.starting::before,.pill.stopping::before{background:var(--warn)}
+.pill.crashed::before{background:var(--bad)}
+main{max-width:980px;margin:0 auto;padding:16px 16px 96px}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:rgba(22,29,24,.97);border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+nav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:4px 6px;border-radius:10px;min-width:52px;cursor:pointer}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--accent)}
+@media(min-width:860px){
+  nav{top:56px;bottom:auto;left:max(16px,calc(50% - 490px));right:auto;flex-direction:column;justify-content:flex-start;gap:4px;background:none;border:0;width:120px;padding:16px 0}
+  nav button{flex-direction:row;font-size:14px;gap:10px;justify-content:flex-start;padding:9px 12px}
+  nav button.on{background:var(--card)}
+  main{padding-left:150px;max-width:1130px}
+}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.card h2 .grow{flex:1}
+.muted{color:var(--muted)}.small{font-size:12.5px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:620px){.grid{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat .k{font-size:12px;color:var(--muted)}.stat .v{font-size:18px;font-weight:700;margin-top:2px;word-break:break-all}
+.btn{border:1px solid var(--line);background:var(--bg2);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:#3d4e41}
+.btn.primary{background:var(--accent2);border-color:var(--accent2);color:#06100a}
+.btn.primary:hover{background:var(--accent)}
+.btn.danger{color:var(--bad)}
+.btn.small{padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.big{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.big .btn{justify-content:center;padding:12px}
+input[type=text],input[type=password],input[type=number],select,textarea{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent2)}
+textarea{font-family:var(--mono);font-size:13px;min-height:260px;resize:vertical}
+label.f{display:block;margin-bottom:12px}
+label.f>span{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.sw:last-child{border-bottom:0}
+.sw .t{font-weight:600}.sw .d{font-size:12.5px;color:var(--muted)}
+.toggle{appearance:none;width:44px;height:26px;border-radius:99px;background:#344238;position:relative;cursor:pointer;flex:none;transition:.15s}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#cfd8d1;transition:.15s}
+.toggle:checked{background:var(--accent2)}.toggle:checked::after{left:21px;background:#fff}
+.console{background:#0a0e0b;border:1px solid var(--line);border-radius:12px;font:12.5px/1.5 var(--mono);padding:10px;height:56vh;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.console.mini{height:170px}
+.console .w{color:var(--warn)}.console .e{color:var(--bad)}.console .p{color:var(--info)}.console .c{color:var(--accent)}
+.cmd{display:flex;gap:8px;margin-top:10px}.cmd input{font-family:var(--mono)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{background:var(--bg2);border:1px solid var(--line);border-radius:99px;padding:5px 11px;font-size:12.5px;cursor:pointer}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:9px 11px}
+.item .n{flex:1;min-width:0}.item .n b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.item.off .n b{color:var(--muted);text-decoration:line-through}
+.item img{width:40px;height:40px;border-radius:9px;background:#26322a;flex:none;object-fit:cover}
+.banner{border-radius:12px;padding:11px 13px;margin-bottom:14px;border:1px solid;font-size:14px}
+.banner.info{border-color:#2d4b66;background:#13212d}.banner.err{border-color:#6a2f2a;background:#2a1513}.banner.ok{border-color:#2e5a33;background:#132317}
+.steps{margin:0;padding-left:20px}.steps li{margin:6px 0}
+.done{color:var(--accent)}
+.empty{color:var(--muted);text-align:center;padding:18px;font-size:14px}
+code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px}
+.copy{cursor:pointer}
+#toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:20;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:min(92vw,460px)}
+#toast div{background:#223026;border:1px solid var(--line);padding:9px 14px;border-radius:10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+#toast div.err{border-color:#6a2f2a;background:#311a17}
+#login{position:fixed;inset:0;z-index:30;background:var(--bg);display:none;place-items:center;padding:20px}
+#login .card{width:min(360px,100%)}
+.pin{font-size:28px;letter-spacing:8px;text-align:center;font-family:var(--mono)}
+.bar{height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--accent2)}
+.hide{display:none!important}
+.players{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.players span{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px}
+details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">M</div>
+  <div style="flex:1;min-width:0">
+    <h1>MC Host</h1>
+    <div class="sub" id="hdrSub">Fabric server di HP</div>
+  </div>
+  <span class="pill" id="hdrPill">memuat</span>
+</header>
+
+<nav id="nav">
+  <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Beranda</button>
+  <button data-tab="console"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg>Konsol</button>
+  <button data-tab="mods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg>Mods</button>
+  <button data-tab="world"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Dunia</button>
+  <button data-tab="tunnel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18a8 8 0 0 1 16 0M8 18a4 4 0 0 1 8 0"/><circle cx="12" cy="18" r="1"/></svg>Tunnel</button>
+  <button data-tab="server"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Server</button>
+</nav>
+
+<main>
+<div id="taskBanner" class="banner info hide"></div>
+<div id="errBanner" class="banner err hide"></div>
+
+<!-- ============================== HOME -->
+<section id="tab-home" class="on">
+  <div class="card" id="setupCard">
+    <h2>Persiapan awal</h2>
+    <ol class="steps">
+      <li id="stRuntime">Java runtime disiapkan otomatis</li>
+      <li id="stFabric">Install Fabric di tab <a href="#" data-go="server">Server</a></li>
+      <li id="stEula">Setujui EULA Minecraft di tab <a href="#" data-go="server">Server</a></li>
+      <li id="stStart">Tekan <b>Start</b>, start pertama download file vanilla</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2><span class="grow">Status server</span><span class="pill" id="statePill">-</span></h2>
+    <div class="big">
+      <button class="btn primary" id="bStart">Start</button>
+      <button class="btn" id="bStop">Stop</button>
+      <button class="btn" id="bRestart">Restart</button>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div class="stat"><div class="k">Pemain</div><div class="v" id="sPlayers">0</div></div>
+      <div class="stat"><div class="k">RAM dipakai</div><div class="v" id="sRam">-</div><div class="bar"><i id="sRamBar" style="width:0"></i></div></div>
+      <div class="stat"><div class="k">Uptime</div><div class="v" id="sUptime">-</div></div>
+      <div class="stat"><div class="k">Baterai HP</div><div class="v" id="sBatt">-</div></div>
+    </div>
+    <div class="players" id="playerList"></div>
+  </div>
+
+  <div class="card">
+    <h2>Alamat join</h2>
+    <div class="list" id="addrList"></div>
+    <p class="small muted" style="margin:10px 0 0">Satu WiFi/router: pakai alamat LAN. Teman dari luar rumah: aktifkan tab <a href="#" data-go="tunnel">Tunnel</a>.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="grow">Log terbaru</span><button class="btn small" data-go="console">Buka konsol</button></h2>
+    <div class="console mini" id="miniLog"></div>
+  </div>
+</section>
+
+<!-- ============================== CONSOLE -->
+<section id="tab-console">
+  <div class="card">
+    <h2><span class="grow">Konsol</span>
+      <label class="small muted row" style="gap:6px"><input type="checkbox" id="autoScroll" checked> auto scroll</label>
+      <button class="btn small danger" id="bKill" title="Matikan paksa">Kill</button>
+    </h2>
+    <div class="console" id="log"></div>
+    <form class="cmd" id="cmdForm">
+      <input type="text" id="cmdInput" placeholder="ketik command, contoh: op NamaKamu" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="btn primary">Kirim</button>
+    </form>
+    <div class="chips" id="chips">
+      <span class="chip" data-cmd="list">list</span>
+      <span class="chip" data-cmd="save-all">save-all</span>
+      <span class="chip" data-cmd="whitelist on">whitelist on</span>
+      <span class="chip" data-cmd="whitelist list">whitelist list</span>
+      <span class="chip" data-fill="whitelist add ">whitelist add …</span>
+      <span class="chip" data-fill="op ">op …</span>
+      <span class="chip" data-fill="kick ">kick …</span>
+      <span class="chip" data-cmd="time set day">siang</span>
+      <span class="chip" data-cmd="weather clear">cerah</span>
+      <span class="chip" data-fill="say ">say …</span>
+      <span class="chip" data-fill="chunky radius 1000">chunky radius</span>
+      <span class="chip" data-cmd="chunky start">chunky start</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== MODS -->
+<section id="tab-mods">
+  <div id="modRestart" class="banner info hide">Perubahan mod berlaku setelah server di restart.</div>
+  <div class="card">
+    <h2><span class="grow">Mod terpasang</span>
+      <label class="btn small"><input type="file" id="modUpload" accept=".jar" multiple hidden>Upload .jar</label>
+    </h2>
+    <div class="list" id="modList"><div class="empty">Memuat...</div></div>
+    <p class="small muted" style="margin:10px 0 0">Mod konten (item, mob, dimensi) wajib dipasang juga di client teman dengan versi yang sama. Mod optimasi cukup di server.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="grow">Paket optimasi HP</span><button class="btn small primary" id="bPerfPack">Pasang semua</button></h2>
+    <p class="small muted" style="margin:0">Fabric API, Lithium, FerriteCore, Krypton, ModernFix, Chunky. Semuanya server side dan aman untuk client vanilla Fabric.</p>
+  </div>
+
+  <div class="card">
+    <h2>Cari di Modrinth</h2>
+    <form class="cmd" id="searchForm" style="margin-top:0">
+      <input type="text" id="searchInput" placeholder="contoh: sodium, waystones, voice chat">
+      <button class="btn primary">Cari</button>
+    </form>
+    <p class="small muted" id="searchHint">Hasil difilter otomatis: loader Fabric, versi server kamu, bisa jalan di server.</p>
+    <div class="list" id="searchResults"></div>
+  </div>
+</section>
+
+<!-- ============================== WORLD -->
+<section id="tab-world">
+  <div class="card">
+    <h2><span class="grow">Backup world</span><button class="btn small primary" id="bBackup">Backup sekarang</button></h2>
+    <div class="list" id="backupList"><div class="empty">Memuat...</div></div>
+    <div class="row" style="margin-top:12px">
+      <label class="btn small"><input type="file" id="worldUpload" accept=".zip" hidden>Upload world .zip</label>
+      <button class="btn small danger" id="bResetWorld">Hapus world</button>
+    </div>
+    <p class="small muted" style="margin:10px 0 0">World dari PC: zip folder world (yang berisi level.dat), upload, lalu tekan Restore. Restore dan hapus world butuh server dalam keadaan mati.</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="grow">server.properties</span><button class="btn small primary" id="bSaveProps">Simpan</button></h2>
+    <div id="propForm"></div>
+    <details><summary>Edit mentah (semua opsi)</summary><textarea id="propRaw" spellcheck="false"></textarea></details>
+    <p class="small muted" style="margin:6px 0 0">Restart server setelah menyimpan.</p>
+  </div>
+</section>
+
+<!-- ============================== TUNNEL -->
+<section id="tab-tunnel">
+  <div id="tunnelMissing" class="banner err hide">Build APK ini tidak membawa playitd (step build di GitHub Actions gagal). Main lewat LAN tetap jalan normal.</div>
+  <div class="card">
+    <h2><span class="grow">Tunnel playit.gg</span><span class="pill" id="tunnelPill">-</span></h2>
+    <label class="f"><span>Secret key agent <b id="secretState" class="small"></b></span>
+      <input type="password" id="playitSecret" placeholder="tempel SECRET_KEY dari playit.gg" autocomplete="off"></label>
+    <div class="row">
+      <button class="btn" id="bSaveSecret">Simpan key</button>
+      <button class="btn primary" id="bTunnelStart">Start tunnel</button>
+      <button class="btn" id="bTunnelStop">Stop</button>
+    </div>
+    <div class="sw" style="margin-top:8px"><div><div class="t">Nyalakan otomatis</div><div class="d">Tunnel ikut hidup saat aplikasi dibuka</div></div><input type="checkbox" class="toggle" id="playitAutostart"></div>
+  </div>
+  <div class="card">
+    <h2>Log tunnel</h2>
+    <div class="console mini" id="tunnelLog"></div>
+  </div>
+  <div class="card">
+    <h2>Cara pakai dengan domain Cloudflare</h2>
+    <ol class="steps small">
+      <li>Login <a href="https://playit.gg/account" target="_blank" rel="noopener">playit.gg</a>, tambah agent tipe <b>Docker</b>, salin <code>SECRET_KEY</code>, tempel di atas lalu Start.</li>
+      <li>Di dashboard playit, buat tunnel <b>Minecraft Java</b> ke <code>127.0.0.1:25565</code>. Catat alamat dan port yang diberikan.</li>
+      <li>Cloudflare DNS: record <b>SRV</b> name <code>_minecraft._tcp.mc</code>, priority 0, weight 5, port dari playit, target hostname playit. Biarkan DNS only (awan abu-abu).</li>
+      <li>Teman join ke <code>mc.domainkamu.com</code> tanpa port.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================== SERVER -->
+<section id="tab-server">
+  <div class="card">
+    <h2>Fabric</h2>
+    <p class="small muted" id="fabricNow" style="margin-top:0">-</p>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <label class="f"><span>Versi Minecraft</span><select id="mcVer"></select></label>
+      <label class="f"><span>Fabric loader</span><select id="loaderVer"></select></label>
+    </div>
+    <label class="small muted row" style="gap:6px;margin-bottom:12px"><input type="checkbox" id="showSnap"> tampilkan versi lain (bukan 1.20.x)</label>
+    <button class="btn primary" id="bInstall">Install / update Fabric</button>
+    <p class="small muted" style="margin:10px 0 0">Ganti versi Minecraft berarti semua mod juga harus versi yang cocok.</p>
+  </div>
+
+  <div class="card">
+    <h2>Pengaturan server</h2>
+    <div class="sw"><div><div class="t">Setuju EULA Minecraft</div><div class="d">Wajib. Baca di <a href="https://aka.ms/MinecraftEULA" target="_blank" rel="noopener">aka.ms/MinecraftEULA</a></div></div><input type="checkbox" class="toggle" id="eula"></div>
+    <div class="sw"><div><div class="t">Auto restart saat crash</div><div class="d">Berhenti jika crash 4x dalam 10 menit</div></div><input type="checkbox" class="toggle" id="autoRestart"></div>
+    <div class="sw"><div><div class="t">Start server saat aplikasi dibuka</div><div class="d">Server langsung menyala tanpa tekan Start</div></div><input type="checkbox" class="toggle" id="autoStart"></div>
+    <div class="sw"><div><div class="t">Jalan saat HP dinyalakan</div><div class="d">Panel aktif otomatis setelah reboot</div></div><input type="checkbox" class="toggle" id="bootStart"></div>
+    <label class="f" style="margin-top:14px"><span>RAM untuk server: <b id="ramLabel">-</b></span>
+      <input type="range" id="ram" min="1024" max="6144" step="256" style="width:100%"></label>
+    <p class="small muted" style="margin:-6px 0 12px">HP 8 GB: 3 sampai 4 GB paling aman. Terlalu besar bikin Android membunuh aplikasi lain atau server sendiri.</p>
+    <label class="f"><span>JVM args tambahan (opsional)</span><input type="text" id="jvmArgs" placeholder="-XX:+UseStringDeduplication" spellcheck="false" autocapitalize="off"></label>
+    <button class="btn primary" id="bSaveSettings">Simpan pengaturan</button>
+  </div>
+
+  <div class="card">
+    <h2>Akses panel</h2>
+    <div id="pinBox" class="hide">
+      <p class="small muted" style="margin-top:0">PIN login untuk buka panel dari HP lain atau laptop di router yang sama:</p>
+      <div class="row"><span class="code pin" id="pinShow">------</span></div>
+      <label class="f" style="margin-top:12px"><span>Ganti PIN (4 sampai 12 angka)</span><input type="text" inputmode="numeric" id="newPin"></label>
+      <button class="btn" id="bSavePin">Ganti PIN</button>
+    </div>
+    <div id="remoteBox" class="hide"><button class="btn" id="bLogout">Logout dari perangkat ini</button></div>
+    <div id="androidBox" class="hide" style="margin-top:14px">
+      <p class="small muted">Biar server tidak dimatikan Android saat layar mati:</p>
+      <div class="row"><button class="btn" id="bBattery">Matikan optimasi baterai</button><button class="btn" id="bAppInfo">Info aplikasi (autostart)</button></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="login"><div class="card">
+  <h2>Masuk panel</h2>
+  <p class="small muted" style="margin-top:0">PIN ada di aplikasi MC Host di HP server, tab Server.</p>
+  <form id="loginForm"><input type="password" inputmode="numeric" class="pin" id="loginPin" autocomplete="current-password" placeholder="••••••">
+  <button class="btn primary" style="width:100%;justify-content:center;margin-top:12px">Masuk</button></form>
+</div></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const STATE_ID={stopped:"Mati",starting:"Menyala…",running:"Jalan",stopping:"Mematikan…",crashed:"Crash"};
+const bridge=window.AndroidHost||null;
+let S={}, tab="home", logSince=0, tunnelSince=0, installedMods=[], loggingIn=false;
+
+function toast(msg,err){const d=document.createElement("div");if(err)d.className="err";d.textContent=msg;$("#toast").appendChild(d);setTimeout(()=>d.remove(),err?5200:2800)}
+
+async function api(path,o={}){
+  const opt={method:o.method||"GET",headers:{"X-Panel":"1"}};
+  if(o.form){opt.method="POST";opt.headers["Content-Type"]="application/x-www-form-urlencoded";opt.body=new URLSearchParams(o.form)}
+  else if(o.body!==undefined){opt.method=o.method||"POST";opt.headers["Content-Type"]=o.type||"application/octet-stream";opt.body=o.body}
+  else if(o.post){opt.method="POST"}
+  const r=await fetch(path,opt);
+  if(r.status===401){showLogin();throw new Error("Perlu login")}
+  const ct=r.headers.get("content-type")||"";
+  const data=ct.includes("json")?await r.json():await r.text();
+  if(!r.ok)throw new Error((data&&data.error)||data||("HTTP "+r.status));
+  return data;
+}
+async function act(path,form,okMsg){try{await api(path,form?{form}:{post:true});if(okMsg)toast(okMsg);refresh()}catch(e){toast(e.message,true)}}
+const proxy=u=>api("/api/proxy?u="+encodeURIComponent(u));
+
+// ---------------------------------------------------------- nav
+function go(t){tab=t;$$("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));$$("main section").forEach(s=>s.classList.toggle("on",s.id==="tab-"+t));
+  window.scrollTo(0,0);
+  if(t==="mods")loadMods();if(t==="world"){loadBackups();loadProps()}if(t==="server"){loadSettings();loadFabric()}if(t==="tunnel")loadSettings();
+  if(t==="console")setTimeout(()=>{const l=$("#log");l.scrollTop=l.scrollHeight},30)}
+$$("nav button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){e.preventDefault();go(g.dataset.go)}});
+
+// ---------------------------------------------------------- login
+function showLogin(){if(loggingIn)return;loggingIn=true;$("#login").style.display="grid";setTimeout(()=>$("#loginPin").focus(),50)}
+$("#loginForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/login",{form:{pin:$("#loginPin").value}});$("#login").style.display="none";loggingIn=false;refresh();go(tab)}catch(err){toast(err.message,true)}};
+
+// ---------------------------------------------------------- status
+function fmtDur(s){if(!s)return"-";const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?h+"j "+m+"m":m?m+"m "+(s%60)+"d":s+"d"}
+function fmtSize(b){return b>1048576?(b/1048576).toFixed(1)+" MB":Math.max(1,Math.round(b/1024))+" KB"}
+async function refresh(){
+  try{S=await api("/api/status")}catch(e){return}
+  const st=S.state, label=S.task?"Sibuk":STATE_ID[st]||st;
+  for(const p of [$("#hdrPill"),$("#statePill")]){p.className="pill "+(S.task?"starting":st);p.textContent=label}
+  $("#hdrSub").textContent=S.installed?("Fabric "+S.mcVersion+(S.loader?" · loader "+S.loader:"")):"Fabric belum terpasang";
+  const tb=$("#taskBanner");tb.classList.toggle("hide",!S.task);tb.textContent=S.task?"⏳ "+S.task+"…":"";
+  const eb=$("#errBanner");eb.classList.toggle("hide",!S.taskError);eb.textContent=S.taskError||"";
+  const alive=st==="running"||st==="starting"||st==="stopping";
+  $("#bStart").disabled=alive||!!S.task||!S.runtimeReady;$("#bStop").disabled=!alive;$("#bRestart").disabled=st!=="running";
+  $("#sPlayers").textContent=S.players.length+" / "+S.maxPlayers;
+  $("#playerList").innerHTML=S.players.map(p=>"<span>"+esc(p)+"</span>").join("");
+  if(S.rssMb>0){$("#sRam").textContent=(S.rssMb/1024).toFixed(1)+" / "+(S.ramMb/1024).toFixed(1)+" GB";$("#sRamBar").style.width=Math.min(100,S.rssMb/S.ramMb*100)+"%"}
+  else{$("#sRam").textContent="- / "+(S.ramMb/1024).toFixed(1)+" GB";$("#sRamBar").style.width="0"}
+  $("#sUptime").textContent=fmtDur(S.uptime);
+  const b=S.battery;
+  if(b){$("#sBatt").innerHTML=b.level+"%"+(b.charging?" ⚡":"")+' <span class="small" style="color:'+(b.temp>=43?"var(--bad)":b.temp>=39?"var(--warn)":"var(--muted)")+'">'+b.temp.toFixed(1)+"°C</span>"}else $("#sBatt").textContent="-";
+  // setup checklist
+  const steps=[["#stRuntime",S.runtimeReady],["#stFabric",S.installed],["#stEula",S.eula],["#stStart",st==="running"]];
+  steps.forEach(([id,ok])=>$(id).classList.toggle("done",ok));
+  $("#setupCard").classList.toggle("hide",S.runtimeReady&&S.installed&&S.eula&&(st==="running"||S.uptime>0||localStorage.getItem("setupDone")==="1"));
+  if(st==="running")try{localStorage.setItem("setupDone","1")}catch(e){}
+  // addresses
+  const port=S.mcPort==="25565"?"":":"+S.mcPort;
+  const rows=S.lan.map(ip=>['Minecraft (LAN)',ip+port]).concat(S.lan.map(ip=>['Panel web (LAN)',"http://"+ip+":"+S.panelPort]));
+  $("#addrList").innerHTML=rows.length?rows.map(([k,v])=>'<div class="item"><div class="n"><span class="small muted">'+k+'</span><b>'+esc(v)+'</b></div><button class="btn small copy" data-copy="'+esc(v)+'">Salin</button></div>').join(""):'<div class="empty">Tidak terhubung ke WiFi</div>';
+  // server tab
+  $("#pinBox").classList.toggle("hide",!S.local);$("#remoteBox").classList.toggle("hide",S.local);
+  if(S.local)$("#pinShow").textContent=S.pin;
+  $("#androidBox").classList.toggle("hide",!bridge);
+  $("#fabricNow").textContent=S.installed?("Terpasang: Minecraft "+S.mcVersion+", loader "+(S.loader||"?")):"Belum terpasang. Pilih versi lalu Install.";
+  // tunnel
+  const pl=S.playit;$("#tunnelMissing").classList.toggle("hide",pl.available);
+  $("#tunnelPill").className="pill "+(pl.state==="running"?"running":pl.state==="crashed"?"crashed":"");$("#tunnelPill").textContent=pl.state==="running"?"Aktif":pl.state==="crashed"?"Berhenti":"Mati";
+  $("#bTunnelStart").disabled=!pl.available||pl.state==="running";$("#bTunnelStop").disabled=pl.state!=="running";
+  $("#secretState").textContent=pl.hasSecret?"(tersimpan)":"(belum diisi)";
+}
+document.addEventListener("click",e=>{const c=e.target.closest("[data-copy]");if(!c)return;const v=c.dataset.copy;
+  (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast("Disalin: "+v)).catch(()=>{const t=document.createElement("textarea");t.value=v;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();toast("Disalin: "+v)})});
+
+$("#bStart").onclick=()=>act("/api/start",null,"Server dinyalakan");
+$("#bStop").onclick=()=>act("/api/stop",null,"Mematikan server");
+$("#bRestart").onclick=()=>act("/api/restart",null,"Restart dimulai");
+$("#bKill").onclick=()=>{if(confirm("Matikan paksa? World yang belum tersimpan bisa hilang."))act("/api/kill",null,"Dimatikan paksa")};
+
+// ---------------------------------------------------------- log
+function cls(l){if(l.includes("[Panel]"))return"p";if(l.startsWith("> "))return"c";if(/\/(ERROR|FATAL)\]|Exception|Error:/.test(l))return"e";if(/\/WARN\]/.test(l))return"w";return""}
+function renderLines(el,lines,keepScroll){
+  const atBottom=el.scrollTop+el.clientHeight>=el.scrollHeight-30;
+  const frag=document.createDocumentFragment();
+  for(const l of lines){const d=document.createElement("div");const c=cls(l);if(c)d.className=c;d.textContent=l;frag.appendChild(d)}
+  el.appendChild(frag);while(el.childElementCount>1500)el.firstChild.remove();
+  if(!keepScroll||atBottom)el.scrollTop=el.scrollHeight;
+}
+async function pollLog(){
+  try{const r=await api("/api/log?since="+logSince);
+    if(r.next<logSince){$("#log").innerHTML="";$("#miniLog").innerHTML=""}
+    if(r.lines.length){renderLines($("#log"),r.lines,!$("#autoScroll").checked);
+      const mini=$("#miniLog");renderLines(mini,r.lines,false);while(mini.childElementCount>60)mini.firstChild.remove()}
+    logSince=r.next}catch(e){}
+}
+async function pollTunnel(){try{const r=await api("/api/log?src=tunnel&since="+tunnelSince);if(r.lines.length)renderLines($("#tunnelLog"),r.lines,false);tunnelSince=r.next}catch(e){}}
+$("#cmdForm").onsubmit=async e=>{e.preventDefault();const v=$("#cmdInput").value.trim();if(!v)return;
+  try{await api("/api/command",{form:{cmd:v}});$("#cmdInput").value="";hist.unshift(v);hi=-1;pollLog()}catch(err){toast(err.message,true)}};
+let hist=[],hi=-1;
+$("#cmdInput").addEventListener("keydown",e=>{if(e.key==="ArrowUp"&&hist.length){hi=Math.min(hi+1,hist.length-1);e.target.value=hist[hi];e.preventDefault()}
+  if(e.key==="ArrowDown"){hi=Math.max(hi-1,-1);e.target.value=hi<0?"":hist[hi];e.preventDefault()}});
+$("#chips").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;
+  if(c.dataset.cmd){api("/api/command",{form:{cmd:c.dataset.cmd}}).then(pollLog).catch(err=>toast(err.message,true))}
+  else{const i=$("#cmdInput");i.value=c.dataset.fill;i.focus()}};
+
+// ---------------------------------------------------------- mods
+const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,"");
+async function loadMods(){
+  try{const r=await api("/api/mods");installedMods=r.mods;
+    $("#modList").innerHTML=r.mods.length?r.mods.map(m=>'<div class="item'+(m.enabled?"":" off")+'"><div class="n"><b title="'+esc(m.name)+'">'+esc(m.name.replace(/\.disabled$/,""))+'</b><span class="small muted">'+fmtSize(m.size)+(m.enabled?"":" · nonaktif")+'</span></div>'+
+      '<input type="checkbox" class="toggle" data-toggle="'+esc(m.name)+'"'+(m.enabled?" checked":"")+'><button class="btn small danger" data-del="'+esc(m.name)+'">Hapus</button></div>').join(""):'<div class="empty">Belum ada mod. Pasang paket optimasi atau cari di bawah.</div>';
+    $("#modRestart").classList.toggle("hide",!r.needsRestart||!window._modChanged);
+  }catch(e){toast(e.message,true)}
+}
+$("#modList").onclick=async e=>{const d=e.target.closest("[data-del]");if(d&&confirm("Hapus "+d.dataset.del+"?")){try{await api("/api/mods/delete",{form:{name:d.dataset.del}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}}};
+$("#modList").onchange=async e=>{const t=e.target.closest("[data-toggle]");if(!t)return;try{await api("/api/mods/toggle",{form:{name:t.dataset.toggle}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}};
+$("#modUpload").onchange=async e=>{for(const f of e.target.files){try{toast("Upload "+f.name+"…");await api("/api/mods/upload?name="+encodeURIComponent(f.name),{method:"PUT",body:f});window._modChanged=1}catch(err){toast(f.name+": "+err.message,true)}}e.target.value="";loadMods()};
+
+const mcVersion=()=>S.mcVersion||"1.20.1";
+async function modrinthVersion(idOrSlug){
+  const u="https://api.modrinth.com/v2/project/"+encodeURIComponent(idOrSlug)+"/version?loaders="+encodeURIComponent('["fabric"]')+"&game_versions="+encodeURIComponent(JSON.stringify([mcVersion()]));
+  const vs=await proxy(u);if(!vs.length)throw new Error("tidak ada versi untuk Fabric "+mcVersion());
+  return vs.find(v=>v.version_type==="release")||vs[0];
+}
+async function installProject(idOrSlug,seen=new Set(),label){
+  if(seen.has(idOrSlug))return;seen.add(idOrSlug);
+  const proj=await proxy("https://api.modrinth.com/v2/project/"+encodeURIComponent(idOrSlug));
+  seen.add(proj.id);seen.add(proj.slug);
+  if(installedMods.some(m=>norm(m.name).includes(norm(proj.slug)))){toast(proj.title+" sudah terpasang");return}
+  const v=await modrinthVersion(proj.id);
+  const file=v.files.find(f=>f.primary)||v.files[0];
+  toast("Memasang "+proj.title+"…");
+  await api("/api/mods/install",{form:{url:file.url,filename:file.filename}});
+  installedMods.push({name:file.filename,enabled:true});window._modChanged=1;
+  for(const d of v.dependencies||[]){if(d.dependency_type==="required"&&d.project_id){try{await installProject(d.project_id,seen)}catch(err){toast("Dependency: "+err.message,true)}}}
+}
+$("#bPerfPack").onclick=async e=>{const b=e.target;b.disabled=true;const seen=new Set();
+  for(const s of ["fabric-api","lithium","ferrite-core","krypton","modernfix","chunky"]){try{await installProject(s,seen)}catch(err){toast(s+": "+err.message,true)}}
+  b.disabled=false;loadMods();toast("Paket optimasi selesai")};
+$("#searchForm").onsubmit=async e=>{e.preventDefault();const q=$("#searchInput").value.trim();const box=$("#searchResults");box.innerHTML='<div class="empty">Mencari…</div>';
+  const facets=JSON.stringify([["project_type:mod"],["categories:fabric"],["versions:"+mcVersion()],["server_side:required","server_side:optional"]]);
+  try{const r=await proxy("https://api.modrinth.com/v2/search?limit=20&index=relevance&query="+encodeURIComponent(q)+"&facets="+encodeURIComponent(facets));
+    box.innerHTML=r.hits.length?r.hits.map(h=>{const inst=installedMods.some(m=>norm(m.name).includes(norm(h.slug)));
+      const client=h.client_side==="required"?' · <span style="color:var(--warn)">client juga wajib pasang</span>':"";
+      return '<div class="item"><img loading="lazy" src="'+esc(h.icon_url||"")+'" alt="" onerror="this.style.visibility=\'hidden\'"><div class="n"><b>'+esc(h.title)+'</b><span class="small muted">'+esc((h.description||"").slice(0,90))+'<br>'+Intl.NumberFormat("id").format(h.downloads)+' unduhan'+client+'</span></div>'+
+      '<button class="btn small'+(inst?"":" primary")+'" data-install="'+esc(h.project_id)+'"'+(inst?" disabled":"")+'>'+(inst?"Terpasang":"Pasang")+'</button></div>'}).join(""):'<div class="empty">Tidak ada hasil untuk Fabric '+esc(mcVersion())+'</div>';
+  }catch(err){box.innerHTML='<div class="empty">'+esc(err.message)+'</div>'}};
+$("#searchResults").onclick=async e=>{const b=e.target.closest("[data-install]");if(!b)return;b.disabled=true;b.textContent="…";
+  try{await installProject(b.dataset.install);b.textContent="Terpasang";loadMods()}catch(err){toast(err.message,true);b.disabled=false;b.textContent="Pasang"}};
+
+// ---------------------------------------------------------- world
+async function loadBackups(){
+  try{const r=await api("/api/backups");
+    $("#backupList").innerHTML=r.backups.length?r.backups.map(b=>'<div class="item"><div class="n"><b>'+esc(b.name)+'</b><span class="small muted">'+fmtSize(b.size)+" · "+new Date(b.time).toLocaleString("id")+'</span></div>'+
+      '<a class="btn small" href="/api/backups/download?name='+encodeURIComponent(b.name)+'" download="'+esc(b.name)+'">Unduh</a><button class="btn small" data-restore="'+esc(b.name)+'">Restore</button><button class="btn small danger" data-bdel="'+esc(b.name)+'">Hapus</button></div>').join(""):'<div class="empty">Belum ada backup'+(r.worldExists?"":" (world belum dibuat)")+'</div>';
+  }catch(e){toast(e.message,true)}
+}
+$("#bBackup").onclick=()=>act("/api/backups/create",null,"Backup dimulai").then(()=>setTimeout(loadBackups,3000));
+$("#backupList").onclick=async e=>{const r=e.target.closest("[data-restore]"),d=e.target.closest("[data-bdel]");
+  if(r&&confirm("Ganti world sekarang dengan "+r.dataset.restore+"?"))await act("/api/backups/restore",{name:r.dataset.restore},"Restore dimulai");
+  if(d&&confirm("Hapus backup "+d.dataset.bdel+"?")){await act("/api/backups/delete",{name:d.dataset.bdel});loadBackups()}};
+$("#worldUpload").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{toast("Upload "+f.name+" ("+fmtSize(f.size)+")…");await api("/api/backups/upload?name="+encodeURIComponent(f.name.replace(/[^\w.\-]/g,"_")),{method:"PUT",body:f});toast("Upload selesai, tekan Restore");loadBackups()}catch(err){toast(err.message,true)}e.target.value=""};
+$("#bResetWorld").onclick=()=>{if(confirm("Hapus world sekarang? Backup dulu kalau masih butuh.")&&prompt("Ketik HAPUS untuk lanjut")==="HAPUS")act("/api/world/reset",null,"World dihapus")};
+
+const PROPS=[["motd","Nama server (MOTD)","text"],["max-players","Maks pemain","number"],["view-distance","View distance (chunk)","number"],["simulation-distance","Simulation distance","number"],
+  ["difficulty","Kesulitan","select:peaceful,easy,normal,hard"],["gamemode","Gamemode default","select:survival,creative,adventure,spectator"],["online-mode","Online mode (akun premium)","bool"],
+  ["white-list","Whitelist","bool"],["pvp","PvP","bool"],["allow-flight","Izinkan terbang (mod)","bool"],["spawn-protection","Spawn protection","number"],["level-seed","Seed world baru","text"],["server-port","Port","number"]];
+let propLines=[];
+async function loadProps(){try{const t=await api("/api/properties");$("#propRaw").value=t;propLines=t.split("\n");renderPropForm()}catch(e){toast(e.message,true)}}
+function propGet(k){for(const l of propLines){if(l.startsWith(k+"="))return l.slice(k.length+1)}return""}
+function renderPropForm(){$("#propForm").innerHTML='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">'+PROPS.map(([k,l,t])=>{const v=propGet(k);
+  if(t==="bool")return '<div class="sw"><div class="t" style="font-weight:500">'+l+'</div><input type="checkbox" class="toggle" data-prop="'+k+'"'+(v==="true"?" checked":"")+'></div>';
+  if(t.startsWith("select:"))return '<label class="f"><span>'+l+'</span><select data-prop="'+k+'">'+t.slice(7).split(",").map(o=>'<option'+(o===v?" selected":"")+'>'+o+'</option>').join("")+'</select></label>';
+  return '<label class="f"><span>'+l+'</span><input type="'+t+'" data-prop="'+k+'" value="'+esc(v)+'"></label>'}).join("")+'</div>';
+  if(!propLines.join("").trim())$("#propForm").insertAdjacentHTML("afterbegin",'<p class="small muted">server.properties dibuat saat Install Fabric. Isi form lalu simpan juga bisa.</p>')}
+$("#propForm").addEventListener("input",syncPropsToRaw);$("#propForm").addEventListener("change",syncPropsToRaw);
+function syncPropsToRaw(){let lines=$("#propRaw").value.split("\n");
+  for(const el of $$("[data-prop]")){const k=el.dataset.prop,v=el.type==="checkbox"?String(el.checked):el.value.replace(/\n/g," ");
+    const i=lines.findIndex(l=>l.startsWith(k+"="));if(i>=0)lines[i]=k+"="+v;else if(v!=="")lines.push(k+"="+v)}
+  $("#propRaw").value=lines.join("\n")}
+$("#propRaw").addEventListener("change",()=>{propLines=$("#propRaw").value.split("\n");renderPropForm()});
+$("#bSaveProps").onclick=async()=>{try{await api("/api/properties",{body:$("#propRaw").value,type:"text/plain; charset=utf-8"});toast("Tersimpan, restart server untuk menerapkan");loadProps()}catch(e){toast(e.message,true)}};
+
+// ---------------------------------------------------------- settings
+async function loadSettings(){try{const s=await api("/api/settings");
+  for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart"])$("#"+k).checked=s[k];
+  $("#ram").value=s.ram;$("#ramLabel").textContent=(s.ram/1024).toFixed(2).replace(/\.?0+$/,"")+" GB";$("#jvmArgs").value=s.jvmArgs}catch(e){toast(e.message,true)}}
+$("#ram").oninput=e=>$("#ramLabel").textContent=(e.target.value/1024).toFixed(2).replace(/\.?0+$/,"")+" GB";
+for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart"])$("#"+k).onchange=e=>act("/api/settings",{[k]:String(e.target.checked)},"Tersimpan");
+$("#bSaveSettings").onclick=()=>act("/api/settings",{ram:$("#ram").value,jvmArgs:$("#jvmArgs").value},"Pengaturan disimpan, berlaku saat start berikutnya");
+$("#bSavePin").onclick=()=>{const p=$("#newPin").value.trim();act("/api/settings",{pin:p},"PIN diganti");$("#newPin").value=""};
+$("#bLogout").onclick=async()=>{await api("/api/logout",{post:true}).catch(()=>{});location.reload()};
+$("#bBattery").onclick=()=>bridge&&bridge.requestIgnoreBattery();
+$("#bAppInfo").onclick=()=>bridge&&bridge.openAppInfo();
+$("#bSaveSecret").onclick=()=>{const v=$("#playitSecret").value.trim();if(!v)return toast("Secret kosong",true);act("/api/settings",{playitSecret:v},"Secret disimpan");$("#playitSecret").value=""};
+$("#bTunnelStart").onclick=()=>act("/api/playit/start",null,"Tunnel dinyalakan");
+$("#bTunnelStop").onclick=()=>act("/api/playit/stop",null,"Tunnel dimatikan");
+
+// ---------------------------------------------------------- fabric
+let gameVersions=[];
+async function loadFabric(){
+  try{if(!gameVersions.length)gameVersions=await proxy("https://meta.fabricmc.net/v2/versions/game");fillGame();await fillLoader()}
+  catch(e){$("#mcVer").innerHTML='<option>1.20.1</option>';$("#loaderVer").innerHTML='<option value="">gagal ambil daftar: '+esc(e.message)+'</option>'}
+}
+function fillGame(){const all=$("#showSnap").checked;const cur=$("#mcVer").value||S.mcVersion||"1.20.1";
+  const list=gameVersions.filter(v=>v.stable&&(all||/^1\.20(\.\d+)?$/.test(v.version)));
+  $("#mcVer").innerHTML=list.map(v=>'<option'+(v.version===cur?" selected":"")+'>'+v.version+'</option>').join("")}
+async function fillLoader(){const mc=$("#mcVer").value;$("#loaderVer").innerHTML="<option>memuat…</option>";
+  const ls=await proxy("https://meta.fabricmc.net/v2/versions/loader/"+encodeURIComponent(mc));
+  $("#loaderVer").innerHTML=ls.map((l,i)=>'<option value="'+esc(l.loader.version)+'">'+esc(l.loader.version)+(l.loader.stable?(i===0?" (terbaru)":""):" (beta)")+'</option>').join("")}
+$("#showSnap").onchange=()=>{fillGame();fillLoader().catch(e=>toast(e.message,true))};
+$("#mcVer").onchange=()=>fillLoader().catch(e=>toast(e.message,true));
+$("#bInstall").onclick=async()=>{try{const inst=await proxy("https://meta.fabricmc.net/v2/versions/installer");const installer=(inst.find(i=>i.stable)||inst[0]).version;
+  const mc=$("#mcVer").value,loader=$("#loaderVer").value;if(!loader)return toast("Pilih loader",true);
+  if(S.installed&&mc!==S.mcVersion&&!confirm("Ganti dari "+S.mcVersion+" ke "+mc+"? Mod lama kemungkinan tidak cocok."))return;
+  await act("/api/install",{mc,loader,installer},"Install Fabric dimulai, pantau di konsol")}catch(e){toast(e.message,true)}};
+
+// ---------------------------------------------------------- loops
+let tick=0;
+async function loop(){tick++;
+  if(!loggingIn){await refresh();if(tab==="console"||tab==="home"||tick%5===0)await pollLog();if(tab==="tunnel")await pollTunnel()}
+  setTimeout(loop,tab==="console"?900:1600)}
+api("/api/login").then(r=>{if(!r.authorized)showLogin()}).catch(()=>{}).finally(loop);
+</script>
+</body>
+</html>
