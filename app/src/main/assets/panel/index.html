@@ -388,11 +388,14 @@ function renderAddresses(){
   let h="";
   if(S.customDomain){const dn=dnsInfo&&dnsInfo.domain===S.customDomain?(dnsInfo.match?"DNS sudah benar":dnsInfo.current?"DNS belum mengarah ke tunnel, cek tab Tunnel":"record SRV belum ada, cek tab Tunnel"):"";
     h+=addrItem("Minecraft (internet, domain kamu)",S.customDomain,[run?"":"tunnel belum aktif",dn].filter(Boolean).join(" · "))}
-  for(const t of mcTunnels()){
+  const mc=mcTunnels(), other=(tunnels&&tunnels.tunnels||[]).filter(t=>!mc.includes(t)&&!/udp/i.test(t.port_type||""));
+  for(const t of (mc.length?mc:other)){
     const off=t.disabled_reason?"nonaktif: "+esc(t.disabled_reason):(run?"":"tunnel belum aktif, start di tab Tunnel");
-    h+=addrItem("Minecraft (internet, playit"+(t.name?" · "+esc(t.name):"")+")",t.display_address,off)}
+    const kind=mc.length?"Minecraft (internet, playit":"Internet, playit "+esc(t.tunnel_type_display||"TCP");
+    h+=addrItem(kind+(t.name?" · "+esc(t.name):"")+")",t.display_address,off)}
+  if(S.playit&&S.playit.available&&!S.playit.hasSecret)h+='<div class="item"><div class="n"><b>Alamat internet belum ada</b><span class="small muted">Isi secret key playit di tab Tunnel, alamat playit akan muncul di sini otomatis</span></div><button class="btn small" data-go="tunnel">Atur</button></div>';
   if(tunnels&&tunnels.pending)for(const p of tunnels.pending)h+='<div class="item"><div class="n"><span class="small muted">playit · '+esc(p.name||p.tunnel_type_display)+'</span><b class="muted">menyiapkan alamat…</b><span class="small muted">'+esc(p.status_msg||"")+'</span></div></div>';
-  if(S.playit&&S.playit.hasSecret&&tunnels&&!mcTunnels().length&&!(tunnels.pending||[]).length)h+='<div class="item"><div class="n"><b>Belum ada tunnel Minecraft Java</b><span class="small muted">Buat di dashboard playit.gg ke 127.0.0.1:'+esc(S.mcPort)+'</span></div><a class="btn small" href="https://playit.gg/account/tunnels" target="_blank" rel="noopener">Buka</a></div>';
+  if(S.playit&&S.playit.hasSecret&&tunnels&&!mc.length&&!other.length&&!(tunnels.pending||[]).length)h+='<div class="item"><div class="n"><b>Belum ada tunnel Minecraft Java</b><span class="small muted">Buat di dashboard playit.gg ke 127.0.0.1:'+esc(S.mcPort)+'</span></div><a class="btn small" href="https://playit.gg/account/tunnels" target="_blank" rel="noopener">Buka</a></div>';
   h+=S.lan.map(ip=>addrItem("Minecraft (LAN, satu WiFi)",ip+port)).join("");
   h+=S.lan.map(ip=>addrItem("Panel web (LAN)","http://"+ip+":"+S.panelPort)).join("");
   $("#addrList").innerHTML=h||'<div class="empty">Tidak terhubung ke WiFi</div>';
