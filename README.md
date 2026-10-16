@@ -218,5 +218,4 @@ Kode MC Host berlisensi [MIT](LICENSE). APK hasil build ikut membawa OpenJDK (GP
 
 <div align="center">
 <br/>
-Dibuat oleh <a href="https://github.com/Akhdaa">Akhmad</a>
 </div>
