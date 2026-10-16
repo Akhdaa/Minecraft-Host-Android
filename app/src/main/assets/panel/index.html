@@ -112,6 +112,35 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .tabs button.on{color:var(--accent);border-color:var(--accent2)}
 .steps li{margin:10px 0;line-height:1.5}
 .kv{display:flex;justify-content:space-between;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;margin:5px 0;font-size:13px}.kv span{color:var(--muted)}
+.seg{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin-bottom:14px;position:sticky;top:58px;z-index:4}
+.seg button{flex:1;border:0;background:none;color:var(--muted);font-weight:700;padding:9px 6px;border-radius:9px;cursor:pointer}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 0 rgba(255,255,255,.04),0 2px 8px rgba(0,0,0,.25)}
+.seg .cnt{font-size:11px;background:var(--line);border-radius:99px;padding:1px 7px;margin-left:4px;color:var(--text)}
+.searchbox{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:0 11px;flex:1;min-width:0}
+.searchbox:focus-within{border-color:var(--accent2)}.searchbox svg{color:var(--muted);flex:none}
+.searchbox input{border:0;background:none;padding:10px 0;width:100%;outline:none}
+.storebar{display:flex;gap:8px;margin-bottom:10px}.storebar select{width:auto;flex:none}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;margin:0 -16px 10px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.chips.scroll::-webkit-scrollbar{display:none}.chips .chip{white-space:nowrap;flex:none}
+.chip.on{background:var(--accent2);border-color:var(--accent2);color:#06100a;font-weight:600}
+.feature{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#1d3322,#1b241e)}
+.store{display:grid;grid-template-columns:1fr;gap:10px}@media(min-width:640px){.store{grid-template-columns:1fr 1fr}}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.mcard .top{display:flex;gap:11px;min-width:0}
+.mcard .ic{position:relative;width:52px;height:52px;border-radius:12px;background:#26322a;flex:none;display:grid;place-items:center;font-weight:800;font-size:22px;color:var(--accent);overflow:hidden}
+.mcard .ic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mcard .t{min-width:0;flex:1}.mcard .t a{color:var(--text);font-weight:700;text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mcard .by{font-size:12px;color:var(--muted)}
+.mcard .d{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mcard .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+.tag{border:1px solid var(--line);border-radius:99px;padding:1px 8px;font-size:11.5px}.tag.warn{color:var(--warn);border-color:#5a4a2a}.tag.ok{color:var(--accent);border-color:#2e5a33}
+.mcard .btn{justify-content:center}
+.mrow{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 10px 10px 12px}
+.mrow .n{flex:1;min-width:0}.mrow .n b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-all;font-weight:600;font-size:14px;line-height:1.35}
+.mrow .n span{font-size:12px;color:var(--muted)}
+.mrow.off .n b{color:var(--muted)}
+.ibtn{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.ibtn.danger{color:var(--bad)}.ibtn:hover{border-color:#3d4e41}
 details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 </style>
 </head>
@@ -221,33 +250,48 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 
 <!-- ============================== MODS -->
 <section id="tab-mods">
-  <div id="modRestart" class="banner info hide">Perubahan mod berlaku setelah server di restart.</div>
-  <div class="card">
-    <h2><span class="grow">Mod terpasang</span>
-      <label class="btn small"><input type="file" id="modUpload" accept=".jar" multiple hidden>Upload .jar</label>
-    </h2>
-    <div class="row" style="margin-bottom:10px;flex-wrap:nowrap">
-      <input type="text" id="modFilter" placeholder="cari mod terpasang…" autocomplete="off" autocapitalize="off" spellcheck="false">
-      <select id="modShow" style="width:auto"><option value="all">Semua</option><option value="on">Aktif</option><option value="off">Nonaktif</option></select>
+  <div class="seg" id="modSeg">
+    <button data-mv="manage" class="on">Kelola mod <span class="cnt" id="modBadge"></span></button>
+    <button data-mv="store">Store Modrinth</button>
+  </div>
+  <div id="modRestart" class="banner info row hide" style="justify-content:space-between">
+    <span>Perubahan mod berlaku setelah server restart.</span><button class="btn small primary" id="bModRestart">Restart</button>
+  </div>
+
+  <div id="mv-manage">
+    <div class="card">
+      <div class="searchbox"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="modFilter" placeholder="Cari mod terpasang" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+      <div class="chips" id="modShow" style="margin:10px 0 4px">
+        <span class="chip on" data-show="all">Semua</span><span class="chip" data-show="on">Aktif</span><span class="chip" data-show="off">Nonaktif</span>
+      </div>
+      <div class="row" style="justify-content:space-between;margin:8px 0 10px">
+        <span class="small muted" id="modCount"></span>
+        <label class="btn small"><input type="file" id="modUpload" accept=".jar" multiple hidden>Upload .jar</label>
+      </div>
+      <div class="list" id="modList"><div class="empty">Memuat…</div></div>
+      <p class="small muted" style="margin:12px 0 0">Mod konten (item, mob, dimensi) wajib dipasang juga di client teman dengan versi yang sama. Mod optimasi cukup di server.</p>
     </div>
-    <div class="small muted" id="modCount" style="margin:-4px 0 8px"></div>
-    <div class="list" id="modList"><div class="empty">Memuat...</div></div>
-    <p class="small muted" style="margin:10px 0 0">Mod konten (item, mob, dimensi) wajib dipasang juga di client teman dengan versi yang sama. Mod optimasi cukup di server.</p>
   </div>
 
-  <div class="card">
-    <h2><span class="grow">Paket optimasi HP</span><button class="btn small primary" id="bPerfPack">Pasang semua</button></h2>
-    <p class="small muted" style="margin:0">Fabric API, Lithium, FerriteCore, Krypton, ModernFix, Chunky. Semuanya server side dan aman untuk client vanilla Fabric.</p>
-  </div>
-
-  <div class="card">
-    <h2>Cari di Modrinth</h2>
-    <form class="cmd" id="searchForm" style="margin-top:0">
-      <input type="text" id="searchInput" placeholder="contoh: sodium, waystones, voice chat">
-      <button class="btn primary">Cari</button>
-    </form>
-    <p class="small muted" id="searchHint">Hasil difilter otomatis: loader Fabric, versi server kamu, bisa jalan di server.</p>
-    <div class="list" id="searchResults"></div>
+  <div id="mv-store" class="hide">
+    <div class="storebar">
+      <div class="searchbox"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="searchInput" placeholder="Cari di Modrinth" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"></div>
+      <select id="storeSort" aria-label="Urutkan"><option value="downloads">Populer</option><option value="relevance">Relevan</option><option value="follows">Disukai</option><option value="updated">Baru update</option><option value="newest">Terbaru</option></select>
+    </div>
+    <div class="chips scroll" id="storeCats">
+      <span class="chip on" data-cat="">Semua</span><span class="chip" data-cat="optimization">Optimasi</span><span class="chip" data-cat="utility">Utilitas</span>
+      <span class="chip" data-cat="adventure">Petualangan</span><span class="chip" data-cat="decoration">Dekorasi</span><span class="chip" data-cat="storage">Penyimpanan</span>
+      <span class="chip" data-cat="technology">Teknologi</span><span class="chip" data-cat="magic">Sihir</span><span class="chip" data-cat="worldgen">Worldgen</span>
+      <span class="chip" data-cat="mobs">Mob</span><span class="chip" data-cat="equipment">Peralatan</span><span class="chip" data-cat="food">Makanan</span>
+      <span class="chip" data-cat="management">Admin</span><span class="chip" data-cat="library">Library</span>
+    </div>
+    <div class="card feature" id="perfCard">
+      <div style="flex:1;min-width:0"><b>Paket optimasi HP</b><div class="small muted">Fabric API, Lithium, FerriteCore, Krypton, ModernFix, Chunky. Cukup di server.</div></div>
+      <button class="btn small primary" id="bPerfPack">Pasang semua</button>
+    </div>
+    <div class="small muted" id="searchHint" style="margin:0 2px 10px">Hanya mod Fabric untuk versi server kamu yang bisa jalan di server.</div>
+    <div class="store" id="searchResults"></div>
+    <button class="btn hide" id="storeMore" style="width:100%;justify-content:center;margin-top:12px">Muat lagi</button>
   </div>
 </section>
 
@@ -656,23 +700,35 @@ $("#chips").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;
 
 // ---------------------------------------------------------- mods
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,"");
+const TRASH='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
+let modView="manage", modShow="all";
+function setModView(v){modView=v;$$("#modSeg button").forEach(b=>b.classList.toggle("on",b.dataset.mv===v));
+  $("#mv-manage").classList.toggle("hide",v!=="manage");$("#mv-store").classList.toggle("hide",v!=="store");
+  if(v==="store"&&!store.loaded)storeSearch(true)}
+$("#modSeg").onclick=e=>{const b=e.target.closest("[data-mv]");if(b)setModView(b.dataset.mv)};
 async function loadMods(){
   try{const r=await api("/api/mods");installedMods=r.mods;window._modNeedsRestart=r.needsRestart;renderMods()}catch(e){toast(e.message,true)}
 }
+const prettyMod=n=>n.replace(/\.disabled$/,"").replace(/\.jar$/,"");
 function renderMods(){
-  const q=norm($("#modFilter").value||""),show=$("#modShow").value,all=installedMods;
-  const list=all.filter(m=>(!q||norm(m.name).includes(q))&&(show==="all"||(show==="on")===m.enabled));
+  const q=norm($("#modFilter").value||""),all=installedMods;
+  const list=all.filter(m=>(!q||norm(m.name).includes(q))&&(modShow==="all"||(modShow==="on")===m.enabled));
   const on=all.filter(m=>m.enabled).length;
-  $("#modCount").textContent=all.length?(list.length===all.length?all.length+" mod ("+on+" aktif)":list.length+" dari "+all.length+" mod"):"";
-  $("#modList").innerHTML=list.length?list.map(m=>'<div class="item'+(m.enabled?"":" off")+'"><div class="n"><b title="'+esc(m.name)+'">'+esc(m.name.replace(/\.disabled$/,""))+'</b><span class="small muted">'+fmtSize(m.size||0)+(m.enabled?"":" · nonaktif")+'</span></div>'+
-    '<input type="checkbox" class="toggle" data-toggle="'+esc(m.name)+'"'+(m.enabled?" checked":"")+'><button class="btn small danger" data-del="'+esc(m.name)+'">Hapus</button></div>').join("")
-    :'<div class="empty">'+(all.length?"Tidak ada mod yang cocok dengan pencarian":"Belum ada mod. Pasang paket optimasi atau cari di bawah.")+'</div>';
+  $("#modBadge").textContent=all.length||"";
+  $("#modCount").textContent=all.length?(list.length===all.length?all.length+" mod · "+on+" aktif":list.length+" dari "+all.length+" mod"):"";
+  $("#modList").innerHTML=list.length?list.map(m=>'<div class="mrow'+(m.enabled?"":" off")+'"><div class="n"><b title="'+esc(m.name)+'">'+esc(prettyMod(m.name))+'</b><span>'+fmtSize(m.size||0)+(m.enabled?"":" · nonaktif")+'</span></div>'+
+    '<input type="checkbox" class="toggle" aria-label="Aktifkan '+esc(prettyMod(m.name))+'" data-toggle="'+esc(m.name)+'"'+(m.enabled?" checked":"")+'>'+
+    '<button class="ibtn danger" aria-label="Hapus" title="Hapus" data-del="'+esc(m.name)+'">'+TRASH+'</button></div>').join("")
+    :'<div class="empty">'+(all.length?"Tidak ada mod yang cocok":"Belum ada mod. Buka Store Modrinth untuk pasang.")+'</div>';
   $("#modRestart").classList.toggle("hide",!window._modNeedsRestart||!window._modChanged);
+  if(store.hits.length)renderStore();
 }
-$("#modFilter").oninput=renderMods;$("#modShow").onchange=renderMods;
-$("#modList").onclick=async e=>{const d=e.target.closest("[data-del]");if(d&&confirm("Hapus "+d.dataset.del+"?")){try{await api("/api/mods/delete",{form:{name:d.dataset.del}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}}};
+$("#modFilter").oninput=renderMods;
+$("#modShow").onclick=e=>{const c=e.target.closest("[data-show]");if(!c)return;modShow=c.dataset.show;$$("#modShow .chip").forEach(x=>x.classList.toggle("on",x===c));renderMods()};
+$("#modList").onclick=async e=>{const d=e.target.closest("[data-del]");if(d&&confirm("Hapus "+prettyMod(d.dataset.del)+"?")){try{await api("/api/mods/delete",{form:{name:d.dataset.del}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}}};
 $("#modList").onchange=async e=>{const t=e.target.closest("[data-toggle]");if(!t)return;try{await api("/api/mods/toggle",{form:{name:t.dataset.toggle}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}};
 $("#modUpload").onchange=async e=>{for(const f of e.target.files){try{toast("Upload "+f.name+"…");await api("/api/mods/upload?name="+encodeURIComponent(f.name),{method:"PUT",body:f});window._modChanged=1}catch(err){toast(f.name+": "+err.message,true)}}e.target.value="";loadMods()};
+$("#bModRestart").onclick=()=>act("/api/restart",null,"Restart dimulai").then(()=>{window._modChanged=0;renderMods()});
 
 const mcVersion=()=>S.mcVersion||"1.20.1";
 async function modrinthVersion(idOrSlug){
@@ -680,30 +736,57 @@ async function modrinthVersion(idOrSlug){
   const vs=await proxy(u);if(!vs.length)throw new Error("tidak ada versi untuk Fabric "+mcVersion());
   return vs.find(v=>v.version_type==="release")||vs[0];
 }
-async function installProject(idOrSlug,seen=new Set(),label){
+const isInstalled=slug=>installedMods.some(m=>norm(m.name).includes(norm(slug)));
+async function installProject(idOrSlug,seen=new Set()){
   if(seen.has(idOrSlug))return;seen.add(idOrSlug);
   const proj=await proxy("https://api.modrinth.com/v2/project/"+encodeURIComponent(idOrSlug));
   seen.add(proj.id);seen.add(proj.slug);
-  if(installedMods.some(m=>norm(m.name).includes(norm(proj.slug)))){toast(proj.title+" sudah terpasang");return}
+  if(isInstalled(proj.slug)){toast(proj.title+" sudah terpasang");return}
   const v=await modrinthVersion(proj.id);
   const file=v.files.find(f=>f.primary)||v.files[0];
   toast("Memasang "+proj.title+"…");
   await api("/api/mods/install",{form:{url:file.url,filename:file.filename}});
-  installedMods.push({name:file.filename,enabled:true});window._modChanged=1;
+  installedMods.push({name:file.filename,enabled:true,size:file.size});window._modChanged=1;
   for(const d of v.dependencies||[]){if(d.dependency_type==="required"&&d.project_id){try{await installProject(d.project_id,seen)}catch(err){toast("Dependency: "+err.message,true)}}}
 }
-$("#bPerfPack").onclick=async e=>{const b=e.target;b.disabled=true;const seen=new Set();
+$("#bPerfPack").onclick=async e=>{const b=e.target;b.disabled=true;b.textContent="Memasang…";const seen=new Set();
   for(const s of ["fabric-api","lithium","ferrite-core","krypton","modernfix","chunky"]){try{await installProject(s,seen)}catch(err){toast(s+": "+err.message,true)}}
-  b.disabled=false;loadMods();toast("Paket optimasi selesai")};
-$("#searchForm").onsubmit=async e=>{e.preventDefault();const q=$("#searchInput").value.trim();const box=$("#searchResults");box.innerHTML='<div class="empty">Mencari…</div>';
-  const facets=JSON.stringify([["project_type:mod"],["categories:fabric"],["versions:"+mcVersion()],["server_side:required","server_side:optional"]]);
-  try{const r=await proxy("https://api.modrinth.com/v2/search?limit=20&index=relevance&query="+encodeURIComponent(q)+"&facets="+encodeURIComponent(facets));
-    box.innerHTML=r.hits.length?r.hits.map(h=>{const inst=installedMods.some(m=>norm(m.name).includes(norm(h.slug)));
-      const client=h.client_side==="required"?' · <span style="color:var(--warn)">client juga wajib pasang</span>':"";
-      return '<div class="item"><img loading="lazy" src="'+esc(h.icon_url||"")+'" alt="" onerror="this.style.visibility=\'hidden\'"><div class="n"><b>'+esc(h.title)+'</b><span class="small muted">'+esc((h.description||"").slice(0,90))+'<br>'+Intl.NumberFormat("id").format(h.downloads)+' unduhan'+client+'</span></div>'+
-      '<button class="btn small'+(inst?"":" primary")+'" data-install="'+esc(h.project_id)+'"'+(inst?" disabled":"")+'>'+(inst?"Terpasang":"Pasang")+'</button></div>'}).join(""):'<div class="empty">Tidak ada hasil untuk Fabric '+esc(mcVersion())+'</div>';
-  }catch(err){box.innerHTML='<div class="empty">'+esc(err.message)+'</div>'}};
-$("#searchResults").onclick=async e=>{const b=e.target.closest("[data-install]");if(!b)return;b.disabled=true;b.textContent="…";
+  b.disabled=false;b.textContent="Pasang semua";loadMods();toast("Paket optimasi selesai")};
+
+// store
+const store={q:"",cat:"",sort:"downloads",offset:0,total:0,hits:[],loaded:false,busy:false,seq:0};
+const compact=n=>Intl.NumberFormat("id",{notation:"compact",maximumFractionDigits:1}).format(n);
+async function storeSearch(reset){
+  if(store.busy&&!reset)return;
+  if(reset){store.offset=0;store.hits=[];$("#searchResults").innerHTML='<div class="empty">Memuat…</div>'}
+  const my=++store.seq;store.busy=true;$("#storeMore").classList.add("hide");
+  const f=[["project_type:mod"],["categories:fabric"],["versions:"+mcVersion()],["server_side:required","server_side:optional"]];
+  if(store.cat)f.push(["categories:"+store.cat]);
+  const sort=store.q?store.sort:(store.sort==="relevance"?"downloads":store.sort);
+  try{const r=await proxy("https://api.modrinth.com/v2/search?limit=20&offset="+store.offset+"&index="+sort+"&query="+encodeURIComponent(store.q)+"&facets="+encodeURIComponent(JSON.stringify(f)));
+    if(my!==store.seq)return;
+    store.hits=store.hits.concat(r.hits);store.total=r.total_hits;store.offset+=r.hits.length;store.loaded=true;renderStore();
+  }catch(err){if(my===store.seq)$("#searchResults").innerHTML='<div class="empty">'+esc(err.message)+'</div>'}
+  finally{if(my===store.seq)store.busy=false}
+}
+function renderStore(){
+  $("#searchHint").textContent=store.total?compact(store.total)+" mod Fabric "+mcVersion()+" yang bisa jalan di server":"Hanya mod Fabric untuk versi server kamu yang bisa jalan di server.";
+  $("#searchResults").innerHTML=store.hits.length?store.hits.map(h=>{const inst=isInstalled(h.slug);
+    const side=h.client_side==="required"?'<span class="tag warn">Client juga wajib</span>':'<span class="tag ok">Cukup di server</span>';
+    return '<div class="mcard"><div class="top"><div class="ic"><span>'+esc((h.title||"?").charAt(0).toUpperCase())+'</span>'+(h.icon_url?'<img loading="lazy" src="'+esc(h.icon_url)+'" alt="" onerror="this.remove()">':'')+'</div>'+
+      '<div class="t"><a href="https://modrinth.com/mod/'+encodeURIComponent(h.slug)+'" target="_blank" rel="noopener">'+esc(h.title)+'</a><div class="by">oleh '+esc(h.author||"?")+'</div><div class="d">'+esc(h.description||"")+'</div></div></div>'+
+      '<div class="meta"><span>⬇ '+compact(h.downloads)+'</span>'+side+'</div>'+
+      '<button class="btn small'+(inst?"":" primary")+'" data-install="'+esc(h.project_id)+'"'+(inst?" disabled":"")+'>'+(inst?"Terpasang":"Pasang")+'</button></div>'}).join("")
+    :'<div class="empty">Tidak ada hasil untuk Fabric '+esc(mcVersion())+'</div>';
+  $("#storeMore").classList.toggle("hide",store.hits.length>=store.total||!store.hits.length);
+}
+let storeTimer;
+$("#searchInput").oninput=e=>{clearTimeout(storeTimer);storeTimer=setTimeout(()=>{store.q=e.target.value.trim();if(store.q&&store.sort==="downloads"){store.sort="relevance";$("#storeSort").value="relevance"}storeSearch(true)},450)};
+$("#searchInput").onkeydown=e=>{if(e.key==="Enter"){clearTimeout(storeTimer);store.q=e.target.value.trim();storeSearch(true);e.target.blur()}};
+$("#storeSort").onchange=e=>{store.sort=e.target.value;storeSearch(true)};
+$("#storeCats").onclick=e=>{const c=e.target.closest("[data-cat]");if(!c)return;store.cat=c.dataset.cat;$$("#storeCats .chip").forEach(x=>x.classList.toggle("on",x===c));storeSearch(true)};
+$("#storeMore").onclick=()=>storeSearch(false);
+$("#searchResults").onclick=async e=>{const b=e.target.closest("[data-install]");if(!b)return;b.disabled=true;b.textContent="Memasang…";
   try{await installProject(b.dataset.install);b.textContent="Terpasang";loadMods()}catch(err){toast(err.message,true);b.disabled=false;b.textContent="Pasang"}};
 
 // ---------------------------------------------------------- world
