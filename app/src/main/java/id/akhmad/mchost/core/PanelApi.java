@@ -286,7 +286,8 @@ public class PanelApi implements MiniHttp.Handler {
             String jvm = req.param("jvmArgs");
             if (jvm != null) c.set(Config.JVM_ARGS, jvm.replace('\n', ' ').trim());
             for (String[] b : new String[][]{{"autoRestart", Config.AUTO_RESTART}, {"autoStart", Config.AUTO_START},
-                    {"bootStart", Config.BOOT_START}, {"eula", Config.EULA}, {"playitAutostart", Config.PLAYIT_AUTOSTART}}) {
+                    {"bootStart", Config.BOOT_START}, {"eula", Config.EULA}, {"playitAutostart", Config.PLAYIT_AUTOSTART},
+                    {"playitWithServer", Config.PLAYIT_WITH_SERVER}}) {
                 String v = req.param(b[0]);
                 if (v != null) c.set(b[1], String.valueOf("true".equals(v)));
             }
@@ -324,6 +325,7 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("bootStart", c.getBool(Config.BOOT_START))
                 .put("eula", c.getBool(Config.EULA))
                 .put("playitAutostart", c.getBool(Config.PLAYIT_AUTOSTART))
+                .put("playitWithServer", c.getBool(Config.PLAYIT_WITH_SERVER))
                 .put("hasPlayitSecret", !c.get(Config.PLAYIT_SECRET, "").isEmpty())
                 .put("customDomain", c.get(Config.CUSTOM_DOMAIN, ""))
                 .put("hasCfToken", !c.get(Config.CF_TOKEN, "").isEmpty())

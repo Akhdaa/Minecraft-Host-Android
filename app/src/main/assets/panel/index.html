@@ -382,7 +382,10 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
       <button class="btn primary" id="bTunnelStart">Start tunnel</button>
       <button class="btn" id="bTunnelStop">Stop</button>
     </div>
-    <div class="sw" style="margin-top:8px"><div><div class="t">Nyalakan otomatis</div><div class="d">Tunnel ikut hidup saat aplikasi dibuka</div></div><input type="checkbox" class="toggle" id="playitAutostart"></div>
+    <div id="pwsBox" class="hide" style="margin-top:8px">
+      <div class="sw"><div><div class="t">Mulai bersamaan dengan server</div><div class="d">Tunnel otomatis nyala saat server Start dan mati saat server Stop. Restart tidak memutus tunnel.</div></div><input type="checkbox" class="toggle" id="playitWithServer"></div>
+    </div>
+    <div class="sw" style="margin-top:0"><div><div class="t">Nyalakan saat aplikasi dibuka</div><div class="d">Tunnel langsung hidup walau server belum di-Start</div></div><input type="checkbox" class="toggle" id="playitAutostart"></div>
   </div>
   <div class="card">
     <h2><span class="grow">Alamat tunnel</span><button class="btn small" id="bTunnelRefresh">Refresh</button></h2>
@@ -754,6 +757,7 @@ async function refresh(){
   $("#tunnelPill").className="pill "+(pl.state==="running"?"running":pl.state==="crashed"?"crashed":"");$("#tunnelPill").textContent=pl.state==="running"?"Aktif":pl.state==="crashed"?"Berhenti":"Mati";
   $("#bTunnelStart").disabled=!pl.available||pl.state==="running";$("#bTunnelStop").disabled=pl.state!=="running";
   $("#secretState").textContent=pl.hasSecret?"(tersimpan)":"(belum diisi)";
+  $("#pwsBox").classList.toggle("hide",!pl.hasSecret);
 }
 document.addEventListener("click",e=>{const c=e.target.closest("[data-copy]");if(!c)return;const v=c.dataset.copy;
   (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast("Disalin: "+v)).catch(()=>{const t=document.createElement("textarea");t.value=v;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();toast("Disalin: "+v)})});
@@ -918,7 +922,7 @@ $("#bSaveProps").onclick=async()=>{try{await api("/api/properties",{body:$("#pro
 
 // ---------------------------------------------------------- settings
 async function loadSettings(){try{const s=await api("/api/settings");
-  for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart"])$("#"+k).checked=s[k];
+  for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer"])$("#"+k).checked=s[k];
   deviceRam=s.deviceRamMb>0?s.deviceRamMb:0;if(deviceRam){$("#ram").max=deviceRam;$("#ramNum").max=deviceRam;$("#ramDevice").textContent="(HP: "+gb(deviceRam)+")"}
   setRam(s.ram);$("#jvmArgs").value=s.jvmArgs;$("#customDomain").value=s.customDomain||"";$("#cfAutosync").checked=!!s.cfAutosync}catch(e){toast(e.message,true)}}
 let deviceRam=0;
@@ -929,7 +933,7 @@ function setRam(v){v=Math.round(Number(v)||0);$("#ram").value=v;$("#ramNum").val
 $("#ram").oninput=e=>setRam(e.target.value);
 $("#ramNum").oninput=e=>{const v=Number(e.target.value);if(v>0){$("#ram").value=v;$("#ramLabel").textContent=gb(v)}};
 $("#ramNum").onchange=e=>setRam(e.target.value);
-for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart"])$("#"+k).onchange=e=>act("/api/settings",{[k]:String(e.target.checked)},"Tersimpan");
+for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer"])$("#"+k).onchange=e=>act("/api/settings",{[k]:String(e.target.checked)},"Tersimpan");
 $("#bSaveSettings").onclick=()=>act("/api/settings",{ram:$("#ramNum").value,jvmArgs:$("#jvmArgs").value},"Pengaturan disimpan, berlaku saat start berikutnya");
 $("#bSavePin").onclick=()=>{const p=$("#newPin").value.trim();act("/api/settings",{pin:p},"PIN diganti");$("#newPin").value=""};
 $("#bLogout").onclick=async()=>{await api("/api/logout",{post:true}).catch(()=>{});location.reload()};

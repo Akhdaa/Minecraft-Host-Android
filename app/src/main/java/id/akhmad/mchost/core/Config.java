@@ -22,6 +22,7 @@ public class Config {
     public static final String INSTALLER = "installer";
     public static final String PLAYIT_SECRET = "playit_secret";
     public static final String PLAYIT_AUTOSTART = "playit_autostart";
+    public static final String PLAYIT_WITH_SERVER = "playit_with_server";
     public static final String PORT = "port";
     public static final String CUSTOM_DOMAIN = "custom_domain";
     public static final String CF_TOKEN = "cf_token";
@@ -49,6 +50,7 @@ public class Config {
         def(INSTALLER, "");
         def(PLAYIT_SECRET, "");
         def(PLAYIT_AUTOSTART, "false");
+        def(PLAYIT_WITH_SERVER, "true");
         def(PORT, "8080");
         def(CUSTOM_DOMAIN, "");
         def(CF_TOKEN, "");

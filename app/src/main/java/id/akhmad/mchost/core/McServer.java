@@ -25,6 +25,7 @@ public class McServer extends ManagedProcess {
     private final TreeSet<String> players = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
     private final LinkedList<Long> crashes = new LinkedList<>();
     private volatile long lastSaved;
+    private volatile boolean restarting;
 
     public McServer(Host host, LogBuffer log) {
         super(log);
@@ -80,6 +81,20 @@ public class McServer extends ManagedProcess {
         launch(cmd, host.serverDir, env, LAUNCHER);
         state = "starting";
         host.summaryChanged();
+        startTunnelWithServer();
+    }
+
+    /** "Mulai bersamaan dengan server": bring the playit tunnel up together with the server. */
+    private void startTunnelWithServer() {
+        Playit p = host.playit;
+        if (!host.cfg.getBool(Config.PLAYIT_WITH_SERVER) || p == null || p.alive() || !p.available()
+                || host.cfg.get(Config.PLAYIT_SECRET, "").trim().isEmpty()) return;
+        try {
+            p.start();
+            log.panel("Tunnel playit ikut dinyalakan bersama server.");
+        } catch (IOException e) {
+            log.panel("Tunnel gagal dinyalakan: " + e.getMessage());
+        }
     }
 
     /** Graceful stop: "stop" command, force kill after 60s. */
@@ -108,11 +123,14 @@ public class McServer extends ManagedProcess {
 
     public void restart() {
         Thread t = new Thread(() -> {
-            stopAndWait(60_000);
+            restarting = true;
             try {
+                stopAndWait(60_000);
                 start();
             } catch (IOException e) {
                 log.panel("Gagal restart: " + e.getMessage());
+            } finally {
+                restarting = false;
             }
         }, "mc-restart");
         t.setDaemon(true);
@@ -171,6 +189,10 @@ public class McServer extends ManagedProcess {
             state = "stopped";
             log.panel("Server mati (exit " + code + ").");
             host.summaryChanged();
+            if (!restarting && host.cfg.getBool(Config.PLAYIT_WITH_SERVER) && host.playit.alive()) {
+                log.panel("Tunnel playit ikut dimatikan.");
+                host.playit.stop();
+            }
             return;
         }
         state = "crashed";
