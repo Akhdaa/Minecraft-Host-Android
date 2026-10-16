@@ -105,8 +105,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           NOTES="Build #${{ github.run_number }} dari ${GITHUB_SHA::7}
-          Java runtime: ${{ steps.apk.outputs.runtime }}
-          Tunnel playitd: ${{ steps.apk.outputs.tunnel }}"
+          Java runtime: ${{ steps.apk.outputs.runtime }}"
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             gh release create "$GITHUB_REF_NAME" "${{ steps.apk.outputs.name }}" --title "MC Host $GITHUB_REF_NAME" --notes "$NOTES"
           else
