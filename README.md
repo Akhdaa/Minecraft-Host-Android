@@ -61,6 +61,7 @@
 - **Kelola pemain**: OP, whitelist, gamemode, heal, kick, ban, unban.
 - **Pantau HP**: RAM server, uptime, baterai, suhu.
 - **Tampilan rapi** di HP maupun layar PC.
+  
 
 #### Akses dari internet
 - **Tunnel playit.gg** bawaan (playitd dibuild untuk Android), gratis.
