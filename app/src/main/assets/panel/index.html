@@ -103,6 +103,15 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .badge.on{color:var(--accent);border-color:#2e5a33}.badge.op{color:var(--warn);border-color:#5a4a2a}.badge.ban{color:var(--bad);border-color:#6a2f2a}.badge.wl{color:var(--info);border-color:#2d4b66}
 .pl{flex-wrap:wrap}.pl .acts{display:flex;gap:6px;flex-wrap:wrap;width:100%}
 .pl select{width:auto;padding:5px 8px;font-size:13px}
+.modal{position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.modal.hide{display:none}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:18px 18px 0 0;width:min(720px,100%);max-height:88vh;overflow:auto;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}
+@media(min-width:760px){.modal{align-items:center}.sheet{border-radius:18px}}
+.sheet-head{display:flex;align-items:center;gap:10px;position:sticky;top:-16px;background:var(--card);padding:4px 0 10px;margin-top:-4px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}.tabs button{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:8px;font-weight:600;color:var(--muted);cursor:pointer}
+.tabs button.on{color:var(--accent);border-color:var(--accent2)}
+.steps li{margin:10px 0;line-height:1.5}
+.kv{display:flex;justify-content:space-between;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;margin:5px 0;font-size:13px}.kv span{color:var(--muted)}
 details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 </style>
 </head>
@@ -264,9 +273,13 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 
 <!-- ============================== TUNNEL -->
 <section id="tab-tunnel">
+  <div class="banner info row" style="justify-content:space-between">
+    <span>Baru pertama? Ikuti panduan dari bikin akun playit sampai domain Cloudflare.</span>
+    <button class="btn small primary" id="bHelp">Bantuan</button>
+  </div>
   <div id="tunnelMissing" class="banner err hide">Build APK ini tidak membawa playitd (step build di GitHub Actions gagal). Main lewat LAN tetap jalan normal.</div>
   <div class="card">
-    <h2><span class="grow">Tunnel playit.gg</span><span class="pill" id="tunnelPill">-</span></h2>
+    <h2><span class="grow">Tunnel playit.gg</span><button class="btn small" data-help="playit">Bantuan</button><span class="pill" id="tunnelPill">-</span></h2>
     <label class="f"><span>Secret key agent <b id="secretState" class="small"></b></span>
       <input type="password" id="playitSecret" placeholder="tempel SECRET_KEY dari playit.gg" autocomplete="off"></label>
     <div class="row">
@@ -285,7 +298,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
     <div class="console mini" id="tunnelLog"></div>
   </div>
   <div class="card">
-    <h2><span class="grow">Domain Cloudflare</span><span class="pill" id="dnsPill">-</span></h2>
+    <h2><span class="grow">Domain Cloudflare</span><button class="btn small" data-help="cf">Bantuan</button><span class="pill" id="dnsPill">-</span></h2>
     <label class="f"><span>Domain untuk join</span>
       <input type="text" id="customDomain" placeholder="mc.domainkamu.com" autocapitalize="off" spellcheck="false"></label>
     <label class="f"><span>Tunnel playit tujuan</span><select id="domainTunnel"></select></label>
@@ -356,6 +369,51 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 </section>
 </main>
 
+<div id="helpModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+ <div class="sheet">
+  <div class="sheet-head"><h2 id="helpTitle" style="margin:0;flex:1">Panduan tunnel &amp; domain</h2><button class="btn small" id="bHelpClose">Tutup</button></div>
+  <div class="tabs" id="helpTabs"><button class="on" data-h="playit">1. playit.gg</button><button data-h="cf">2. Cloudflare (opsional)</button></div>
+
+  <div class="hpane" id="h-playit">
+   <p class="small muted">Gratis. Bikin alamat internet supaya teman di luar WiFi bisa join. Cukup sekali.</p>
+   <ol class="steps">
+    <li><b>Buat akun.</b> Buka <a href="https://playit.gg/login" target="_blank" rel="noopener">playit.gg</a>, pilih <b>Create account</b>, daftar pakai email, lalu verifikasi email dari inbox.</li>
+    <li><b>Tambah agent.</b> Di dashboard buka <b>Agents</b> &gt; <b>Add Agent</b>, pilih tipe <b>Docker</b>. Beri nama, misal <code>hp-server</code>.</li>
+    <li><b>Salin secret key.</b> Playit menampilkan perintah docker berisi <code>SECRET_KEY=...</code>. Salin <b>isi setelah tanda sama dengan</b> saja.</li>
+    <li><b>Tempel di app.</b> Tab <b>Tunnel</b> &gt; kolom <b>Secret key agent</b> &gt; <b>Simpan key</b> &gt; <b>Start tunnel</b>. Tunggu sampai status <b>Aktif</b> dan agent di dashboard jadi online.</li>
+    <li><b>Buat tunnel.</b> Dashboard playit &gt; <b>Tunnels</b> &gt; <b>Add Tunnel</b>:
+      <div class="kv"><span>Tunnel type</span><b>Minecraft Java</b></div>
+      <div class="kv"><span>Agent</span><b>agent yang tadi (hp-server)</b></div>
+      <div class="kv"><span>Local address</span><b>127.0.0.1</b></div>
+      <div class="kv"><span>Local port</span><b id="hPort">25565</b></div>
+      <div class="kv"><span>Proxy protocol</span><b>None / off</b></div>
+      Lalu <b>Create</b>. Pilih tipe Minecraft Java, bukan TCP biasa, karena TCP dibatasi di paket gratis.</li>
+    <li><b>Selesai.</b> Dalam setengah menit alamatnya (misal <code>xxx.joinmc.link</code>) muncul di <b>Beranda</b>. Tekan <b>Salin</b> lalu kirim ke teman.</li>
+    <li><b>Biar aman.</b> Tab <b>Konsol</b> &gt; kartu Pemain: nyalakan <b>Whitelist</b>, lalu tambahkan nama teman.</li>
+   </ol>
+  </div>
+
+  <div class="hpane hide" id="h-cf">
+   <p class="small muted">Opsional. Supaya teman join pakai domain sendiri, misal <code>mc.domainkamu.com</code>, bukan alamat playit. Butuh domain yang sudah ada.</p>
+   <ol class="steps">
+    <li><b>Masukkan domain ke Cloudflare.</b> Login <a href="https://dash.cloudflare.com" target="_blank" rel="noopener">dash.cloudflare.com</a> &gt; <b>Add a domain</b> (Onboard a domain), ketik domain, pilih paket <b>Free</b>.</li>
+    <li><b>Ganti nameserver.</b> Cloudflare memberi 2 nameserver. Masuk ke tempat beli domain (registrar), ganti nameserver domain ke dua alamat itu. Tunggu sampai Cloudflare menyatakan domain <b>Active</b> (bisa beberapa menit sampai 24 jam). Lewati langkah ini kalau domain sudah aktif di Cloudflare.</li>
+    <li><b>Buat API token.</b> Ikon profil kanan atas &gt; <b>My Profile</b> &gt; <b>API Tokens</b> &gt; <b>Create Token</b> &gt; template <b>Edit zone DNS</b> &gt; <b>Use template</b>.
+      <div class="kv"><span>Permissions</span><b>Zone · DNS · Edit</b></div>
+      <div class="kv"><span>+ Add more</span><b>Zone · Zone · Read</b></div>
+      <div class="kv"><span>Zone Resources</span><b>Include · Specific zone · domain kamu</b></div>
+      <b>Continue to summary</b> &gt; <b>Create Token</b> &gt; <b>Copy</b>. Token cuma tampil sekali, jangan dikirim ke chat atau orang lain.</li>
+    <li><b>Isi domain di app.</b> Tab <b>Tunnel</b> &gt; kartu <b>Domain Cloudflare</b>: isi <b>Domain untuk join</b> (misal <code>mc.domainkamu.com</code>), pilih tunnel playit, <b>Simpan</b>.</li>
+    <li><b>Pasang token.</b> Buka <b>Atur otomatis pakai API token Cloudflare</b>, tempel token, <b>Simpan token</b>, lalu <b>Buat / update record sekarang</b>. Biarkan <b>Update otomatis</b> nyala.</li>
+    <li><b>Cek.</b> Tunggu 1 sampai 5 menit, tekan <b>Cek DNS</b>. Kalau status <b>DNS benar</b>, teman cukup join ke domain kamu tanpa port.</li>
+   </ol>
+   <details><summary>Tanpa token (isi manual)</summary>
+    <p class="small">Isi domain lalu Simpan. Di Cloudflare: domain kamu &gt; <b>DNS</b> &gt; <b>Records</b> &gt; <b>Add record</b>, Type <b>SRV</b>, lalu salin Name, Priority, Weight, Port, dan Target dari kartu Domain Cloudflare. TTL Auto, Save. Kalau port playit berubah, record harus diupdate manual.</p>
+   </details>
+   <p class="small muted">Jangan buat record A/CNAME dengan nama yang sama (misal <code>mc</code>) yang awan oranye, nanti domain nyasar.</p>
+  </div>
+ </div>
+</div>
 <div id="login"><div class="card">
   <h2>Masuk panel</h2>
   <p class="small muted" style="margin-top:0">PIN ada di aplikasi MC Host di HP server, tab Server.</p>
@@ -509,6 +567,16 @@ $("#plList").onchange=e=>{const s=e.target.closest("[data-gm]");if(s&&s.value){p
 $("#plAddForm").onclick=e=>{const b=e.target.closest("[data-padd]");if(!b)return;const n=$("#plName").value.trim();if(!n)return toast("Isi nama pemain",true);playerAct(b.dataset.padd,n).then(()=>{$("#plName").value=""})};
 $("#plAddForm").onsubmit=e=>{e.preventDefault();const n=$("#plName").value.trim();if(n)playerAct("wl-add",n).then(()=>{$("#plName").value=""})};
 $("#wlToggle").onchange=e=>{const on=e.target.checked;playerAct(on?"whitelist-on":"whitelist-off","");};
+
+// ---------------------------------------------------------- help
+function openHelp(which){$("#hPort").textContent=S.mcPort||"25565";$("#helpModal").classList.remove("hide");showHelp(which||"playit")}
+function showHelp(w){$$("#helpTabs button").forEach(b=>b.classList.toggle("on",b.dataset.h===w));$("#h-playit").classList.toggle("hide",w!=="playit");$("#h-cf").classList.toggle("hide",w!=="cf")}
+$("#bHelp").onclick=()=>openHelp("playit");
+document.addEventListener("click",e=>{const h=e.target.closest("[data-help]");if(h)openHelp(h.dataset.help)});
+$("#bHelpClose").onclick=()=>$("#helpModal").classList.add("hide");
+$("#helpModal").onclick=e=>{if(e.target.id==="helpModal")$("#helpModal").classList.add("hide")};
+$("#helpTabs").onclick=e=>{const b=e.target.closest("[data-h]");if(b)showHelp(b.dataset.h)};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#helpModal").classList.add("hide")});
 
 // ---------------------------------------------------------- login
 function showLogin(){if(loggingIn)return;loggingIn=true;$("#login").style.display="grid";setTimeout(()=>$("#loginPin").focus(),50)}
