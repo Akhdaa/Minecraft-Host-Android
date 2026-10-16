@@ -48,7 +48,7 @@ section{display:none}section.on{display:block}
 @media(min-width:620px){.grid{grid-template-columns:repeat(4,1fr)}}
 .stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .stat .k{font-size:12px;color:var(--muted)}.stat .v{font-size:18px;font-weight:700;margin-top:2px;word-break:break-all}
-.btn{border:1px solid var(--line);background:var(--bg2);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.btn{white-space:nowrap;border:1px solid var(--line);background:var(--bg2);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px}
 .btn:hover{border-color:#3d4e41}
 .btn.primary{background:var(--accent2);border-color:var(--accent2);color:#06100a}
 .btn.primary:hover{background:var(--accent)}
@@ -99,6 +99,10 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 #srvRows{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 #srvRows .item{padding:7px 10px}#srvRows .wide{grid-column:1/-1}
 #srvRows .n b{white-space:normal;word-break:break-all;font-family:var(--mono);font-size:13.5px}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:6px;border:1px solid var(--line);background:var(--bg2);vertical-align:1px}
+.badge.on{color:var(--accent);border-color:#2e5a33}.badge.op{color:var(--warn);border-color:#5a4a2a}.badge.ban{color:var(--bad);border-color:#6a2f2a}.badge.wl{color:var(--info);border-color:#2d4b66}
+.pl{flex-wrap:wrap}.pl .acts{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.pl select{width:auto;padding:5px 8px;font-size:13px}
 details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 </style>
 </head>
@@ -168,6 +172,18 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 <!-- ============================== CONSOLE -->
 <section id="tab-console">
   <div class="card">
+    <h2><span class="grow">Pemain</span>
+      <label class="small muted row" style="gap:8px">Whitelist <input type="checkbox" class="toggle" id="wlToggle"></label>
+    </h2>
+    <div id="plNote" class="small muted" style="margin:-4px 0 10px"></div>
+    <form class="cmd" id="plAddForm" style="margin:0 0 10px">
+      <input type="text" id="plName" placeholder="nama pemain (Minecraft)" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20">
+      <button class="btn" type="button" data-padd="wl-add">+ Whitelist</button>
+      <button class="btn" type="button" data-padd="op">+ OP</button>
+    </form>
+    <div class="list" id="plList"><div class="empty">Memuat…</div></div>
+  </div>
+  <div class="card">
     <h2><span class="grow">Konsol</span>
       <label class="small muted row" style="gap:6px"><input type="checkbox" id="autoScroll" checked> auto scroll</label>
       <button class="btn small danger" id="bKill" title="Matikan paksa">Kill</button>
@@ -201,6 +217,11 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
     <h2><span class="grow">Mod terpasang</span>
       <label class="btn small"><input type="file" id="modUpload" accept=".jar" multiple hidden>Upload .jar</label>
     </h2>
+    <div class="row" style="margin-bottom:10px;flex-wrap:nowrap">
+      <input type="text" id="modFilter" placeholder="cari mod terpasang…" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <select id="modShow" style="width:auto"><option value="all">Semua</option><option value="on">Aktif</option><option value="off">Nonaktif</option></select>
+    </div>
+    <div class="small muted" id="modCount" style="margin:-4px 0 8px"></div>
     <div class="list" id="modList"><div class="empty">Memuat...</div></div>
     <p class="small muted" style="margin:10px 0 0">Mod konten (item, mob, dimensi) wajib dipasang juga di client teman dengan versi yang sama. Mod optimasi cukup di server.</p>
   </div>
@@ -372,7 +393,7 @@ const proxy=u=>api("/api/proxy?u="+encodeURIComponent(u));
 function go(t){tab=t;$$("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));$$("main section").forEach(s=>s.classList.toggle("on",s.id==="tab-"+t));
   window.scrollTo(0,0);
   if(t==="mods")loadMods();if(t==="world"){loadBackups();loadProps()}if(t==="server"){loadSettings();loadFabric()}if(t==="tunnel"){loadSettings();loadTunnels(false);loadDomain(true)}
-  if(t==="console")setTimeout(()=>{const l=$("#log");l.scrollTop=l.scrollHeight},30)}
+  if(t==="console"){loadPlayers(true);setTimeout(()=>{const l=$("#log");l.scrollTop=l.scrollHeight},30)}}
 $$("nav button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){e.preventDefault();go(g.dataset.go)}});
 
@@ -458,6 +479,37 @@ $("#bClearCf").onclick=()=>{if(confirm("Hapus token Cloudflare dari HP ini?"))ac
 $("#bSyncDns").onclick=()=>syncDns(false);
 $("#cfAutosync").onchange=e=>act("/api/settings",{cfAutosync:String(e.target.checked)},"Tersimpan");
 
+// ---------------------------------------------------------- players
+let PL=null, plAt=0;
+async function loadPlayers(force){if(!force&&Date.now()-plAt<4000)return;plAt=Date.now();
+  try{PL=await api("/api/players");renderPlayers()}catch(e){}}
+function renderPlayers(){const p=PL;if(!p)return;
+  $("#wlToggle").checked=p.whitelistOn;
+  $("#plNote").textContent=p.running?(p.whitelistOn?"Whitelist aktif: cuma pemain di whitelist yang bisa masuk.":"Whitelist mati: siapa pun yang tahu alamat bisa masuk."):"Server mati. Daftar tetap terlihat, aksi bisa dipakai setelah server jalan.";
+  const has=(arr,n)=>arr.some(x=>x.toLowerCase()===n.toLowerCase());
+  const names=[...p.all].sort((a,b)=>(has(p.online,b)-has(p.online,a))||a.localeCompare(b));
+  $("#plList").innerHTML=names.length?names.map(n=>{const on=has(p.online,n),op=has(p.ops,n),wl=has(p.whitelist,n),ban=has(p.banned,n);
+    const dis=p.running?"":" disabled";const N=esc(n);
+    return '<div class="item pl"><div class="n"><b>'+N+(on?'<span class="badge on">online</span>':'')+(op?'<span class="badge op">OP</span>':'')+(wl?'<span class="badge wl">whitelist</span>':'')+(ban?'<span class="badge ban">banned</span>':'')+'</b></div>'+
+    '<div class="acts">'+
+      '<button class="btn small"'+dis+' data-pa="'+(op?"deop":"op")+'" data-pn="'+N+'">'+(op?"Cabut OP":"Jadikan OP")+'</button>'+
+      '<button class="btn small"'+dis+' data-pa="'+(wl?"wl-remove":"wl-add")+'" data-pn="'+N+'">'+(wl?"Keluarkan whitelist":"Whitelist")+'</button>'+
+      '<select'+dis+' data-pn="'+N+'" data-gm><option value="">Gamemode…</option><option value="survival">Survival</option><option value="creative">Creative</option><option value="adventure">Adventure</option><option value="spectator">Spectator</option></select>'+
+      (on?'<button class="btn small"'+dis+' data-pa="heal" data-pn="'+N+'">Heal</button><button class="btn small"'+dis+' data-pa="feed" data-pn="'+N+'">Kenyang</button><button class="btn small"'+dis+' data-pa="kick" data-pn="'+N+'">Kick</button>':'')+
+      '<button class="btn small danger"'+dis+' data-pa="'+(ban?"pardon":"ban")+'" data-pn="'+N+'">'+(ban?"Unban":"Ban")+'</button>'+
+    '</div></div>'}).join(""):'<div class="empty">Belum ada pemain. Tambah lewat kolom di atas atau tunggu ada yang join.</div>';
+}
+const ACT_MSG={op:"jadi OP",deop:"bukan OP lagi","wl-add":"masuk whitelist","wl-remove":"keluar whitelist",kick:"di-kick",ban:"di-ban",pardon:"di-unban",heal:"di-heal",feed:"dikenyangkan",survival:"jadi Survival",creative:"jadi Creative",adventure:"jadi Adventure",spectator:"jadi Spectator"};
+async function playerAct(action,name){
+  if(action==="ban"&&!confirm("Ban "+name+"?"))return;
+  if(action==="op"&&!confirm("Jadikan "+name+" OP? OP bisa pakai semua command server."))return;
+  try{await api("/api/players/action",{form:{action,name}});toast(name?name+" "+(ACT_MSG[action]||action):"Oke");setTimeout(()=>loadPlayers(true),700);pollLog()}catch(e){toast(e.message,true)}}
+$("#plList").onclick=e=>{const b=e.target.closest("[data-pa]");if(b&&!b.disabled)playerAct(b.dataset.pa,b.dataset.pn)};
+$("#plList").onchange=e=>{const s=e.target.closest("[data-gm]");if(s&&s.value){playerAct(s.value,s.dataset.pn);s.value=""}};
+$("#plAddForm").onclick=e=>{const b=e.target.closest("[data-padd]");if(!b)return;const n=$("#plName").value.trim();if(!n)return toast("Isi nama pemain",true);playerAct(b.dataset.padd,n).then(()=>{$("#plName").value=""})};
+$("#plAddForm").onsubmit=e=>{e.preventDefault();const n=$("#plName").value.trim();if(n)playerAct("wl-add",n).then(()=>{$("#plName").value=""})};
+$("#wlToggle").onchange=e=>{const on=e.target.checked;playerAct(on?"whitelist-on":"whitelist-off","");};
+
 // ---------------------------------------------------------- login
 function showLogin(){if(loggingIn)return;loggingIn=true;$("#login").style.display="grid";setTimeout(()=>$("#loginPin").focus(),50)}
 $("#loginForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/login",{form:{pin:$("#loginPin").value}});$("#login").style.display="none";loggingIn=false;refresh();go(tab)}catch(err){toast(err.message,true)}};
@@ -537,12 +589,19 @@ $("#chips").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;
 // ---------------------------------------------------------- mods
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,"");
 async function loadMods(){
-  try{const r=await api("/api/mods");installedMods=r.mods;
-    $("#modList").innerHTML=r.mods.length?r.mods.map(m=>'<div class="item'+(m.enabled?"":" off")+'"><div class="n"><b title="'+esc(m.name)+'">'+esc(m.name.replace(/\.disabled$/,""))+'</b><span class="small muted">'+fmtSize(m.size)+(m.enabled?"":" · nonaktif")+'</span></div>'+
-      '<input type="checkbox" class="toggle" data-toggle="'+esc(m.name)+'"'+(m.enabled?" checked":"")+'><button class="btn small danger" data-del="'+esc(m.name)+'">Hapus</button></div>').join(""):'<div class="empty">Belum ada mod. Pasang paket optimasi atau cari di bawah.</div>';
-    $("#modRestart").classList.toggle("hide",!r.needsRestart||!window._modChanged);
-  }catch(e){toast(e.message,true)}
+  try{const r=await api("/api/mods");installedMods=r.mods;window._modNeedsRestart=r.needsRestart;renderMods()}catch(e){toast(e.message,true)}
 }
+function renderMods(){
+  const q=norm($("#modFilter").value||""),show=$("#modShow").value,all=installedMods;
+  const list=all.filter(m=>(!q||norm(m.name).includes(q))&&(show==="all"||(show==="on")===m.enabled));
+  const on=all.filter(m=>m.enabled).length;
+  $("#modCount").textContent=all.length?(list.length===all.length?all.length+" mod ("+on+" aktif)":list.length+" dari "+all.length+" mod"):"";
+  $("#modList").innerHTML=list.length?list.map(m=>'<div class="item'+(m.enabled?"":" off")+'"><div class="n"><b title="'+esc(m.name)+'">'+esc(m.name.replace(/\.disabled$/,""))+'</b><span class="small muted">'+fmtSize(m.size||0)+(m.enabled?"":" · nonaktif")+'</span></div>'+
+    '<input type="checkbox" class="toggle" data-toggle="'+esc(m.name)+'"'+(m.enabled?" checked":"")+'><button class="btn small danger" data-del="'+esc(m.name)+'">Hapus</button></div>').join("")
+    :'<div class="empty">'+(all.length?"Tidak ada mod yang cocok dengan pencarian":"Belum ada mod. Pasang paket optimasi atau cari di bawah.")+'</div>';
+  $("#modRestart").classList.toggle("hide",!window._modNeedsRestart||!window._modChanged);
+}
+$("#modFilter").oninput=renderMods;$("#modShow").onchange=renderMods;
 $("#modList").onclick=async e=>{const d=e.target.closest("[data-del]");if(d&&confirm("Hapus "+d.dataset.del+"?")){try{await api("/api/mods/delete",{form:{name:d.dataset.del}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}}};
 $("#modList").onchange=async e=>{const t=e.target.closest("[data-toggle]");if(!t)return;try{await api("/api/mods/toggle",{form:{name:t.dataset.toggle}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}};
 $("#modUpload").onchange=async e=>{for(const f of e.target.files){try{toast("Upload "+f.name+"…");await api("/api/mods/upload?name="+encodeURIComponent(f.name),{method:"PUT",body:f});window._modChanged=1}catch(err){toast(f.name+": "+err.message,true)}}e.target.value="";loadMods()};
@@ -659,7 +718,7 @@ $("#bInstall").onclick=async()=>{try{const inst=await proxy("https://meta.fabric
 // ---------------------------------------------------------- loops
 let tick=0;
 async function loop(){tick++;
-  if(!loggingIn){await refresh();if(tab==="console"||tab==="home"||tick%5===0)await pollLog();if(tab==="tunnel")await pollTunnel();if(tab==="home"||tab==="tunnel")loadTunnels(false)}
+  if(!loggingIn){await refresh();if(tab==="console"||tab==="home"||tick%5===0)await pollLog();if(tab==="tunnel")await pollTunnel();if(tab==="home"||tab==="tunnel")loadTunnels(false);if(tab==="console")loadPlayers(false)}
   setTimeout(loop,tab==="console"?900:1600)}
 api("/api/login").then(r=>{if(!r.authorized)showLogin()}).catch(()=>{}).finally(loop);
 </script>

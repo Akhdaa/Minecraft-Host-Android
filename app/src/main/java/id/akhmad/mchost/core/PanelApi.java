@@ -70,6 +70,8 @@ public class PanelApi implements MiniHttp.Handler {
             case "/api/settings": settings(req, res, post); return;
             case "/api/properties": properties(req, res, post); return;
             case "/api/mods": mods(res); return;
+            case "/api/players": players(res); return;
+            case "/api/players/action": requirePost(post); playerAction(req, res); return;
             case "/api/mods/upload": requirePost(post); upload(req, res, new File(host.serverDir, "mods"), ".jar"); return;
             case "/api/mods/delete": requirePost(post); modDelete(req, res); return;
             case "/api/mods/toggle": requirePost(post); modToggle(req, res); return;
@@ -271,6 +273,72 @@ public class PanelApi implements MiniHttp.Handler {
             return;
         }
         res.text(200, IO.readText(f));
+    }
+
+    // ------------------------------------------------------------ players
+
+    private static final java.util.regex.Pattern NAME_FIELD = java.util.regex.Pattern.compile("\"name\"\\s*:\\s*\"([A-Za-z0-9_.]{1,20})\"");
+    private static final String PLAYER_NAME = "[A-Za-z0-9_.]{2,20}";
+
+    private List<String> namesIn(String file) {
+        List<String> out = new ArrayList<>();
+        try {
+            java.util.regex.Matcher m = NAME_FIELD.matcher(IO.readText(new File(host.serverDir, file)));
+            while (m.find()) if (!out.contains(m.group(1))) out.add(m.group(1));
+        } catch (IOException ignored) {
+        }
+        return out;
+    }
+
+    private void players(MiniHttp.Res res) throws IOException {
+        List<String> online = host.mc.players();
+        List<String> ops = namesIn("ops.json"), wl = namesIn("whitelist.json"), banned = namesIn("banned-players.json");
+        java.util.TreeSet<String> all = new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        all.addAll(online);
+        all.addAll(ops);
+        all.addAll(wl);
+        all.addAll(banned);
+        all.addAll(namesIn("usercache.json"));
+        res.json(200, Json.obj()
+                .raw("all", Json.strArray(all))
+                .raw("online", Json.strArray(online))
+                .raw("ops", Json.strArray(ops))
+                .raw("whitelist", Json.strArray(wl))
+                .raw("banned", Json.strArray(banned))
+                .put("whitelistOn", "true".equals(host.property("white-list", "false")))
+                .put("running", "running".equals(host.mc.state()))
+                .toString());
+    }
+
+    /** Whitelisted, structured player actions translated into server commands. */
+    private void playerAction(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
+        String action = req.param("action", "");
+        String name = req.param("name", "").trim();
+        String cmd;
+        switch (action) {
+            case "whitelist-on": cmd = "whitelist on"; break;
+            case "whitelist-off": cmd = "whitelist off"; break;
+            default:
+                if (!name.matches(PLAYER_NAME)) throw new IllegalArgumentException("Nama pemain tidak valid");
+                switch (action) {
+                    case "op": cmd = "op " + name; break;
+                    case "deop": cmd = "deop " + name; break;
+                    case "wl-add": cmd = "whitelist add " + name; break;
+                    case "wl-remove": cmd = "whitelist remove " + name; break;
+                    case "kick": cmd = "kick " + name; break;
+                    case "ban": cmd = "ban " + name; break;
+                    case "pardon": cmd = "pardon " + name; break;
+                    case "survival": case "creative": case "adventure": case "spectator":
+                        cmd = "gamemode " + action + " " + name; break;
+                    case "heal": cmd = "effect give " + name + " minecraft:instant_health 1 10"; break;
+                    case "feed": cmd = "effect give " + name + " minecraft:saturation 1 20"; break;
+                    default: throw new IllegalArgumentException("Aksi tidak dikenal");
+                }
+        }
+        if (!"running".equals(host.mc.state())) throw new IllegalStateException("Nyalakan server dulu, aksi pemain dijalankan lewat command server");
+        host.mcLog.add("> " + cmd);
+        host.mc.send(cmd);
+        res.json(200, Json.obj().put("ok", true).put("command", cmd).toString());
     }
 
     // ------------------------------------------------------------ mods
