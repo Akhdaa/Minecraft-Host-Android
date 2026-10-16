@@ -87,7 +87,7 @@ public class AndroidPlatform implements Platform {
         IO.deleteRecursive(runtimeDir);
         runtimeDir.mkdirs();
         int n;
-        try (InputStream in = am.open("runtime/jre.tar.gz", AssetManager.ACCESS_STREAMING)) {
+        try (InputStream in = am.open("runtime/jre.bin", AssetManager.ACCESS_STREAMING)) {
             n = IO.extractTarGz(in, runtimeDir);
         }
         try (InputStream in = am.open("runtime/playitd", AssetManager.ACCESS_STREAMING)) {

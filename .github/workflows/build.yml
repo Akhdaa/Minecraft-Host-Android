@@ -33,15 +33,17 @@ jobs:
       KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Java runtime untuk Android (Termux ${{ env.JDK_PKG }} aarch64)
-        run: python3 scripts/fetch_termux_runtime.py --pkg "$JDK_PKG" --out app/src/main/assets/runtime
+        run: |
+          python3 scripts/fetch_termux_runtime.py --pkg "$JDK_PKG" --out app/src/main/assets/runtime | tee runtime.log
+          grep -E 'WARNING|paket:|selesai' runtime.log | grep -v 'libc.so.6' | sed 's/^/::notice::/' | head -20
 
       - name: Cache cargo (playitd)
         if: github.event.inputs.playit != 'false'
@@ -78,16 +80,19 @@ jobs:
       - name: Cek isi APK
         id: apk
         run: |
-          APK=app/build/outputs/apk/release/app-release.apk
-          unzip -l "$APK" | grep -E 'assets/(runtime|panel)/'
-          unzip -l "$APK" | grep -q 'assets/runtime/jre.tar.gz' || { echo "::error::Java runtime tidak masuk APK"; exit 1; }
-          if unzip -l "$APK" | grep -q 'assets/runtime/playitd'; then TUN=ada; else TUN="tidak ada"; echo "::warning::playitd tidak ikut, tunnel nonaktif di build ini"; fi
+          echo "::notice::assets/runtime di repo: $(ls -la app/src/main/assets/runtime | tr '\n' ' ')"
+          APK=$(find app/build/outputs/apk/release -name '*.apk' | head -1)
+          [ -n "$APK" ] || { echo "::error::APK tidak ditemukan: $(find app/build/outputs -type f | tr '\n' ' ')"; exit 1; }
+          LIST=$(unzip -l "$APK")
+          echo "::notice::APK $APK, assets: $(echo "$LIST" | grep -E 'assets/' | awk '{print $1" "$4}' | tr '\n' ' ')"
+          echo "$LIST" | grep -q 'assets/runtime/jre.bin' || { echo "::error::Java runtime tidak masuk APK"; exit 1; }
+          if echo "$LIST" | grep -q 'assets/runtime/playitd'; then TUN=ada; else TUN="tidak ada"; echo "::warning::playitd tidak ikut, tunnel nonaktif di build ini"; fi
           NAME="MCHost-1.0.${{ github.run_number }}.apk"
           cp "$APK" "$NAME"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "tunnel=$TUN" >> "$GITHUB_OUTPUT"
           echo "runtime=$(cat app/src/main/assets/runtime/version)" >> "$GITHUB_OUTPUT"
-          ls -la "$NAME"
+          echo "::notice::$NAME $(du -h "$NAME" | cut -f1), runtime $(cat app/src/main/assets/runtime/version), tunnel $TUN"
 
       - uses: actions/upload-artifact@v4
         with:

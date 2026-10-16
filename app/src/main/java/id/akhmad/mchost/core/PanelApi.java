@@ -147,6 +147,7 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("uptime", host.mc.uptimeSec())
                 .put("rssMb", host.mc.rssMb())
                 .put("ramMb", host.cfg.getInt(Config.RAM_MB, 3072))
+                .put("deviceRamMb", deviceRamMb())
                 .put("eula", host.cfg.getBool(Config.EULA))
                 .raw("lan", Json.strArray(lanIps()))
                 .put("panelPort", host.cfg.getInt(Config.PORT, 8080))
@@ -198,8 +199,15 @@ public class PanelApi implements MiniHttp.Handler {
         if (post) {
             String ram = req.param("ram");
             if (ram != null) {
-                int r = Integer.parseInt(ram.trim());
-                if (r < 512 || r > 16384) throw new IllegalArgumentException("RAM harus 512 sampai 16384 MB");
+                int r;
+                try {
+                    r = Integer.parseInt(ram.trim());
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("RAM harus angka (MB)");
+                }
+                long total = deviceRamMb();
+                long max = total > 0 ? total : 131072;
+                if (r < 256 || r > max) throw new IllegalArgumentException("RAM harus 256 sampai " + max + " MB");
                 c.set(Config.RAM_MB, String.valueOf(r));
             }
             String jvm = req.param("jvmArgs");
@@ -226,6 +234,7 @@ public class PanelApi implements MiniHttp.Handler {
         }
         res.json(200, Json.obj()
                 .put("ram", c.getInt(Config.RAM_MB, 3072))
+                .put("deviceRamMb", deviceRamMb())
                 .put("jvmArgs", c.get(Config.JVM_ARGS, ""))
                 .put("autoRestart", c.getBool(Config.AUTO_RESTART))
                 .put("autoStart", c.getBool(Config.AUTO_START))
@@ -402,7 +411,19 @@ public class PanelApi implements MiniHttp.Handler {
         if (n.endsWith(".svg")) return "image/svg+xml";
         if (n.endsWith(".png")) return "image/png";
         if (n.endsWith(".json")) return "application/json";
+        if (n.endsWith(".txt")) return "text/plain; charset=utf-8";
         return "application/octet-stream";
+    }
+
+    /** Total physical RAM in MB from /proc/meminfo, or -1 if unknown. */
+    public static long deviceRamMb() {
+        try {
+            for (String l : IO.readText(new java.io.File("/proc/meminfo")).split("\n")) {
+                if (l.startsWith("MemTotal:")) return Long.parseLong(l.replaceAll("[^0-9]", "")) / 1024;
+            }
+        } catch (Exception ignored) {
+        }
+        return -1;
     }
 
     // ------------------------------------------------------------ network

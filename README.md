@@ -39,8 +39,12 @@ Signing: default pakai `keystore/mchost.jks` (password `mchost123`) supaya tiap 
 app/src/main/java/id/akhmad/mchost/core/   logika panel (Java murni, bisa dites di PC)
 app/src/main/java/id/akhmad/mchost/        Activity WebView, foreground service, boot receiver
 app/src/main/assets/panel/index.html       UI web panel
-scripts/fetch_termux_runtime.py            ambil + rapikan OpenJDK Termux jadi assets/runtime/jre.tar.gz
+scripts/fetch_termux_runtime.py            ambil + rapikan OpenJDK Termux jadi assets/runtime/jre.bin
 scripts/build_playit.sh                    cross compile playitd pakai NDK
 ```
 
 `targetSdk` sengaja 28: Android hanya mengizinkan eksekusi binary dari folder data app (java, playitd) untuk target API 28 ke bawah, sama seperti Termux. Android akan menampilkan peringatan "dibuat untuk versi lama" saat install, itu normal.
+
+## Lisensi
+
+Kode MC Host: [MIT](LICENSE). APK hasil build ikut membawa OpenJDK (GPLv2 + Classpath Exception) dan playitd (BSD 2-Clause), rinciannya di [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt). Minecraft dan Fabric tidak ikut dibundel, keduanya didownload dari sumber resmi saat install.

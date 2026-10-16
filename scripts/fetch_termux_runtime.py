@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Builds app/src/main/assets/runtime/{jre.tar.gz,version} from Termux's aarch64 packages.
+Builds app/src/main/assets/runtime/{jre.bin,version} from Termux's aarch64 packages.
 
 Termux packages are compiled for Android's bionic libc, so the bundled `java` runs natively on
 the phone without Termux being installed. We download the JDK package plus its library
@@ -270,7 +270,7 @@ def main():
     os.chmod(java, 0o755)
 
     os.makedirs(a.out, exist_ok=True)
-    tgz = os.path.join(a.out, "jre.tar.gz")
+    tgz = os.path.join(a.out, "jre.bin")
     with tarfile.open(tgz, "w:gz", format=tarfile.GNU_FORMAT, compresslevel=9) as tf:
         for top in ("jvm", "lib"):
             tf.add(os.path.join(stage, top), arcname=top)

@@ -53,7 +53,7 @@ public class McServer extends ManagedProcess {
         File tmp = new File(host.base, "tmp");
         tmp.mkdirs();
 
-        int ram = Math.max(512, host.cfg.getInt(Config.RAM_MB, 3072));
+        int ram = Math.max(256, host.cfg.getInt(Config.RAM_MB, 3072));
         List<String> cmd = new ArrayList<>();
         cmd.add(java.getAbsolutePath());
         cmd.add("-Xms" + Math.min(1024, ram) + "M");

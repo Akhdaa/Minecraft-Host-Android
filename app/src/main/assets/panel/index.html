@@ -287,9 +287,10 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
     <div class="sw"><div><div class="t">Auto restart saat crash</div><div class="d">Berhenti jika crash 4x dalam 10 menit</div></div><input type="checkbox" class="toggle" id="autoRestart"></div>
     <div class="sw"><div><div class="t">Start server saat aplikasi dibuka</div><div class="d">Server langsung menyala tanpa tekan Start</div></div><input type="checkbox" class="toggle" id="autoStart"></div>
     <div class="sw"><div><div class="t">Jalan saat HP dinyalakan</div><div class="d">Panel aktif otomatis setelah reboot</div></div><input type="checkbox" class="toggle" id="bootStart"></div>
-    <label class="f" style="margin-top:14px"><span>RAM untuk server: <b id="ramLabel">-</b></span>
-      <input type="range" id="ram" min="1024" max="6144" step="256" style="width:100%"></label>
-    <p class="small muted" style="margin:-6px 0 12px">HP 8 GB: 3 sampai 4 GB paling aman. Terlalu besar bikin Android membunuh aplikasi lain atau server sendiri.</p>
+    <label class="f" style="margin-top:14px"><span>RAM untuk server: <b id="ramLabel">-</b> <span id="ramDevice"></span></span>
+      <input type="range" id="ram" min="256" max="8192" step="128" style="width:100%"></label>
+    <div class="row" style="margin:-4px 0 6px"><input type="number" id="ramNum" min="256" step="64" style="max-width:150px"> <span class="small muted">MB, bebas diisi</span></div>
+    <p class="small muted" id="ramWarn" style="margin:0 0 12px">HP 8 GB: 3 sampai 4 GB paling aman. Terlalu besar bikin Android membunuh aplikasi lain atau server sendiri.</p>
     <label class="f"><span>JVM args tambahan (opsional)</span><input type="text" id="jvmArgs" placeholder="-XX:+UseStringDeduplication" spellcheck="false" autocapitalize="off"></label>
     <button class="btn primary" id="bSaveSettings">Simpan pengaturan</button>
   </div>
@@ -308,6 +309,7 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
       <div class="row"><button class="btn" id="bBattery">Matikan optimasi baterai</button><button class="btn" id="bAppInfo">Info aplikasi (autostart)</button></div>
     </div>
   </div>
+  <p class="small muted" style="text-align:center">MC Host · open source (MIT) · <a href="/licenses.txt" target="_blank">Lisensi pihak ketiga</a></p>
 </section>
 </main>
 
@@ -510,10 +512,18 @@ $("#bSaveProps").onclick=async()=>{try{await api("/api/properties",{body:$("#pro
 // ---------------------------------------------------------- settings
 async function loadSettings(){try{const s=await api("/api/settings");
   for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart"])$("#"+k).checked=s[k];
-  $("#ram").value=s.ram;$("#ramLabel").textContent=(s.ram/1024).toFixed(2).replace(/\.?0+$/,"")+" GB";$("#jvmArgs").value=s.jvmArgs}catch(e){toast(e.message,true)}}
-$("#ram").oninput=e=>$("#ramLabel").textContent=(e.target.value/1024).toFixed(2).replace(/\.?0+$/,"")+" GB";
+  deviceRam=s.deviceRamMb>0?s.deviceRamMb:0;if(deviceRam){$("#ram").max=deviceRam;$("#ramNum").max=deviceRam;$("#ramDevice").textContent="(HP: "+gb(deviceRam)+")"}
+  setRam(s.ram);$("#jvmArgs").value=s.jvmArgs}catch(e){toast(e.message,true)}}
+let deviceRam=0;
+const gb=mb=>(mb/1024).toFixed(2).replace(/\.?0+$/,"")+" GB";
+function setRam(v){v=Math.round(Number(v)||0);$("#ram").value=v;$("#ramNum").value=v;$("#ramLabel").textContent=gb(v);
+  const w=$("#ramWarn"),risky=deviceRam&&v>deviceRam*0.6;w.style.color=risky?"var(--warn)":"";
+  w.textContent=risky?"Lebih dari 60% RAM HP. Bisa jalan, tapi Android mungkin membunuh server saat memori penuh.":"HP 8 GB: 3 sampai 4 GB paling aman. Terlalu besar bikin Android membunuh aplikasi lain atau server sendiri."}
+$("#ram").oninput=e=>setRam(e.target.value);
+$("#ramNum").oninput=e=>{const v=Number(e.target.value);if(v>0){$("#ram").value=v;$("#ramLabel").textContent=gb(v)}};
+$("#ramNum").onchange=e=>setRam(e.target.value);
 for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart"])$("#"+k).onchange=e=>act("/api/settings",{[k]:String(e.target.checked)},"Tersimpan");
-$("#bSaveSettings").onclick=()=>act("/api/settings",{ram:$("#ram").value,jvmArgs:$("#jvmArgs").value},"Pengaturan disimpan, berlaku saat start berikutnya");
+$("#bSaveSettings").onclick=()=>act("/api/settings",{ram:$("#ramNum").value,jvmArgs:$("#jvmArgs").value},"Pengaturan disimpan, berlaku saat start berikutnya");
 $("#bSavePin").onclick=()=>{const p=$("#newPin").value.trim();act("/api/settings",{pin:p},"PIN diganti");$("#newPin").value=""};
 $("#bLogout").onclick=async()=>{await api("/api/logout",{post:true}).catch(()=>{});location.reload()};
 $("#bBattery").onclick=()=>bridge&&bridge.requestIgnoreBattery();
