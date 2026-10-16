@@ -110,7 +110,6 @@ jobs:
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             gh release create "$GITHUB_REF_NAME" "${{ steps.apk.outputs.name }}" --title "MC Host $GITHUB_REF_NAME" --notes "$NOTES"
           else
-            cp "${{ steps.apk.outputs.name }}" MCHost-latest.apk
             gh release delete latest --yes --cleanup-tag 2>/dev/null || true
-            gh release create latest MCHost-latest.apk --target "$GITHUB_SHA" --title "MC Host 1.0.${{ github.run_number }}" --notes "$NOTES" --latest
+            gh release create latest "${{ steps.apk.outputs.name }}" --target "$GITHUB_SHA" --title "MC Host 1.0.${{ github.run_number }}" --notes "$NOTES" --latest
           fi

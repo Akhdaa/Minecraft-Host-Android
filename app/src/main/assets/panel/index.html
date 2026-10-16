@@ -43,11 +43,14 @@ nav button.on{color:var(--accent)}
   #toast{bottom:28px;left:calc(50% + 108px)}
 }
 @media(min-width:1240px){
-  #tab-home.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
-  #tab-home>.card{margin:0}#tab-home>#setupCard,#tab-home>.card:last-child{grid-column:1/-1}
+  #tab-home.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:stretch}
+  #tab-home>.card{margin:0;display:flex;flex-direction:column}#tab-home>#setupCard,#tab-home>.card:last-child{grid-column:1/-1}
+  #tab-home .online-box{flex:1;display:flex;flex-direction:column}#tab-home .online-box .onl{flex:1;align-content:flex-start}
   #tab-home .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  #tab-console.on{display:grid;grid-template-columns:minmax(320px,400px) minmax(0,1fr);gap:14px;align-items:start}
-  #tab-console>.card{margin:0}
+  #tab-console.on{display:grid;grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:14px;align-items:stretch;height:calc(100vh - 140px);min-height:560px}
+  #tab-console>.card{margin:0;display:flex;flex-direction:column;min-height:0}
+  #tab-console .plist{flex:1;overflow:auto;min-height:0;padding-right:2px}
+  #tab-console #log{flex:1;height:auto;min-height:0}
 }
 section{display:none}section.on{display:block}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
@@ -160,6 +163,27 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .mrow.off .n b{color:var(--muted)}
 .ibtn{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
 .ibtn.danger{color:var(--bad)}.ibtn:hover{border-color:#3d4e41}
+.pcard .ptabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:12px}
+.ptabs button{border:0;background:none;color:var(--muted);font-weight:700;font-size:13px;padding:8px 2px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.ptabs button.on{background:var(--card);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.ptabs .cnt{font-size:11px;background:var(--line);border-radius:99px;padding:0 6px;margin-left:3px}
+.padd{display:flex;gap:8px;margin-bottom:12px}.padd input{flex:1;min-width:0}
+.plist{display:flex;flex-direction:column;gap:6px}
+.prow{display:flex;align-items:center;gap:11px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 10px;position:relative}
+.prow .av{width:36px;height:36px;border-radius:8px;background:#26322a;flex:none;display:grid;place-items:center;font-weight:800;color:var(--accent);overflow:hidden;position:relative;image-rendering:pixelated}
+.prow .av img{position:absolute;inset:0;width:100%;height:100%}
+.prow .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .nm small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);margin-right:6px;vertical-align:1px}
+.menu{position:absolute;right:8px;top:calc(100% - 4px);z-index:8;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.5);padding:6px;min-width:190px}
+.menu button{display:flex;width:100%;align-items:center;gap:8px;background:none;border:0;color:var(--text);padding:9px 10px;border-radius:8px;text-align:left;cursor:pointer;font-size:14px}
+.menu button:hover{background:var(--bg2)}.menu button.bad{color:var(--bad)}.menu hr{border:0;border-top:1px solid var(--line);margin:4px 2px}
+.menu .lbl{font-size:11px;color:var(--muted);padding:6px 10px 2px;text-transform:uppercase;letter-spacing:.04em}
+.online-box{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.onl{display:flex;flex-wrap:wrap;gap:8px}
+.pchip{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:5px 10px 5px 5px;font-weight:600;font-size:14px}
+.av.sm{width:26px;height:26px;border-radius:6px;font-size:13px;background:#26322a;display:grid;place-items:center;color:var(--accent);position:relative;overflow:hidden;image-rendering:pixelated;flex:none}
+.av.sm img{position:absolute;inset:0;width:100%;height:100%}
 details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 </style>
 </head>
@@ -211,7 +235,10 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
       <div class="stat"><div class="k">Uptime</div><div class="v" id="sUptime">-</div></div>
       <div class="stat"><div class="k">Baterai HP</div><div class="v" id="sBatt">-</div></div>
     </div>
-    <div class="players" id="playerList"></div>
+    <div class="online-box">
+      <div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="small muted">Pemain online</span><a href="#" class="small" data-go="console">Kelola pemain</a></div>
+      <div class="onl" id="playerList"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -228,17 +255,22 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 
 <!-- ============================== CONSOLE -->
 <section id="tab-console">
-  <div class="card">
+  <div class="card pcard">
     <h2><span class="grow">Pemain</span>
       <label class="small muted row" style="gap:8px">Whitelist <input type="checkbox" class="toggle" id="wlToggle"></label>
     </h2>
-    <div id="plNote" class="small muted" style="margin:-4px 0 10px"></div>
-    <form class="cmd" id="plAddForm" style="margin:0 0 10px">
-      <input type="text" id="plName" placeholder="nama pemain (Minecraft)" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20">
-      <button class="btn" type="button" data-padd="wl-add">+ Whitelist</button>
-      <button class="btn" type="button" data-padd="op">+ OP</button>
+    <div class="ptabs" id="plTabs" role="tablist">
+      <button data-pt="online" class="on">Online <span class="cnt" id="cOnline">0</span></button>
+      <button data-pt="whitelist">Whitelist <span class="cnt" id="cWl">0</span></button>
+      <button data-pt="ops">OP <span class="cnt" id="cOps">0</span></button>
+      <button data-pt="banned">Banned <span class="cnt" id="cBan">0</span></button>
+    </div>
+    <div id="plNote" class="small muted" style="margin:0 0 10px"></div>
+    <form class="padd hide" id="plAddForm">
+      <input type="text" id="plName" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20">
+      <button class="btn primary" id="plAddBtn">Tambah</button>
     </form>
-    <div class="list" id="plList"><div class="empty">Memuat…</div></div>
+    <div class="plist" id="plList"><div class="empty">Memuat…</div></div>
   </div>
   <div class="card">
     <h2><span class="grow">Konsol</span>
@@ -606,36 +638,52 @@ $("#bClearCf").onclick=()=>{if(confirm("Hapus token Cloudflare dari HP ini?"))ac
 $("#bSyncDns").onclick=()=>syncDns(false);
 $("#cfAutosync").onchange=e=>act("/api/settings",{cfAutosync:String(e.target.checked)},"Tersimpan");
 
-// ---------------------------------------------------------- players
-let PL=null, plAt=0;
+// ---------------------------------------------------------- players (aternos style)
+let PL=null, plAt=0, plTab="online", plMenu=null;
+const ICO_X='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>', ICO_DOTS='<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+const PT={online:{add:null,empty:"Belum ada pemain online.",note:p=>p.running?"Pemain yang sedang main. Tekan ⋮ untuk aksi.":"Server mati."},
+  whitelist:{add:"wl-add",del:"wl-remove",ph:"Nama pemain untuk whitelist",empty:"Whitelist kosong.",note:p=>p.whitelistOn?"Whitelist aktif: cuma nama di daftar ini yang bisa masuk.":"Whitelist mati: siapa pun bisa masuk. Nyalakan sakelar di atas."},
+  ops:{add:"op",del:"deop",ph:"Nama pemain untuk dijadikan OP",empty:"Belum ada OP.",note:()=>"OP bisa memakai semua command server. Kasih ke orang yang dipercaya saja."},
+  banned:{add:"ban",del:"pardon",ph:"Nama pemain untuk di-ban",empty:"Tidak ada pemain yang di-ban.",note:()=>"Pemain di daftar ini tidak bisa masuk. Tekan ✕ untuk unban."}};
 async function loadPlayers(force){if(!force&&Date.now()-plAt<4000)return;plAt=Date.now();
   try{PL=await api("/api/players");renderPlayers()}catch(e){}}
+const has=(arr,n)=>(arr||[]).some(x=>x.toLowerCase()===n.toLowerCase());
+const avatar=n=>'<div class="av">'+esc(n.charAt(0).toUpperCase())+'<img loading="lazy" alt="" src="https://mc-heads.net/avatar/'+encodeURIComponent(n)+'/72" onerror="this.remove()"></div>';
 function renderPlayers(){const p=PL;if(!p)return;
   $("#wlToggle").checked=p.whitelistOn;
-  $("#plNote").textContent=p.running?(p.whitelistOn?"Whitelist aktif: cuma pemain di whitelist yang bisa masuk.":"Whitelist mati: siapa pun yang tahu alamat bisa masuk."):"Server mati. Daftar tetap terlihat, aksi bisa dipakai setelah server jalan.";
-  const has=(arr,n)=>arr.some(x=>x.toLowerCase()===n.toLowerCase());
-  const names=[...p.all].sort((a,b)=>(has(p.online,b)-has(p.online,a))||a.localeCompare(b));
-  $("#plList").innerHTML=names.length?names.map(n=>{const on=has(p.online,n),op=has(p.ops,n),wl=has(p.whitelist,n),ban=has(p.banned,n);
-    const dis=p.running?"":" disabled";const N=esc(n);
-    return '<div class="item pl"><div class="n"><b>'+N+(on?'<span class="badge on">online</span>':'')+(op?'<span class="badge op">OP</span>':'')+(wl?'<span class="badge wl">whitelist</span>':'')+(ban?'<span class="badge ban">banned</span>':'')+'</b></div>'+
-    '<div class="acts">'+
-      '<button class="btn small"'+dis+' data-pa="'+(op?"deop":"op")+'" data-pn="'+N+'">'+(op?"Cabut OP":"Jadikan OP")+'</button>'+
-      '<button class="btn small"'+dis+' data-pa="'+(wl?"wl-remove":"wl-add")+'" data-pn="'+N+'">'+(wl?"Keluarkan whitelist":"Whitelist")+'</button>'+
-      '<select'+dis+' data-pn="'+N+'" data-gm><option value="">Gamemode…</option><option value="survival">Survival</option><option value="creative">Creative</option><option value="adventure">Adventure</option><option value="spectator">Spectator</option></select>'+
-      (on?'<button class="btn small"'+dis+' data-pa="heal" data-pn="'+N+'">Heal</button><button class="btn small"'+dis+' data-pa="feed" data-pn="'+N+'">Kenyang</button><button class="btn small"'+dis+' data-pa="kick" data-pn="'+N+'">Kick</button>':'')+
-      '<button class="btn small danger"'+dis+' data-pa="'+(ban?"pardon":"ban")+'" data-pn="'+N+'">'+(ban?"Unban":"Ban")+'</button>'+
-    '</div></div>'}).join(""):'<div class="empty">Belum ada pemain. Tambah lewat kolom di atas atau tunggu ada yang join.</div>';
+  $("#cOnline").textContent=p.online.length;$("#cWl").textContent=p.whitelist.length;$("#cOps").textContent=p.ops.length;$("#cBan").textContent=p.banned.length;
+  $$("#plTabs button").forEach(b=>b.classList.toggle("on",b.dataset.pt===plTab));
+  const cfg=PT[plTab];$("#plNote").textContent=cfg.note(p)+(p.running?"":" Aksi bisa dipakai setelah server jalan.");
+  const f=$("#plAddForm");f.classList.toggle("hide",!cfg.add);if(cfg.add){$("#plName").placeholder=cfg.ph;$("#plAddBtn").disabled=!p.running}
+  const names=plTab==="online"?p.online:p[plTab];
+  $("#plList").innerHTML=names.length?names.map(n=>{const N=esc(n);
+    if(plTab==="online"){const tags=[has(p.ops,n)?"OP":"",has(p.whitelist,n)?"whitelist":""].filter(Boolean).join(" · ");
+      return '<div class="prow">'+avatar(n)+'<div class="nm"><span class="dot"></span>'+N+(tags?'<small>'+tags+'</small>':'')+'</div><button class="ibtn" aria-label="Aksi untuk '+N+'" data-pmenu="'+N+'">'+ICO_DOTS+'</button></div>'}
+    return '<div class="prow">'+avatar(n)+'<div class="nm">'+N+(has(p.online,n)?'<small><span class="dot"></span>online</small>':'')+'</div><button class="ibtn danger" aria-label="Hapus '+N+'" title="Hapus" data-pdel="'+N+'"'+(p.running?'':' disabled')+'>'+ICO_X+'</button></div>'}).join("")
+    :'<div class="empty">'+cfg.empty+'</div>';
 }
+function closeMenu(){if(plMenu){plMenu.remove();plMenu=null}}
+function openMenu(btn,n){closeMenu();const p=PL,op=has(p.ops,n),wl=has(p.whitelist,n),N=esc(n);
+  const m=document.createElement("div");m.className="menu";
+  m.innerHTML='<div class="lbl">Gamemode</div>'+["survival","creative","adventure","spectator"].map(g=>'<button data-pa="'+g+'" data-pn="'+N+'">'+g.charAt(0).toUpperCase()+g.slice(1)+'</button>').join("")+
+    '<hr><button data-pa="heal" data-pn="'+N+'">❤ Heal</button><button data-pa="feed" data-pn="'+N+'">🍗 Kenyangkan</button>'+
+    '<button data-pa="'+(op?"deop":"op")+'" data-pn="'+N+'">'+(op?"Cabut OP":"Jadikan OP")+'</button>'+
+    '<button data-pa="'+(wl?"wl-remove":"wl-add")+'" data-pn="'+N+'">'+(wl?"Keluarkan dari whitelist":"Masukkan whitelist")+'</button>'+
+    '<hr><button class="bad" data-pa="kick" data-pn="'+N+'">Kick</button><button class="bad" data-pa="ban" data-pn="'+N+'">Ban</button>';
+  btn.closest(".prow").appendChild(m);plMenu=m}
+document.addEventListener("click",e=>{if(plMenu&&!e.target.closest(".menu")&&!e.target.closest("[data-pmenu]"))closeMenu()});
 const ACT_MSG={op:"jadi OP",deop:"bukan OP lagi","wl-add":"masuk whitelist","wl-remove":"keluar whitelist",kick:"di-kick",ban:"di-ban",pardon:"di-unban",heal:"di-heal",feed:"dikenyangkan",survival:"jadi Survival",creative:"jadi Creative",adventure:"jadi Adventure",spectator:"jadi Spectator"};
 async function playerAct(action,name){
-  if(action==="ban"&&!confirm("Ban "+name+"?"))return;
-  if(action==="op"&&!confirm("Jadikan "+name+" OP? OP bisa pakai semua command server."))return;
-  try{await api("/api/players/action",{form:{action,name}});toast(name?name+" "+(ACT_MSG[action]||action):"Oke");setTimeout(()=>loadPlayers(true),700);pollLog()}catch(e){toast(e.message,true)}}
-$("#plList").onclick=e=>{const b=e.target.closest("[data-pa]");if(b&&!b.disabled)playerAct(b.dataset.pa,b.dataset.pn)};
-$("#plList").onchange=e=>{const s=e.target.closest("[data-gm]");if(s&&s.value){playerAct(s.value,s.dataset.pn);s.value=""}};
-$("#plAddForm").onclick=e=>{const b=e.target.closest("[data-padd]");if(!b)return;const n=$("#plName").value.trim();if(!n)return toast("Isi nama pemain",true);playerAct(b.dataset.padd,n).then(()=>{$("#plName").value=""})};
-$("#plAddForm").onsubmit=e=>{e.preventDefault();const n=$("#plName").value.trim();if(n)playerAct("wl-add",n).then(()=>{$("#plName").value=""})};
-$("#wlToggle").onchange=e=>{const on=e.target.checked;playerAct(on?"whitelist-on":"whitelist-off","");};
+  if(action==="ban"&&!confirm("Ban "+name+"?"))return false;
+  if(action==="op"&&!confirm("Jadikan "+name+" OP? OP bisa pakai semua command server."))return false;
+  try{await api("/api/players/action",{form:{action,name}});toast(name?name+" "+(ACT_MSG[action]||action):"Oke");setTimeout(()=>loadPlayers(true),700);pollLog();return true}catch(e){toast(e.message,true);return false}}
+$("#plTabs").onclick=e=>{const b=e.target.closest("[data-pt]");if(!b)return;plTab=b.dataset.pt;closeMenu();renderPlayers()};
+$("#plList").onclick=e=>{const m=e.target.closest("[data-pmenu]");if(m){e.stopPropagation();if(plMenu&&plMenu.parentNode===m.closest(".prow"))closeMenu();else openMenu(m,m.dataset.pmenu);return}
+  const a=e.target.closest("[data-pa]");if(a){closeMenu();playerAct(a.dataset.pa,a.dataset.pn);return}
+  const d=e.target.closest("[data-pdel]");if(d&&!d.disabled){const n=d.dataset.pdel;if(plTab==="ops"||confirm(({whitelist:"Keluarkan "+n+" dari whitelist?",banned:"Unban "+n+"?"})[plTab]||"Hapus?"))playerAct(PT[plTab].del,n)}};
+$("#plAddForm").onsubmit=async e=>{e.preventDefault();const n=$("#plName").value.trim();if(!n)return;if(!/^[A-Za-z0-9_.]{2,20}$/.test(n))return toast("Nama pemain cuma huruf, angka, _ dan titik (2 sampai 20)",true);
+  if(await playerAct(PT[plTab].add,n))$("#plName").value=""};
+$("#wlToggle").onchange=e=>{playerAct(e.target.checked?"whitelist-on":"whitelist-off","")};
 
 // ---------------------------------------------------------- help
 function openHelp(which){$("#hPort").textContent=S.mcPort||"25565";$("#helpModal").classList.remove("hide");showHelp(which||"playit")}
@@ -682,7 +730,7 @@ async function refresh(){
   const alive=st==="running"||st==="starting"||st==="stopping";
   $("#bStart").disabled=alive||!!S.task||!S.runtimeReady;$("#bStop").disabled=!alive;$("#bRestart").disabled=st!=="running";
   $("#sPlayers").textContent=S.players.length+" / "+S.maxPlayers;
-  $("#playerList").innerHTML=S.players.map(p=>"<span>"+esc(p)+"</span>").join("");
+  $("#playerList").innerHTML=S.players.length?S.players.map(p=>'<span class="pchip">'+avatar(p).replace('class="av"','class="av sm"')+esc(p)+'</span>').join(""):'<div class="empty" style="padding:10px">'+(S.state==="running"?"Belum ada yang online":"Server mati")+'</div>';
   if(S.rssMb>0){$("#sRam").textContent=(S.rssMb/1024).toFixed(1)+" / "+(S.ramMb/1024).toFixed(1)+" GB";$("#sRamBar").style.width=Math.min(100,S.rssMb/S.ramMb*100)+"%"}
   else{$("#sRam").textContent="- / "+(S.ramMb/1024).toFixed(1)+" GB";$("#sRamBar").style.width="0"}
   $("#sUptime").textContent=fmtDur(S.uptime);
