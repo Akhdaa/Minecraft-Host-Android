@@ -7,19 +7,25 @@ import java.util.Map;
 
 /** Everything the core needs from the host OS (Android app, or a desktop JVM for testing). */
 public interface Platform {
-    /** App-private base directory (server/, backups/, runtime/ live under it). */
+    /** App-private base directory (servers/, backups/, runtime/ live under it). */
     File baseDir();
 
-    /** Java executable for the Minecraft server, or null while the runtime is not ready. */
-    File javaBinary();
+    /**
+     * Java executable that can run {@code wantMajor}: the smallest bundled major >= wantMajor (else the newest),
+     * or null while that runtime is not extracted yet.
+     */
+    File javaBinary(int wantMajor);
 
-    /** Extra environment for child processes (LD_LIBRARY_PATH, HOME, TMPDIR...). */
-    Map<String, String> childEnv();
+    /** Extracts the runtime {@link #javaBinary} would pick, if needed. Blocking (~1 min the first time). */
+    void prepareJava(int wantMajor, LogBuffer log) throws IOException;
+
+    /** Extra environment for child processes (LD_LIBRARY_PATH, HOME, TMPDIR...); java may be null (playitd). */
+    Map<String, String> childEnv(File java);
 
     /** playitd executable, or null when this build has none. */
     File playitBinary();
 
-    /** Prepares the bundled runtime (extract on first launch). Blocking. */
+    /** One-time setup at launch (extracts playitd). Blocking. */
     void prepareRuntime(LogBuffer log) throws IOException;
 
     /** Static panel file (path like "index.html"), or null if missing. */

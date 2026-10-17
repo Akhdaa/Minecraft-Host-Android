@@ -39,7 +39,7 @@ public class Playit extends ManagedProcess {
         cmd.add(new File(dir, "playitd.sock").getAbsolutePath());
         cmd.add("--platform-docker");
         log.panel("Menyalakan tunnel playit...");
-        launch(cmd, dir, host.platform.childEnv(), "playitd");
+        launch(cmd, dir, host.platform.childEnv(null), "playitd");
         state = "running";
     }
 

@@ -29,11 +29,23 @@ public class Config {
     public static final String CF_AUTOSYNC = "cf_autosync";
     public static final String AUTO_BACKUP_HOURS = "auto_backup_hours";
     public static final String BACKUP_KEEP = "backup_keep";
+    public static final String ACTIVE = "active_server";
+    // per-server keys (servers/<id>/mchost.properties); RAM_MB, JVM_ARGS, MC_VERSION, LOADER, INSTALLER live there too
+    public static final String NAME = "name";
+    public static final String TYPE = "type";
+    public static final String LAUNCH = "launch";
+    public static final String JAVA = "java";
 
     private final File file;
     private final Properties p = new Properties();
 
+    /** Panel settings (panel.properties) with defaults and a random PIN. */
     public Config(File file) {
+        this(file, true);
+    }
+
+    /** {@code panel=false}: a plain properties file without the panel defaults (per-server settings). */
+    public Config(File file, boolean panel) {
         this.file = file;
         if (file.exists()) {
             try (InputStream in = new FileInputStream(file)) {
@@ -41,6 +53,7 @@ public class Config {
             } catch (Exception ignored) {
             }
         }
+        if (!panel) return;
         def(RAM_MB, "3072");
         def(JVM_ARGS, "");
         def(AUTO_RESTART, "true");

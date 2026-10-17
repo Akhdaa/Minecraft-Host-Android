@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Builds app/src/main/assets/runtime/{jre.bin,version} from Termux's aarch64 packages.
+Builds app/src/main/assets/runtime/{NAME.bin,NAME.version} (NAME = --name, e.g. jre21) from Termux's
+aarch64 packages. CI runs it once per Java major; the app picks one per Minecraft version.
 
 Termux packages are compiled for Android's bionic libc, so the bundled `java` runs natively on
 the phone without Termux being installed. We download the JDK package plus its library
@@ -176,6 +177,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pkg", default="openjdk-17")
     ap.add_argument("--out", required=True, help="assets/runtime directory")
+    ap.add_argument("--name", default="jre", help="output base name: <name>.bin and <name>.version")
     ap.add_argument("--work", default="build/termux-runtime")
     ap.add_argument("--mirror", action="append", help="override mirror base URL(s)")
     ap.add_argument("--cacerts", default=None, help="portable cacerts file (default: $JAVA_HOME/lib/security/cacerts)")
@@ -270,12 +272,12 @@ def main():
     os.chmod(java, 0o755)
 
     os.makedirs(a.out, exist_ok=True)
-    tgz = os.path.join(a.out, "jre.bin")
+    tgz = os.path.join(a.out, f"{a.name}.bin")
     with tarfile.open(tgz, "w:gz", format=tarfile.GNU_FORMAT, compresslevel=9) as tf:
         for top in ("jvm", "lib"):
             tf.add(os.path.join(stage, top), arcname=top)
     version = f"{a.pkg} {pkgs[a.pkg].get('Version')}"
-    with open(os.path.join(a.out, "version"), "w") as fh:
+    with open(os.path.join(a.out, f"{a.name}.version"), "w") as fh:
         fh.write(version + "\n")
     size = os.path.getsize(tgz) / 1024 / 1024
     log(f"selesai: {tgz} ({size:.1f} MB), versi {version}")

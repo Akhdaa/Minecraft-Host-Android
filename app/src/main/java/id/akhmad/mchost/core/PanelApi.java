@@ -23,7 +23,13 @@ import java.util.concurrent.ConcurrentHashMap;
 /** REST API + static files for the web panel. */
 public class PanelApi implements MiniHttp.Handler {
     private static final String COOKIE = "mch_session";
-    private static final Set<String> PROXY_HOSTS = new HashSet<>(Arrays.asList("meta.fabricmc.net", "api.modrinth.com"));
+    private static final Set<String> PROXY_HOSTS = new HashSet<>(Arrays.asList("meta.fabricmc.net", "api.modrinth.com",
+            "piston-meta.mojang.com", "fill.papermc.io", "api.purpurmc.org", "files.minecraftforge.net", "maven.neoforged.net"));
+    /** Endpoints that work without any server (everything else acts on the active server). */
+    private static final Set<String> GLOBAL = new HashSet<>(Arrays.asList("/api/status", "/api/log", "/api/settings",
+            "/api/proxy", "/api/playit/start", "/api/playit/stop", "/api/playit/tunnels", "/api/domain/info",
+            "/api/domain/sync", "/api/logout", "/api/servers", "/api/servers/create", "/api/servers/select",
+            "/api/servers/update", "/api/servers/delete"));
     private static final long MAX_UPLOAD = 2L * 1024 * 1024 * 1024;
 
     private final Host host;
@@ -61,6 +67,10 @@ public class PanelApi implements MiniHttp.Handler {
             res.error(403, "Header X-Panel hilang");
             return;
         }
+        if (!host.hasServer() && !GLOBAL.contains(p)) {
+            res.error(409, "Belum ada server. Buat server dulu.");
+            return;
+        }
         if (files.handles(p)) {
             files.handle(p, req, res, post);
             return;
@@ -68,7 +78,12 @@ public class PanelApi implements MiniHttp.Handler {
         switch (p) {
             case "/api/status": status(req, res); return;
             case "/api/log": log(req, res); return;
-            case "/api/start": requirePost(post); host.mc.start(); res.ok(); return;
+            case "/api/servers": servers(res); return;
+            case "/api/servers/create": requirePost(post); serverCreate(req, res); return;
+            case "/api/servers/select": requirePost(post); host.selectServer(req.param("id", "")); files.invalidate(); res.ok(); return;
+            case "/api/servers/update": requirePost(post); serverUpdate(req, res); return;
+            case "/api/servers/delete": requirePost(post); host.deleteServer(req.param("id", "")); files.invalidate(); res.ok(); return;
+            case "/api/start": requirePost(post); host.startServer(); res.ok(); return;
             case "/api/stop": requirePost(post); host.mc.stop(); res.ok(); return;
             case "/api/restart": requirePost(post); host.mc.restart(); res.ok(); return;
             case "/api/kill": requirePost(post); host.mc.kill(); res.ok(); return;
@@ -78,7 +93,7 @@ public class PanelApi implements MiniHttp.Handler {
             case "/api/mods": mods(res); return;
             case "/api/players": players(res); return;
             case "/api/players/action": requirePost(post); playerAction(req, res); return;
-            case "/api/mods/upload": requirePost(post); upload(req, res, new File(host.serverDir, "mods"), ".jar"); return;
+            case "/api/mods/upload": requirePost(post); upload(req, res, addonDir(), ".jar"); return;
             case "/api/mods/delete": requirePost(post); modDelete(req, res); return;
             case "/api/mods/toggle": requirePost(post); modToggle(req, res); return;
             case "/api/mods/install": requirePost(post); modInstall(req, res); return;
@@ -221,12 +236,16 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("taskProgress", host.progress())
                 .put("runtimeReady", host.runtimeReady())
                 .put("installed", host.mc.installed())
-                .put("mcVersion", host.cfg.get(Config.MC_VERSION, ""))
-                .put("loader", host.cfg.get(Config.LOADER, ""))
+                .put("serverId", host.activeId())
+                .put("serverName", host.srv.get(Config.NAME, ""))
+                .put("type", host.hasServer() ? host.type() : "")
+                .put("mcVersion", host.srv.get(Config.MC_VERSION, ""))
+                .put("loader", host.srv.get(Config.LOADER, ""))
+                .put("java", host.javaMajor())
                 .raw("players", Json.strArray(host.mc.players()))
                 .put("uptime", host.mc.uptimeSec())
                 .put("rssMb", host.mc.rssMb())
-                .put("ramMb", host.cfg.getInt(Config.RAM_MB, 3072))
+                .put("ramMb", host.srv.getInt(Config.RAM_MB, 3072))
                 .put("deviceRamMb", deviceRamMb())
                 .put("eula", host.cfg.getBool(Config.EULA))
                 .raw("lan", Json.strArray(lanIps()))
@@ -278,21 +297,6 @@ public class PanelApi implements MiniHttp.Handler {
     private void settings(MiniHttp.Req req, MiniHttp.Res res, boolean post) throws IOException {
         Config c = host.cfg;
         if (post) {
-            String ram = req.param("ram");
-            if (ram != null) {
-                int r;
-                try {
-                    r = Integer.parseInt(ram.trim());
-                } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("RAM harus angka (MB)");
-                }
-                long total = deviceRamMb();
-                long max = total > 0 ? total : 131072;
-                if (r < 256 || r > max) throw new IllegalArgumentException("RAM harus 256 sampai " + max + " MB");
-                c.set(Config.RAM_MB, String.valueOf(r));
-            }
-            String jvm = req.param("jvmArgs");
-            if (jvm != null) c.set(Config.JVM_ARGS, jvm.replace('\n', ' ').trim());
             for (String[] b : new String[][]{{"autoRestart", Config.AUTO_RESTART}, {"autoStart", Config.AUTO_START},
                     {"bootStart", Config.BOOT_START}, {"eula", Config.EULA}, {"playitAutostart", Config.PLAYIT_AUTOSTART},
                     {"playitWithServer", Config.PLAYIT_WITH_SERVER}}) {
@@ -337,9 +341,7 @@ public class PanelApi implements MiniHttp.Handler {
             c.save();
         }
         res.json(200, Json.obj()
-                .put("ram", c.getInt(Config.RAM_MB, 3072))
                 .put("deviceRamMb", deviceRamMb())
-                .put("jvmArgs", c.get(Config.JVM_ARGS, ""))
                 .put("autoRestart", c.getBool(Config.AUTO_RESTART))
                 .put("autoStart", c.getBool(Config.AUTO_START))
                 .put("bootStart", c.getBool(Config.BOOT_START))
@@ -430,11 +432,75 @@ public class PanelApi implements MiniHttp.Handler {
         res.json(200, Json.obj().put("ok", true).put("command", cmd).toString());
     }
 
-    // ------------------------------------------------------------ mods
+    // ------------------------------------------------------------ servers
+
+    private static int parseRam(String ram) {
+        int r;
+        try {
+            r = Integer.parseInt(ram.trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("RAM harus angka (MB)");
+        }
+        long total = deviceRamMb();
+        long max = total > 0 ? total : 131072;
+        if (r < 256 || r > max) throw new IllegalArgumentException("RAM harus 256 sampai " + max + " MB");
+        return r;
+    }
+
+    private void servers(MiniHttp.Res res) throws IOException {
+        StringBuilder arr = new StringBuilder("[");
+        for (String id : host.serverIds()) {
+            Config m = host.meta(id);
+            if (arr.length() > 1) arr.append(',');
+            String type = m.get(Config.TYPE, "fabric");
+            String addons = Software.addonDir(type);
+            String[] list = addons == null ? null : new File(new File(host.serversRoot, id), addons).list((d, n) -> n.endsWith(".jar"));
+            arr.append(Json.obj().put("id", id).put("name", m.get(Config.NAME, id)).put("type", type)
+                    .put("mcVersion", m.get(Config.MC_VERSION, "")).put("loader", m.get(Config.LOADER, ""))
+                    .put("installed", !m.get(Config.LAUNCH, "").isEmpty()).put("active", id.equals(host.activeId()))
+                    .put("ramMb", m.getInt(Config.RAM_MB, 3072)).put("jvmArgs", m.get(Config.JVM_ARGS, ""))
+                    .put("java", m.getInt(Config.JAVA, 0)).put("addons", list == null ? 0 : list.length)
+                    .put("created", m.get("created", "0")).toString());
+        }
+        arr.append(']');
+        res.json(200, Json.obj().raw("servers", arr.toString()).put("active", host.activeId())
+                .put("deviceRamMb", deviceRamMb()).toString());
+    }
+
+    private void serverCreate(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
+        String id = host.createServer(req.param("name", ""), req.param("type", ""), req.param("mc", "").trim(),
+                req.param("loader", "").trim(), parseRam(req.param("ram", "3072")));
+        files.invalidate();
+        res.json(200, Json.obj().put("ok", true).put("id", id).toString());
+    }
+
+    /** Name, RAM and JVM args of any server (they apply on its next start). */
+    private void serverUpdate(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
+        Config m = host.meta(req.param("id", ""));
+        String name = req.param("name");
+        if (name != null) m.set(Config.NAME, Host.cleanName(name));
+        String ram = req.param("ram");
+        if (ram != null) m.set(Config.RAM_MB, String.valueOf(parseRam(ram)));
+        String jvm = req.param("jvmArgs");
+        if (jvm != null) m.set(Config.JVM_ARGS, jvm.replace('\n', ' ').trim());
+        m.save();
+        host.summaryChanged();
+        res.ok();
+    }
+
+    // ------------------------------------------------------------ mods / plugins
+
+    /** mods/ or plugins/ of the active server, depending on its software. */
+    private File addonDir() {
+        String d = Software.addonDir(host.type());
+        if (d == null) throw new IllegalStateException("Server Vanilla tidak memakai mod atau plugin, cuma datapack");
+        return new File(host.serverDir, d);
+    }
 
     private void mods(MiniHttp.Res res) throws IOException {
-        File dir = new File(host.serverDir, "mods");
-        File[] files = dir.listFiles((d, n) -> n.endsWith(".jar") || n.endsWith(".jar.disabled"));
+        String d = Software.addonDir(host.type());
+        File dir = new File(host.serverDir, d == null ? "mods" : d);
+        File[] files = d == null ? null : dir.listFiles((x, n) -> n.endsWith(".jar") || n.endsWith(".jar.disabled"));
         List<File> list = files == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(files));
         Collections.sort(list, (a, b) -> a.getName().compareToIgnoreCase(b.getName()));
         StringBuilder arr = new StringBuilder("[");
@@ -445,7 +511,11 @@ public class PanelApi implements MiniHttp.Handler {
                     .put("enabled", f.getName().endsWith(".jar")).toString());
         }
         arr.append(']');
-        res.json(200, Json.obj().raw("mods", arr.toString()).put("needsRestart", host.mc.alive()).toString());
+        String[] packs = new File(host.worldDir(), "datapacks").list();
+        res.json(200, Json.obj().raw("mods", arr.toString())
+                .raw("datapacks", Json.strArray(packs == null ? Collections.<String>emptyList() : Arrays.asList(packs)))
+                .put("dir", d == null ? "" : d)
+                .put("needsRestart", host.mc.alive()).toString());
     }
 
     private File modFile(MiniHttp.Req req) {
@@ -453,7 +523,7 @@ public class PanelApi implements MiniHttp.Handler {
         if (!IO.safeName(name) || !(name.endsWith(".jar") || name.endsWith(".jar.disabled"))) {
             throw new IllegalArgumentException("Nama file mod tidak valid");
         }
-        File f = new File(new File(host.serverDir, "mods"), name);
+        File f = new File(addonDir(), name);
         if (!f.exists()) throw new IllegalArgumentException("Mod tidak ditemukan");
         return f;
     }
@@ -478,10 +548,14 @@ public class PanelApi implements MiniHttp.Handler {
         if (!"https".equals(u.getProtocol()) || !"cdn.modrinth.com".equals(u.getHost())) {
             throw new IllegalArgumentException("Hanya file dari cdn.modrinth.com");
         }
-        if (!IO.safeName(name) || !name.endsWith(".jar")) throw new IllegalArgumentException("Nama file tidak valid");
-        File dest = new File(new File(host.serverDir, "mods"), name);
-        IO.download(url, dest, null);
-        host.mcLog.panel("Mod terpasang: " + name);
+        // datapacks are new zips in <world>/datapacks, so they are safe to add while the server runs (picked up on /reload)
+        boolean pack = "datapack".equals(req.param("kind", ""));
+        if (!IO.safeName(name) || !name.endsWith(pack ? ".zip" : ".jar")) throw new IllegalArgumentException("Nama file tidak valid");
+        File dir = pack ? new File(host.worldDir(), "datapacks") : addonDir();
+        if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Gagal membuat folder " + dir.getName());
+        IO.download(url, new File(dir, name), null);
+        if (pack) files.invalidate();
+        host.mcLog.panel((pack ? "Datapack" : "Mod") + " terpasang: " + name);
         res.ok();
     }
 
@@ -547,10 +621,10 @@ public class PanelApi implements MiniHttp.Handler {
         res.ok();
     }
 
-    // ------------------------------------------------------------ fabric / proxy
+    // ------------------------------------------------------------ install / proxy
 
     private void install(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
-        host.installFabric(req.param("mc", "1.20.1").trim(), req.param("loader", "").trim(), req.param("installer", "").trim());
+        host.install(req.param("mc", "").trim(), req.param("loader", "").trim());
         res.ok();
     }
 
@@ -561,7 +635,9 @@ public class PanelApi implements MiniHttp.Handler {
             throw new IllegalArgumentException("Host tidak diizinkan");
         }
         byte[] body = IO.fetch(target, 8 * 1024 * 1024);
-        res.send(200, "application/json; charset=utf-8", body);
+        // NeoForge's version list is maven XML; everything else is JSON
+        boolean xml = body.length > 0 && body[0] == '<';
+        res.send(200, xml ? "text/xml; charset=utf-8" : "application/json; charset=utf-8", body);
     }
 
     private void playitTunnels(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
@@ -649,6 +725,7 @@ public class PanelApi implements MiniHttp.Handler {
         if (n.endsWith(".css")) return "text/css; charset=utf-8";
         if (n.endsWith(".svg")) return "image/svg+xml";
         if (n.endsWith(".png")) return "image/png";
+        if (n.endsWith(".woff2")) return "font/woff2";
         if (n.endsWith(".json")) return "application/json";
         if (n.endsWith(".txt")) return "text/plain; charset=utf-8";
         return "application/octet-stream";

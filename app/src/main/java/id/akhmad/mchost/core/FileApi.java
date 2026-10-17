@@ -80,9 +80,12 @@ public class FileApi {
     }
 
     private boolean inWorld(File f) throws IOException {
-        String w = host.worldDir().getCanonicalPath();
         String p = f.getCanonicalPath();
-        return p.equals(w) || p.startsWith(w + File.separator) || w.startsWith(p + File.separator);
+        for (File d : host.worldDirs()) {
+            String w = d.getCanonicalPath();
+            if (p.equals(w) || p.startsWith(w + File.separator) || w.startsWith(p + File.separator)) return true;
+        }
+        return false;
     }
 
     private void requireStoppedFor(File f) throws IOException {
@@ -257,20 +260,26 @@ public class FileApi {
     private void worldInfo(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
         long now = System.currentTimeMillis();
         if (worldInfoCache == null || now - worldInfoAt > 15_000 || "1".equals(req.param("force"))) {
-            File w = host.worldDir();
-            long nether = IO.dirSize(new File(w, "DIM-1"));
-            long end = IO.dirSize(new File(w, "DIM1"));
-            long total = IO.dirSize(w);
+            File w = host.worldDir(), netherDir = host.dimDir("nether"), endDir = host.dimDir("end");
+            long nether = IO.dirSize(netherDir);
+            long end = IO.dirSize(endDir);
+            long total = 0;
+            for (File d : host.worldDirs()) total += IO.dirSize(d);
+            String addons = Software.addonDir(host.type());
+            String root = host.serverDir.getPath() + File.separator;
             worldInfoCache = Json.obj()
                     .put("name", w.getName())
                     .put("exists", w.exists())
                     .put("size", total)
                     .put("overworld", Math.max(0, total - nether - end))
                     .put("nether", nether)
-                    .put("netherExists", new File(w, "DIM-1").exists())
+                    .put("netherExists", netherDir.exists())
+                    .put("netherPath", netherDir.getPath().substring(root.length()).replace(File.separatorChar, '/'))
                     .put("end", end)
-                    .put("endExists", new File(w, "DIM1").exists())
-                    .put("mods", IO.dirSize(new File(host.serverDir, "mods")))
+                    .put("endExists", endDir.exists())
+                    .put("endPath", endDir.getPath().substring(root.length()).replace(File.separatorChar, '/'))
+                    .put("addonDir", addons == null ? "" : addons)
+                    .put("mods", addons == null ? 0 : IO.dirSize(new File(host.serverDir, addons)))
                     .put("config", IO.dirSize(new File(host.serverDir, "config")))
                     .put("backups", IO.dirSize(host.backupDir))
                     .toString();

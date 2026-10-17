@@ -7,9 +7,6 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      jdk:
-        description: 'Paket JDK Termux (openjdk-17 untuk MC 1.20.1, openjdk-21 untuk MC 1.20.5+)'
-        default: 'openjdk-17'
       playit:
         description: 'Ikut build tunnel playitd'
         type: boolean
@@ -27,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      JDK_PKG: ${{ github.event.inputs.jdk || 'openjdk-17' }}
       KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
       KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
       KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -40,10 +36,13 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Java runtime untuk Android (Termux ${{ env.JDK_PKG }} aarch64)
+      # MC 1.17-1.20.4 needs Java 17, 1.20.5-1.21.x Java 21, 26.x Java 25; the app extracts only the ones it uses
+      - name: Java runtime untuk Android (Termux OpenJDK 17, 21, 25 aarch64)
         run: |
-          python3 scripts/fetch_termux_runtime.py --pkg "$JDK_PKG" --out app/src/main/assets/runtime | tee runtime.log
-          grep -E 'WARNING|paket:|selesai' runtime.log | grep -v 'libc.so.6' | sed 's/^/::notice::/' | head -20
+          for v in 17 21 25; do
+            python3 scripts/fetch_termux_runtime.py --pkg "openjdk-$v" --name "jre$v" --out app/src/main/assets/runtime | tee -a runtime.log
+          done
+          grep -E 'WARNING|paket:|selesai' runtime.log | grep -v 'libc.so.6' | sed 's/^/::notice::/' | head -30
 
       - name: Cache cargo (playitd)
         if: github.event.inputs.playit != 'false'
@@ -85,14 +84,15 @@ jobs:
           [ -n "$APK" ] || { echo "::error::APK tidak ditemukan: $(find app/build/outputs -type f | tr '\n' ' ')"; exit 1; }
           LIST=$(unzip -l "$APK")
           echo "::notice::APK $APK, assets: $(echo "$LIST" | grep -E 'assets/' | awk '{print $1" "$4}' | tr '\n' ' ')"
-          echo "$LIST" | grep -q 'assets/runtime/jre.bin' || { echo "::error::Java runtime tidak masuk APK"; exit 1; }
+          for v in 17 21 25; do echo "$LIST" | grep -q "assets/runtime/jre$v.bin" || { echo "::error::Java $v tidak masuk APK"; exit 1; }; done
           if echo "$LIST" | grep -q 'assets/runtime/playitd'; then TUN=ada; else TUN="tidak ada"; echo "::warning::playitd tidak ikut, tunnel nonaktif di build ini"; fi
           NAME="MCHost-1.0.${{ github.run_number }}.apk"
           cp "$APK" "$NAME"
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "tunnel=$TUN" >> "$GITHUB_OUTPUT"
-          echo "runtime=$(cat app/src/main/assets/runtime/version)" >> "$GITHUB_OUTPUT"
-          echo "::notice::$NAME $(du -h "$NAME" | cut -f1), runtime $(cat app/src/main/assets/runtime/version), tunnel $TUN"
+          RT=$(cat app/src/main/assets/runtime/*.version | paste -sd ',' | sed 's/,/, /g')
+          echo "runtime=$RT" >> "$GITHUB_OUTPUT"
+          echo "::notice::$NAME $(du -h "$NAME" | cut -f1), runtime $RT, tunnel $TUN"
 
       - uses: actions/upload-artifact@v4
         with:

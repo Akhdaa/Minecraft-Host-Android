@@ -296,6 +296,14 @@ public final class IO {
         }
     }
 
+    /** One zip with every folder under its own name at the top level (world/, world_nether/, ...). */
+    public static void zipDirs(java.util.List<File> dirs, File zipFile, Progress p) throws IOException {
+        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
+            zos.setLevel(5);
+            for (File d : dirs) addToZip(zos, d, d.getName(), p == null ? NO_PROGRESS : p);
+        }
+    }
+
     private static void addToZip(ZipOutputStream zos, File f, String path, Progress p) throws IOException {
         if (f.isDirectory()) {
             File[] kids = f.listFiles();
@@ -368,9 +376,17 @@ public final class IO {
 
     /** Progress reports compressed bytes read from the zip file. */
     public static void unzipWorld(File zip, File destDir, Progress p) throws IOException {
-        String strip = detectWorldRoot(zip);
-        String destCanon = destDir.getCanonicalPath() + File.separator;
         destDir.mkdirs();
+        unzip(zip, detectWorldRoot(zip), destDir, p);
+    }
+
+    /** Extracts only the entries under {@code prefix} (e.g. "world_nether/") into destDir; nothing if there are none. */
+    public static void unzipPrefix(File zip, String prefix, File destDir) throws IOException {
+        unzip(zip, prefix, destDir, NO_PROGRESS);
+    }
+
+    private static void unzip(File zip, String strip, File destDir, Progress p) throws IOException {
+        String destCanon = destDir.getCanonicalPath() + File.separator;
         InputStream raw = new CountingInputStream(new FileInputStream(zip), p == null ? NO_PROGRESS : p);
         try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(raw, 65536))) {
             ZipEntry e;

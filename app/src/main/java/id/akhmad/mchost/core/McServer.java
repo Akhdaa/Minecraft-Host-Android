@@ -40,21 +40,26 @@ public class McServer extends ManagedProcess {
         return new ArrayList<>(players);
     }
 
+    /** The active server has software installed: its launch target ("-jar x.jar" or "@args.txt") exists. */
     public boolean installed() {
-        return new File(host.serverDir, LAUNCHER).exists();
+        if (!host.hasServer()) return false;
+        String[] launch = host.srv.get(Config.LAUNCH, "").trim().split(" ");
+        String target = launch[launch.length - 1];
+        if (target.startsWith("@")) target = target.substring(1);
+        return !target.isEmpty() && new File(host.serverDir, target).exists();
     }
 
     public synchronized void start() throws IOException {
         if (alive()) throw new IOException("Server sudah jalan");
-        File java = host.platform.javaBinary();
-        if (java == null || !java.exists()) throw new IOException("Java runtime belum siap");
-        if (!installed()) throw new IOException("Fabric belum diinstall, buka tab Fabric dulu");
-        if (!host.cfg.getBool(Config.EULA)) throw new IOException("Setujui EULA Minecraft dulu di tab Settings");
+        if (!installed()) throw new IOException("Software server belum terpasang, buka pengaturan server lalu Install");
+        File java = host.platform.javaBinary(host.javaMajor());
+        if (java == null || !java.exists()) throw new IOException("Java " + host.javaMajor() + " belum siap");
+        if (!host.cfg.getBool(Config.EULA)) throw new IOException("Setujui EULA Minecraft dulu");
         IO.writeText(new File(host.serverDir, "eula.txt"), "eula=true\n");
         File tmp = new File(host.base, "tmp");
         tmp.mkdirs();
 
-        int ram = Math.max(256, host.cfg.getInt(Config.RAM_MB, 3072));
+        int ram = Math.max(256, host.srv.getInt(Config.RAM_MB, 3072));
         List<String> cmd = new ArrayList<>();
         cmd.add(java.getAbsolutePath());
         cmd.add("-Xms" + Math.min(1024, ram) + "M");
@@ -67,18 +72,18 @@ public class McServer extends ManagedProcess {
         cmd.add("-Dfile.encoding=UTF-8");
         cmd.add("-Dterminal.jline=false");
         cmd.add("-Dlog4j2.formatMsgNoLookups=true");
-        String extra = host.cfg.get(Config.JVM_ARGS, "").trim();
+        String extra = host.srv.get(Config.JVM_ARGS, "").trim();
         if (!extra.isEmpty()) Collections.addAll(cmd, extra.split("\\s+"));
-        cmd.add("-jar");
-        cmd.add(LAUNCHER);
+        String launch = host.srv.get(Config.LAUNCH, "").trim();
+        Collections.addAll(cmd, launch.split(" "));
         cmd.add("nogui");
 
-        Map<String, String> env = host.platform.childEnv();
+        Map<String, String> env = host.platform.childEnv(java);
         synchronized (this) {
             players.clear();
         }
-        log.panel("Menyalakan server (RAM " + ram + " MB)...");
-        launch(cmd, host.serverDir, env, LAUNCHER);
+        log.panel("Menyalakan " + host.srv.get(Config.NAME, "server") + " (Java " + host.javaMajor() + ", RAM " + ram + " MB)...");
+        launch(cmd, host.serverDir, env, launch.substring(launch.lastIndexOf(' ') + 1));
         state = "starting";
         host.summaryChanged();
         startTunnelWithServer();
