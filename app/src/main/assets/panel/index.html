@@ -162,7 +162,9 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .mrow .n span{font-size:12px;color:var(--muted)}
 .mrow.off .n b{color:var(--muted)}
 .ibtn{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
-.ibtn.danger{color:var(--bad)}.ibtn:hover{border-color:#3d4e41}
+.ibtn.danger{color:var(--bad)}.ibtn:hover{border-color:#3d4e41}.ibtn:disabled{opacity:.35;cursor:default}.ibtn:disabled:hover{border-color:var(--line)}
+a.btn{color:var(--text);text-decoration:none}
+.menu.up{top:auto;bottom:calc(100% - 4px)}
 .pcard .ptabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:12px}
 .ptabs button{border:0;background:none;color:var(--muted);font-weight:700;font-size:13px;padding:8px 2px;border-radius:9px;cursor:pointer;white-space:nowrap}
 .ptabs button.on{background:var(--card);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.25)}
@@ -177,7 +179,7 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);margin-right:6px;vertical-align:1px}
 .menu{position:absolute;right:8px;top:calc(100% - 4px);z-index:8;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.5);padding:6px;min-width:190px}
 .menu button{display:flex;width:100%;align-items:center;gap:8px;background:none;border:0;color:var(--text);padding:9px 10px;border-radius:8px;text-align:left;cursor:pointer;font-size:14px}
-.menu button:hover{background:var(--bg2)}.menu button.bad{color:var(--bad)}.menu hr{border:0;border-top:1px solid var(--line);margin:4px 2px}
+.menu button:hover{background:var(--bg2)}.menu a{display:block;text-decoration:none}.menu button:disabled{opacity:.4;cursor:default;background:none}.menu button.bad{color:var(--bad)}.menu hr{border:0;border-top:1px solid var(--line);margin:4px 2px}
 .menu .lbl{font-size:11px;color:var(--muted);padding:6px 10px 2px;text-transform:uppercase;letter-spacing:.04em}
 .online-box{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .onl{display:flex;flex-wrap:wrap;gap:8px}
@@ -185,6 +187,48 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .av.sm{width:26px;height:26px;border-radius:6px;font-size:13px;background:#26322a;display:grid;place-items:center;color:var(--accent);position:relative;overflow:hidden;image-rendering:pixelated;flex:none}
 .av.sm img{position:absolute;inset:0;width:100%;height:100%}
 details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
+.wsum{display:flex;align-items:center;gap:12px}.wsum .n{flex:1;min-width:0}.wsum b{display:block;font-size:18px}
+.wico{width:46px;height:46px;border-radius:12px;background:#203226;color:var(--accent);display:grid;place-items:center;flex:none}
+.dims{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.dim{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:9px 11px;border-top:3px solid var(--c)}
+.dim .k{font-size:12px;color:var(--muted)}.dim .v{font-weight:700;font-size:15px;margin-top:2px;white-space:nowrap}
+.wact{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.wact .btn{flex:1;justify-content:center;min-width:150px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.brow{gap:10px}.bico,.fico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;background:#203226;color:var(--accent)}
+.brow .n b{font-size:14px;-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block}
+@media(max-width:420px){.bico{display:none}.brow{padding-left:12px}}.brow .tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap}
+.tag.info{color:var(--info);border-color:#2d4b66}
+.dzone{border-color:#4a2a26}.dzone h2{color:var(--bad)}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+@media(min-width:700px){.quick{grid-template-columns:repeat(6,1fr)}}
+.qk{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 11px;cursor:pointer;text-align:left;color:var(--text);border-top:3px solid var(--c,var(--line))}
+.qk:hover{border-color:#3d4e41}.qk .k{font-weight:700;font-size:14px}.qk .v{font-size:12px;color:var(--muted);margin-top:2px}
+.qk:disabled{opacity:.45;cursor:default}
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-bottom:10px;font-size:14px}
+.crumbs button{background:none;border:0;color:var(--info);padding:4px 6px;border-radius:6px;cursor:pointer;font-weight:600}
+.crumbs button:last-child{color:var(--text);cursor:default}.crumbs .sep{color:var(--muted)}
+.ftool{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.ftool .ibtn{margin-left:auto}
+.ftool .btn svg{width:16px;height:16px}.ftool .btn.small{padding:6px 10px;gap:5px}
+.frow{cursor:pointer;position:relative}.frow:hover{border-color:#3d4e41}
+.fico.dir{background:#2b2a1c;color:#e8c55a}.fico.file{background:var(--card);color:var(--muted)}.fico.txt{background:#1c2a36;color:var(--info)}
+.frow .n b{-webkit-line-clamp:1}
+.edsheet{width:min(980px,100%);display:flex;flex-direction:column;height:88vh}
+#edText{flex:1;min-height:0;width:100%;font-size:13px;line-height:1.5;tab-size:2;white-space:pre;overflow:auto}
+@media(min-width:1240px){.wgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}}
+details.fold>summary{list-style:none;display:flex;align-items:center;gap:8px;margin:0;color:var(--text);font-weight:700;font-size:15px}
+details.fold>summary::-webkit-details-marker,details.sub>summary::-webkit-details-marker{display:none}
+details.fold>summary::before,details.sub>summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;flex:none;margin-right:2px}
+details.fold[open]>summary::before,details.sub[open]>summary::before{transform:rotate(45deg)}
+details.fold>summary .grow{flex:1;display:flex;align-items:center;gap:4px}
+#tSettings .sw:has(+#secretForm.hide){border-bottom:0}
+details.fold .cnt,.cnt{font-size:11px;background:var(--line);border-radius:99px;padding:1px 7px;margin-left:4px;color:var(--text);font-weight:700}
+details.sub{border-top:1px solid var(--line);margin-top:14px;padding-top:4px}
+details.sub>summary{list-style:none;display:flex;align-items:center;gap:8px;color:var(--text);font-weight:600;font-size:14px;margin:8px 0}
+.taddr{display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px}
+.taddr .n{flex:1;min-width:0}.taddr .addr{display:block;font-size:20px;font-weight:800;word-break:break-all;line-height:1.25;margin:2px 0}
+.tact{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}.tact .btn{min-width:140px;justify-content:center}
+.msteps{margin:0 0 14px;padding-left:20px;font-size:14px}.msteps li{margin:5px 0}
+@media(min-width:1240px){.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}.tgrid .card{margin-bottom:14px}}
 </style>
 </head>
 <body>
@@ -348,76 +392,167 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
 
 <!-- ============================== WORLD -->
 <section id="tab-world">
-  <div class="card">
-    <h2><span class="grow">Backup world</span><button class="btn small primary" id="bBackup">Backup sekarang</button></h2>
-    <div class="list" id="backupList"><div class="empty">Memuat...</div></div>
-    <div class="row" style="margin-top:12px">
-      <label class="btn small"><input type="file" id="worldUpload" accept=".zip" hidden>Upload world .zip</label>
-      <button class="btn small danger" id="bResetWorld">Hapus world</button>
-    </div>
-    <p class="small muted" style="margin:10px 0 0">World dari PC: zip folder world (yang berisi level.dat), upload, lalu tekan Restore. Restore dan hapus world butuh server dalam keadaan mati.</p>
+  <div class="seg" id="worldSeg">
+    <button data-wv="backup" class="on">Backup</button>
+    <button data-wv="files">File world</button>
+    <button data-wv="props">Pengaturan</button>
   </div>
 
+  <div id="wv-backup">
+   <div class="wgrid">
+    <div class="wcol">
+    <div class="card">
+      <div class="wsum"><div class="wico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div>
+        <div class="n"><b id="wName">world</b><span class="small muted" id="wMeta">Memuat…</span></div></div>
+      <div class="dims" id="wDims"></div>
+      <div id="bProgress" class="hide" style="margin-top:12px">
+        <div class="row" style="justify-content:space-between"><span class="small" id="bProgText"></span><span class="small muted" id="bProgPct"></span></div>
+        <div class="bar"><i id="bProgBar" style="width:0"></i></div>
+      </div>
+      <div class="wact">
+        <button class="btn primary" id="bBackup">Backup sekarang</button>
+        <label class="btn"><input type="file" id="worldUpload" accept=".zip" hidden>Upload world .zip</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="grow">Backup otomatis</span><input type="checkbox" class="toggle" id="abOn" aria-label="Backup otomatis"></h2>
+      <p class="small muted" id="abInfo" style="margin:-4px 0 10px"></p>
+      <div class="grid2" id="abOpts">
+        <label class="f"><span>Setiap</span><select id="abHours"><option value="1">1 jam</option><option value="2">2 jam</option><option value="3">3 jam</option><option value="6">6 jam</option><option value="12">12 jam</option><option value="24">24 jam</option></select></label>
+        <label class="f"><span>Simpan</span><select id="abKeep"><option value="3">3 terakhir</option><option value="5">5 terakhir</option><option value="10">10 terakhir</option><option value="20">20 terakhir</option></select></label>
+      </div>
+      <p class="small muted" style="margin:0">Jalan selama server menyala. Backup otomatis yang lama dihapus sendiri, backup manual dan upload tidak ikut dihapus.</p>
+    </div>
+    </div>
+
+    <div class="wcol">
+    <div class="card">
+      <h2><span class="grow">Daftar backup <span class="cnt" id="bCount"></span></span></h2>
+      <div class="list" id="backupList"><div class="empty">Memuat…</div></div>
+      <p class="small muted" style="margin:12px 0 0">World dari PC: zip folder world (yang berisi level.dat), Upload, lalu Restore. Restore butuh server mati.</p>
+    </div>
+
+    <div class="card dzone">
+      <h2>Zona bahaya</h2>
+      <div class="sw"><div><div class="t">Reset Nether</div><div class="d">Dibuat ulang saat ada yang masuk portal</div></div><button class="btn small danger" data-resetdim="nether">Reset</button></div>
+      <div class="sw"><div><div class="t">Reset End</div><div class="d">Dibuat ulang saat ada yang masuk portal End</div></div><button class="btn small danger" data-resetdim="end">Reset</button></div>
+      <div class="sw"><div><div class="t">Hapus world</div><div class="d">Semua dimensi dihapus, world baru dibuat saat Start</div></div><button class="btn small danger" id="bResetWorld">Hapus</button></div>
+      <p class="small muted" style="margin:8px 0 0" id="dzNote">Butuh server mati.</p>
+    </div>
+    </div>
+   </div>
+  </div>
+
+  <div id="wv-files" class="hide">
+    <div class="quick" id="fQuick"></div>
+    <div class="card">
+      <div class="crumbs" id="fCrumbs"></div>
+      <div class="ftool">
+        <label class="btn small"><input type="file" id="fUpload" multiple hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg>Upload</label>
+        <button class="btn small" id="fMkdir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Folder</button>
+        <a class="btn small" id="fZip" href="#" title="Unduh folder ini sebagai .zip"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>.zip</a>
+        <button class="ibtn" id="fRefresh" aria-label="Muat ulang" title="Muat ulang"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/><path d="M20 3v5h-5"/></svg></button>
+      </div>
+      <div id="fWarn" class="banner info hide" style="margin:0 0 10px">Server sedang jalan: isi world cuma bisa dilihat dan diunduh. Matikan server untuk mengubah atau menghapus.</div>
+      <div class="list" id="fList"><div class="empty">Memuat…</div></div>
+    </div>
+  </div>
+
+  <div id="wv-props" class="hide">
   <div class="card">
     <h2><span class="grow">server.properties</span><button class="btn small primary" id="bSaveProps">Simpan</button></h2>
     <div id="propForm"></div>
     <details><summary>Edit mentah (semua opsi)</summary><textarea id="propRaw" spellcheck="false"></textarea></details>
     <p class="small muted" style="margin:6px 0 0">Restart server setelah menyimpan.</p>
   </div>
+  </div>
 </section>
 
 <!-- ============================== TUNNEL -->
 <section id="tab-tunnel">
-  <div class="banner info row" style="justify-content:space-between">
-    <span>Baru pertama? Ikuti panduan dari bikin akun playit sampai domain Cloudflare.</span>
-    <button class="btn small primary" id="bHelp">Bantuan</button>
-  </div>
   <div id="tunnelMissing" class="banner err hide">Build APK ini tidak membawa playitd (step build di GitHub Actions gagal). Main lewat LAN tetap jalan normal.</div>
-  <div class="card">
-    <h2><span class="grow">Tunnel playit.gg</span><button class="btn small" data-help="playit">Bantuan</button><span class="pill" id="tunnelPill">-</span></h2>
-    <label class="f"><span>Secret key agent <b id="secretState" class="small"></b></span>
-      <input type="password" id="playitSecret" placeholder="tempel SECRET_KEY dari playit.gg" autocomplete="off"></label>
-    <div class="row">
-      <button class="btn" id="bSaveSecret">Simpan key</button>
-      <button class="btn primary" id="bTunnelStart">Start tunnel</button>
-      <button class="btn" id="bTunnelStop">Stop</button>
+  <div class="tgrid">
+   <div class="tcol">
+    <div class="card thero">
+      <h2><span class="grow">Tunnel playit.gg</span><button class="btn small" data-help="playit" id="tHelpBtn">Bantuan</button><span class="pill" id="tunnelPill">-</span></h2>
+
+      <div id="tSetup">
+        <p class="small muted" style="margin:0 0 10px">Hubungkan akun playit.gg (gratis) supaya teman di luar WiFi bisa join. Cukup sekali, sekitar 3 menit.</p>
+        <ol class="msteps">
+          <li>Buat akun dan agent tipe <b>Docker</b> di <a href="https://playit.gg/account/agents" target="_blank" rel="noopener">playit.gg</a></li>
+          <li>Tempel <b>secret key</b> agent di bawah</li>
+          <li>Buat tunnel <b>Minecraft Java</b> ke <code>127.0.0.1:<span class="mcport">25565</span></code></li>
+        </ol>
+        <label class="f"><span>Secret key agent</span>
+          <input type="password" id="playitSecret" placeholder="tempel SECRET_KEY dari playit.gg" autocomplete="off"></label>
+        <div class="row"><button class="btn primary" id="bSaveSecret">Simpan &amp; hubungkan</button><button class="btn" data-help="playit">Lihat panduan</button></div>
+      </div>
+
+      <div id="tLive" class="hide">
+        <div class="taddr" id="tAddr"></div>
+        <div id="tNotice"></div>
+        <div class="tact">
+          <button class="btn" id="bTunnelToggle">Start tunnel</button>
+          <span class="small muted" id="tHint"></span>
+        </div>
+      </div>
     </div>
-    <div id="pwsBox" class="hide" style="margin-top:8px">
-      <div class="sw"><div><div class="t">Mulai bersamaan dengan server</div><div class="d">Tunnel otomatis nyala saat server Start dan mati saat server Stop. Restart tidak memutus tunnel.</div></div><input type="checkbox" class="toggle" id="playitWithServer"></div>
+
+    <div class="card hide" id="tSettings">
+      <h2>Pengaturan tunnel</h2>
+      <div class="sw"><div><div class="t">Mulai bersamaan dengan server</div><div class="d">Nyala saat server Start, mati saat server Stop. Restart tidak memutus tunnel.</div></div><input type="checkbox" class="toggle" id="playitWithServer"></div>
+      <div class="sw"><div><div class="t">Nyalakan saat aplikasi dibuka</div><div class="d">Tunnel langsung hidup walau server belum di-Start</div></div><input type="checkbox" class="toggle" id="playitAutostart"></div>
+      <div class="sw"><div><div class="t">Secret key</div><div class="d">Tersimpan di HP ini</div></div><button class="btn small" id="bEditSecret">Ganti key</button></div>
+      <div id="secretForm" class="hide" style="padding-top:4px">
+        <label class="f"><span>Secret key baru</span><input type="password" id="playitSecretNew" placeholder="tempel SECRET_KEY baru" autocomplete="off"></label>
+        <div class="row"><button class="btn primary" id="bSaveSecret2">Simpan</button><button class="btn" id="bCancelSecret">Batal</button><button class="btn danger" id="bClearSecret">Putuskan playit</button></div>
+      </div>
     </div>
-    <div class="sw" style="margin-top:0"><div><div class="t">Nyalakan saat aplikasi dibuka</div><div class="d">Tunnel langsung hidup walau server belum di-Start</div></div><input type="checkbox" class="toggle" id="playitAutostart"></div>
-  </div>
-  <div class="card">
-    <h2><span class="grow">Alamat tunnel</span><button class="btn small" id="bTunnelRefresh">Refresh</button></h2>
-    <div class="list" id="tunnelList"></div>
-  </div>
-  <div class="card">
-    <h2>Log tunnel</h2>
-    <div class="console mini" id="tunnelLog"></div>
-  </div>
-  <div class="card">
-    <h2><span class="grow">Domain Cloudflare</span><button class="btn small" data-help="cf">Bantuan</button><span class="pill" id="dnsPill">-</span></h2>
-    <label class="f"><span>Domain untuk join</span>
-      <input type="text" id="customDomain" placeholder="mc.domainkamu.com" autocapitalize="off" spellcheck="false"></label>
-    <label class="f"><span>Tunnel playit tujuan</span><select id="domainTunnel"></select></label>
-    <div class="row"><button class="btn primary" id="bSaveDomain">Simpan</button><button class="btn" id="bCheckDns">Cek DNS</button></div>
-    <p class="small" id="dnsStatus" style="margin:12px 0 4px"></p>
-    <div id="srvBox" class="hide">
-      <p class="small muted" style="margin:10px 0 8px">Cloudflare &gt; domain kamu &gt; <b>DNS &gt; Records &gt; Add record</b>, isi persis seperti ini:</p>
-      <div class="list" id="srvRows"></div>
-      <p class="small muted" style="margin:8px 0 0">Form lama dengan kolom Service/Protocol: Service <code>_minecraft</code>, Protocol <code>TCP</code>, Name diisi subdomain saja. Jangan ada record A/CNAME dengan nama sama yang awan oranye.</p>
+   </div>
+
+   <div class="tcol">
+    <div class="card" id="dCard">
+      <h2><span class="grow">Domain sendiri</span><button class="btn small" data-help="cf">Bantuan</button><span class="pill" id="dnsPill">Opsional</span></h2>
+      <div id="dView" class="hide">
+        <div class="taddr"><div class="n"><span class="small muted">Teman join pakai</span><b class="addr" id="dName"></b></div><button class="btn small" id="bEditDomain">Ubah</button></div>
+        <p class="small" id="dnsStatus" style="margin:10px 0"></p>
+        <div class="row"><button class="btn small" id="bCheckDns">Cek DNS</button><button class="btn small primary hide" id="bSyncDns">Perbarui record sekarang</button></div>
+      </div>
+      <div id="dEdit">
+        <p class="small muted" style="margin:0 0 10px" id="dIntro">Opsional. Teman join pakai <code>mc.domainkamu.com</code>, bukan alamat playit. Domain harus sudah aktif di Cloudflare.</p>
+        <label class="f"><span>Domain untuk join</span>
+          <input type="text" id="customDomain" placeholder="mc.domainkamu.com" autocapitalize="off" spellcheck="false"></label>
+        <label class="f hide" id="dTunnelWrap"><span>Tunnel playit tujuan</span><select id="domainTunnel"></select></label>
+        <div class="row"><button class="btn primary" id="bSaveDomain">Simpan</button><button class="btn hide" id="bCancelDomain">Batal</button><button class="btn danger hide" id="bClearDomain">Hapus domain</button></div>
+      </div>
+      <details class="sub hide" id="srvBox"><summary>Isi record manual di Cloudflare</summary>
+        <p class="small muted" style="margin:8px 0">Cloudflare &gt; domain kamu &gt; <b>DNS &gt; Records &gt; Add record</b>, isi persis seperti ini:</p>
+        <div class="list" id="srvRows"></div>
+        <p class="small muted" style="margin:8px 0 0">Form lama dengan kolom Service/Protocol: Service <code>_minecraft</code>, Protocol <code>TCP</code>, Name diisi subdomain saja. Jangan ada record A/CNAME dengan nama sama yang awan oranye.</p>
+      </details>
+      <details class="sub hide" id="cfBox"><summary>Atur otomatis pakai API token <span id="cfTokenState"></span></summary>
+        <ol class="steps small">
+          <li>Cloudflare &gt; ikon profil &gt; <b>My Profile &gt; API Tokens &gt; Create Token</b>.</li>
+          <li>Template <b>Edit zone DNS</b>, tambah izin <b>Zone · Zone · Read</b>, Zone Resources pilih domain kamu.</li>
+          <li><b>Continue to summary &gt; Create Token</b>, salin token, tempel di bawah.</li>
+        </ol>
+        <label class="f"><span>API token</span><input type="password" id="cfToken" autocomplete="off" placeholder="token Cloudflare (Edit zone DNS)"></label>
+        <div class="row"><button class="btn primary" id="bSaveCf">Simpan token</button><button class="btn danger hide" id="bClearCf">Hapus token</button></div>
+        <div class="sw" style="margin-top:8px"><div><div class="t">Update otomatis</div><div class="d">Kalau alamat atau port playit berubah, record SRV ikut diperbarui</div></div><input type="checkbox" class="toggle" id="cfAutosync"></div>
+        <p class="small muted" style="margin:6px 0 0">Token hanya disimpan di HP ini dan cuma dipakai ke api.cloudflare.com.</p>
+      </details>
     </div>
-    <details style="margin-top:12px"><summary>Atur otomatis pakai API token Cloudflare</summary>
-      <ol class="steps small">
-        <li>Cloudflare &gt; ikon profil &gt; <b>My Profile &gt; API Tokens &gt; Create Token</b>.</li>
-        <li>Pilih template <b>Edit zone DNS</b>. Zone Resources: Include, Specific zone, pilih domain kamu.</li>
-        <li><b>Continue to summary &gt; Create Token</b>, salin token, tempel di bawah.</li>
-      </ol>
-      <label class="f"><span>API token <b class="small" id="cfTokenState"></b></span><input type="password" id="cfToken" autocomplete="off" placeholder="token Cloudflare (Edit zone DNS)"></label>
-      <div class="row"><button class="btn" id="bSaveCf">Simpan token</button><button class="btn primary" id="bSyncDns">Buat / update record sekarang</button><button class="btn small danger" id="bClearCf">Hapus token</button></div>
-      <div class="sw" style="margin-top:8px"><div><div class="t">Update otomatis</div><div class="d">Kalau alamat atau port playit berubah, record SRV ikut diperbarui saat panel terbuka</div></div><input type="checkbox" class="toggle" id="cfAutosync"></div>
-      <p class="small muted" style="margin:6px 0 0">Token hanya disimpan di HP ini dan cuma dipakai ke api.cloudflare.com.</p>
+
+    <details class="card fold" id="tListCard">
+      <summary><span class="grow">Semua tunnel <span class="cnt" id="tCount"></span></span><button class="btn small" id="bTunnelRefresh">Refresh</button></summary>
+      <div class="list" id="tunnelList" style="margin-top:12px"></div>
     </details>
+    <details class="card fold">
+      <summary><span class="grow">Log tunnel</span></summary>
+      <div class="console mini" id="tunnelLog" style="margin-top:12px"></div>
+    </details>
+   </div>
   </div>
 </section>
 
@@ -512,6 +647,14 @@ details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
   </div>
  </div>
 </div>
+<div id="editModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="edName">
+ <div class="sheet edsheet">
+  <div class="sheet-head"><div style="flex:1;min-width:0"><b id="edName" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></b><div class="small muted" id="edPath" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div></div>
+   <button class="btn small" id="edClose">Tutup</button><button class="btn small primary" id="edSave">Simpan</button></div>
+  <textarea id="edText" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+  <p class="small muted" id="edNote" style="margin:8px 0 0">Restart server supaya perubahan config dipakai.</p>
+ </div>
+</div>
 <div id="login"><div class="login-card">
   <div class="logo">M</div>
   <h1>MC Host</h1>
@@ -554,7 +697,7 @@ const proxy=u=>api("/api/proxy?u="+encodeURIComponent(u));
 // ---------------------------------------------------------- nav
 function go(t){tab=t;$$("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));$$("main section").forEach(s=>s.classList.toggle("on",s.id==="tab-"+t));
   window.scrollTo(0,0);
-  if(t==="mods")loadMods();if(t==="world"){loadBackups();loadProps()}if(t==="server"){loadSettings();loadFabric()}if(t==="tunnel"){loadSettings();loadTunnels(false);loadDomain(true)}
+  if(t==="mods")loadMods();if(t==="world")setWorldView(worldView);if(t==="server"){loadSettings();loadFabric()}if(t==="tunnel"){loadSettings();loadTunnels(false);loadDomain(true)}
   if(t==="console"){loadPlayers(true);setTimeout(()=>{const l=$("#log");l.scrollTop=l.scrollHeight},30)}}
 $$("nav button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){e.preventDefault();go(g.dataset.go)}});
@@ -582,9 +725,9 @@ function renderAddresses(){
   h+=S.lan.map(ip=>addrItem("Minecraft (LAN, satu WiFi)",ip+port)).join("");
   h+=S.lan.map(ip=>addrItem("Panel web (LAN)","http://"+ip+":"+S.panelPort)).join("");
   $("#addrList").innerHTML=h||'<div class="empty">Tidak terhubung ke WiFi</div>';
-  renderTunnelList();
+  renderTunnelList();renderTunnelHero();
 }
-function renderTunnelList(){const box=$("#tunnelList");if(!box)return;
+function renderTunnelList(){const box=$("#tunnelList");if(!box)return;$("#tCount").textContent=tunnels&&tunnels.tunnels?tunnels.tunnels.length:"";
   if(!S.playit||!S.playit.hasSecret){box.innerHTML='<div class="empty">Isi secret key dulu</div>';return}
   if(!tunnels){box.innerHTML='<div class="empty">Memuat daftar tunnel…</div>';return}
   let h=(tunnels.tunnels||[]).map(t=>addrItem(esc(t.tunnel_type_display||t.tunnel_type||"tunnel")+(t.name?" · "+esc(t.name):""),t.display_address,t.disabled_reason?"nonaktif: "+esc(t.disabled_reason):"")).join("");
@@ -600,8 +743,51 @@ async function loadTunnels(force){
     else if(r.status==="no-secret"){tunnels=null}
     else{tunnels={tunnels:[],pending:[],notices:[{priority:"High",message:"playit: "+(r.data&&(r.data.message||r.data.type)||JSON.stringify(r.data||r.status))}]};tunnelsAt=Date.now()}
   }catch(e){tunnels={tunnels:[],pending:[],notices:[{priority:"High",message:e.message}]};tunnelsAt=Date.now()}
-  tunnelsBusy=false;renderAddresses();fillDomainTunnels();if(S.customDomain)loadDomain(false);
+  tunnelsBusy=false;renderAddresses();fillDomainTunnels();renderDomainForm();if(S.customDomain)loadDomain(false);
 }
+
+// ---------------------------------------------------------- tunnel hero
+let editSecret=false, editDomain=false;
+function primaryAddr(){
+  const mc=mcTunnels(),other=((tunnels&&tunnels.tunnels)||[]).filter(t=>!mc.includes(t)&&!/udp/i.test(t.port_type||""));
+  const t=mc[0]||other[0];
+  const domOk=S.customDomain&&dnsInfo&&dnsInfo.domain===S.customDomain&&dnsInfo.match;
+  if(domOk)return{addr:S.customDomain,label:"Teman join pakai (domain kamu)",alt:t?t.display_address:""};
+  if(t)return{addr:t.display_address,label:"Teman join pakai",alt:""};
+  return null}
+function renderTunnelHero(){if(!S.playit)return;const pl=S.playit,run=pl.state==="running";
+  const pill=$("#tunnelPill");pill.className="pill "+(!pl.hasSecret?"starting":run?"running":pl.state==="crashed"?"crashed":"");pill.textContent=!pl.hasSecret?"Belum diatur":run?"Aktif":pl.state==="crashed"?"Berhenti":"Mati";
+  $("#tHelpBtn").classList.toggle("hide",!pl.hasSecret);$("#tListCard").classList.toggle("hide",!pl.hasSecret);
+  $$(".mcport").forEach(x=>x.textContent=S.mcPort||"25565");
+  $("#tSetup").classList.toggle("hide",pl.hasSecret);$("#tLive").classList.toggle("hide",!pl.hasSecret);
+  $("#tSettings").classList.toggle("hide",!pl.hasSecret);$("#secretForm").classList.toggle("hide",!editSecret);
+  $("#bEditSecret").textContent=editSecret?"Tutup":"Ganti key";
+  if(!pl.hasSecret)return;
+  const p=primaryAddr(),box=$("#tAddr");
+  if(p)box.innerHTML='<div class="n"><span class="small muted">'+p.label+'</span><b class="addr">'+esc(p.addr)+'</b>'+(p.alt?'<span class="small muted">atau '+esc(p.alt)+'</span>':'')+'</div><button class="btn small primary copy" data-copy="'+esc(p.addr)+'">Salin</button>';
+  else if(tunnels&&(tunnels.pending||[]).length)box.innerHTML='<div class="n"><span class="small muted">playit</span><b class="addr muted">Menyiapkan alamat…</b><span class="small muted">'+esc(tunnels.pending[0].status_msg||"")+'</span></div>';
+  else if(tunnels)box.innerHTML='<div class="n"><b>Belum ada tunnel</b><span class="small muted">Buat tunnel <b>Minecraft Java</b> ke 127.0.0.1:'+esc(S.mcPort||"25565")+' di dashboard playit</span></div><a class="btn small primary" href="https://playit.gg/account/tunnels" target="_blank" rel="noopener">Buat</a>';
+  else box.innerHTML='<div class="n"><span class="small muted">Memuat alamat dari playit…</span></div>';
+  const bad=tunnels&&(tunnels.notices||[]).find(n=>n.priority!=="Low");
+  $("#tNotice").innerHTML=bad?'<div class="banner err" style="margin:10px 0 0">'+esc(bad.message)+(bad.resolve_link?' <a href="'+esc(bad.resolve_link)+'" target="_blank" rel="noopener">Atasi</a>':'')+'</div>':'';
+  const btn=$("#bTunnelToggle");btn.disabled=!pl.available;btn.textContent=run?"Stop tunnel":"Start tunnel";btn.classList.toggle("primary",!run);
+  $("#tHint").textContent=run?"Tunnel aktif, teman dari luar rumah bisa join.":($("#playitWithServer").checked&&S.state!=="running"?"Tunnel nyala otomatis saat server Start.":"Tunnel mati, teman dari luar rumah belum bisa join.");
+}
+function renderDomainForm(){const has=!!S.customDomain,editing=!has||editDomain;
+  $("#dView").classList.toggle("hide",editing);$("#dEdit").classList.toggle("hide",!editing);
+  $("#bCancelDomain").classList.toggle("hide",!has);$("#bClearDomain").classList.toggle("hide",!has);
+  $("#dIntro").classList.toggle("hide",has);
+  $("#dName").textContent=S.customDomain||"";
+  $("#dTunnelWrap").classList.toggle("hide",tunnelChoices().length<2);
+  if(!has){const pill=$("#dnsPill");pill.className="pill";pill.textContent="Opsional";$("#srvBox").classList.add("hide");$("#cfBox").classList.add("hide")}
+  else $("#cfBox").classList.remove("hide");
+}
+$("#bEditDomain").onclick=()=>{editDomain=true;$("#customDomain").value=S.customDomain||"";renderDomainForm();$("#customDomain").focus()};
+$("#bCancelDomain").onclick=()=>{editDomain=false;renderDomainForm()};
+$("#bClearDomain").onclick=async()=>{if(!confirm("Hapus domain "+S.customDomain+" dari panel? Record di Cloudflare tidak dihapus."))return;
+  try{await api("/api/settings",{form:{customDomain:""}});editDomain=false;dnsInfo=null;$("#customDomain").value="";toast("Domain dihapus");await refresh()}catch(e){toast(e.message,true)}};
+$("#bSaveDomain").onclick=async()=>{const v=$("#customDomain").value.trim();if(!v)return toast("Isi domain dulu",true);
+  try{await api("/api/settings",{form:{customDomain:v}});editDomain=false;toast("Domain disimpan");await refresh();loadDomain(true)}catch(e){toast(e.message,true)}};
 
 // ---------------------------------------------------------- domain cloudflare
 let dnsInfo=null, dnsAt=0, dnsBusy=false, lastAutoSync=0;
@@ -617,25 +803,28 @@ async function loadDomain(force){
   const d=dnsInfo;if(d&&d.hasToken&&d.autosync&&d.domain&&d.expected&&!d.match&&Date.now()-lastAutoSync>300000){lastAutoSync=Date.now();syncDns(true)}
 }
 function renderDomain(){const d=dnsInfo||{};const pill=$("#dnsPill"),st=$("#dnsStatus");
-  $("#cfTokenState").textContent=d.hasToken?"(tersimpan)":"(belum diisi)";
-  if(!d.domain){pill.className="pill";pill.textContent="Belum diisi";st.textContent=d.error||"Isi domain lalu Simpan.";$("#srvBox").classList.add("hide");renderAddresses();return}
+  $("#cfTokenState").innerHTML=d.hasToken?'<span class="cnt" style="background:#2e5a33">aktif</span>':"";
+  $("#bClearCf").classList.toggle("hide",!d.hasToken);$("#bSaveCf").textContent=d.hasToken?"Ganti token":"Simpan token";
+  renderDomainForm();
+  if(!d.domain){renderAddresses();return}
   const e=d.expected,c=d.current;
   pill.className="pill "+(d.match?"running":c?"crashed":"starting");pill.textContent=d.match?"DNS benar":c?"Beda tujuan":"Belum ada";
-  st.innerHTML=d.error?'<span style="color:var(--bad)">'+esc(d.error)+'</span>':d.match?'✅ <b>'+esc(d.domain)+'</b> sudah mengarah ke tunnel. Teman cukup join ke <b>'+esc(d.domain)+'</b>.':
-    c?'⚠️ DNS sekarang ke <code>'+esc(c.target)+':'+c.port+'</code>, seharusnya <code>'+(e?esc(e.target)+':'+e.port:"?")+'</code>. Update record di Cloudflare.':
-    '⏳ Record SRV untuk '+esc(d.domain)+' belum terlihat di DNS publik (perubahan bisa telat 1 sampai 5 menit).';
+  st.innerHTML=d.error?'<span style="color:var(--bad)">'+esc(d.error)+'</span>':d.match?'✅ Sudah mengarah ke tunnel. Teman cukup join ke <b>'+esc(d.domain)+'</b> tanpa port.':
+    c?'⚠️ DNS sekarang ke <code>'+esc(c.target)+':'+c.port+'</code>, seharusnya <code>'+(e?esc(e.target)+':'+e.port:"?")+'</code>.'+(d.hasToken?"":" Perbarui record di Cloudflare."):
+    '⏳ Record SRV belum terlihat di DNS publik.'+(d.hasToken?" Tekan Perbarui record.":" Buat record manual di bawah atau pakai API token.")+' Perubahan bisa telat 1 sampai 5 menit.';
+  $("#bSyncDns").classList.toggle("hide",!d.hasToken||!e);$("#bSyncDns").classList.toggle("primary",!d.match);$("#bSyncDns").textContent=d.match?"Perbarui record":"Perbarui record sekarang";
   const box=$("#srvBox");
-  if(e){box.classList.remove("hide");
+  if(e){box.classList.remove("hide");if(!d.match&&!d.hasToken&&!box.dataset.touched)box.open=true;if(d.match&&!box.dataset.touched)box.open=false;
     const rows=[["Type","SRV"],["Priority","0"],["Weight","5"],["Name",d.srvName],["Target",e.target],["Port",String(e.port)],["TTL","Auto"],["Proxy","DNS only"]];
     $("#srvRows").innerHTML=rows.map(([k,v])=>'<div class="item'+(k==="Name"||k==="Target"||k==="Port"?" wide":"")+'"><div class="n"><span class="small muted">'+k+'</span><b>'+esc(v)+'</b></div>'+(k!=="Name"&&k!=="Target"&&k!=="Port"?"":'<button class="btn small copy" data-copy="'+esc(v)+'">Salin</button>')+'</div>').join("")}
   else box.classList.add("hide");
   renderAddresses();
 }
+$("#srvBox").addEventListener("toggle",e=>{e.target.dataset.touched=1});
 async function syncDns(auto){const addr=$("#domainTunnel").value;
   try{const r=await api("/api/domain/sync",{form:{addr}});toast((auto?"Otomatis: ":"")+r.message);setTimeout(()=>loadDomain(true),4000)}catch(e){toast(e.message,true)}}
 $("#domainTunnel").onchange=()=>loadDomain(true);
 $("#bCheckDns").onclick=()=>loadDomain(true);
-$("#bSaveDomain").onclick=()=>act("/api/settings",{customDomain:$("#customDomain").value},"Domain disimpan").then(()=>loadDomain(true));
 $("#bSaveCf").onclick=()=>{const v=$("#cfToken").value.trim();if(!v)return toast("Token kosong",true);act("/api/settings",{cfToken:v},"Token disimpan").then(()=>loadDomain(true));$("#cfToken").value=""};
 $("#bClearCf").onclick=()=>{if(confirm("Hapus token Cloudflare dari HP ini?"))act("/api/settings",{clearCfToken:"true"},"Token dihapus").then(()=>loadDomain(true))};
 $("#bSyncDns").onclick=()=>syncDns(false);
@@ -673,7 +862,7 @@ function openMenu(btn,n){closeMenu();const p=PL,op=has(p.ops,n),wl=has(p.whiteli
     '<button data-pa="'+(op?"deop":"op")+'" data-pn="'+N+'">'+(op?"Cabut OP":"Jadikan OP")+'</button>'+
     '<button data-pa="'+(wl?"wl-remove":"wl-add")+'" data-pn="'+N+'">'+(wl?"Keluarkan dari whitelist":"Masukkan whitelist")+'</button>'+
     '<hr><button class="bad" data-pa="kick" data-pn="'+N+'">Kick</button><button class="bad" data-pa="ban" data-pn="'+N+'">Ban</button>';
-  btn.closest(".prow").appendChild(m);plMenu=m}
+  btn.closest(".prow").appendChild(m);plMenu=m;placeMenu(m,btn)}
 document.addEventListener("click",e=>{if(plMenu&&!e.target.closest(".menu")&&!e.target.closest("[data-pmenu]"))closeMenu()});
 const ACT_MSG={op:"jadi OP",deop:"bukan OP lagi","wl-add":"masuk whitelist","wl-remove":"keluar whitelist",kick:"di-kick",ban:"di-ban",pardon:"di-unban",heal:"di-heal",feed:"dikenyangkan",survival:"jadi Survival",creative:"jadi Creative",adventure:"jadi Adventure",spectator:"jadi Spectator"};
 async function playerAct(action,name){
@@ -691,12 +880,11 @@ $("#wlToggle").onchange=e=>{playerAct(e.target.checked?"whitelist-on":"whitelist
 // ---------------------------------------------------------- help
 function openHelp(which){$("#hPort").textContent=S.mcPort||"25565";$("#helpModal").classList.remove("hide");showHelp(which||"playit")}
 function showHelp(w){$$("#helpTabs button").forEach(b=>b.classList.toggle("on",b.dataset.h===w));$("#h-playit").classList.toggle("hide",w!=="playit");$("#h-cf").classList.toggle("hide",w!=="cf")}
-$("#bHelp").onclick=()=>openHelp("playit");
 document.addEventListener("click",e=>{const h=e.target.closest("[data-help]");if(h)openHelp(h.dataset.help)});
 $("#bHelpClose").onclick=()=>$("#helpModal").classList.add("hide");
 $("#helpModal").onclick=e=>{if(e.target.id==="helpModal")$("#helpModal").classList.add("hide")};
 $("#helpTabs").onclick=e=>{const b=e.target.closest("[data-h]");if(b)showHelp(b.dataset.h)};
-document.addEventListener("keydown",e=>{if(e.key==="Escape")$("#helpModal").classList.add("hide")});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#helpModal").classList.add("hide");if(!$("#editModal").classList.contains("hide"))closeEditor()}});
 
 // ---------------------------------------------------------- login
 let lockTimer;
@@ -753,11 +941,8 @@ async function refresh(){
   $("#androidBox").classList.toggle("hide",!bridge);
   $("#fabricNow").textContent=S.installed?("Terpasang: Minecraft "+S.mcVersion+", loader "+(S.loader||"?")):"Belum terpasang. Pilih versi lalu Install.";
   // tunnel
-  const pl=S.playit;$("#tunnelMissing").classList.toggle("hide",pl.available);
-  $("#tunnelPill").className="pill "+(pl.state==="running"?"running":pl.state==="crashed"?"crashed":"");$("#tunnelPill").textContent=pl.state==="running"?"Aktif":pl.state==="crashed"?"Berhenti":"Mati";
-  $("#bTunnelStart").disabled=!pl.available||pl.state==="running";$("#bTunnelStop").disabled=pl.state!=="running";
-  $("#secretState").textContent=pl.hasSecret?"(tersimpan)":"(belum diisi)";
-  $("#pwsBox").classList.toggle("hide",!pl.hasSecret);
+  $("#tunnelMissing").classList.toggle("hide",S.playit.available);
+  renderTunnelHero();renderDomainForm();renderBackupProgress();
 }
 document.addEventListener("click",e=>{const c=e.target.closest("[data-copy]");if(!c)return;const v=c.dataset.copy;
   (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast("Disalin: "+v)).catch(()=>{const t=document.createElement("textarea");t.value=v;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();toast("Disalin: "+v)})});
@@ -890,18 +1075,137 @@ $("#searchResults").onclick=async e=>{const b=e.target.closest("[data-install]")
   try{await installProject(b.dataset.install);b.textContent="Terpasang";loadMods()}catch(err){toast(err.message,true);b.disabled=false;b.textContent="Pasang"}};
 
 // ---------------------------------------------------------- world
-async function loadBackups(){
-  try{const r=await api("/api/backups");
-    $("#backupList").innerHTML=r.backups.length?r.backups.map(b=>'<div class="item"><div class="n"><b>'+esc(b.name)+'</b><span class="small muted">'+fmtSize(b.size)+" · "+new Date(b.time).toLocaleString("id")+'</span></div>'+
-      '<a class="btn small" href="/api/backups/download?name='+encodeURIComponent(b.name)+'" download="'+esc(b.name)+'">Unduh</a><button class="btn small" data-restore="'+esc(b.name)+'">Restore</button><button class="btn small danger" data-bdel="'+esc(b.name)+'">Hapus</button></div>').join(""):'<div class="empty">Belum ada backup'+(r.worldExists?"":" (world belum dibuat)")+'</div>';
-  }catch(e){toast(e.message,true)}
+const IC={"ZIP": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M10 4v3h4V4M12 11v.01M12 15v.01\"/></svg>", "DL": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 4v11M7 10l5 5 5-5M5 20h14\"/></svg>", "RESTORE": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 0 2.6-6.4L3 8\"/><path d=\"M3 3v5h5\"/></svg>", "FOLDER": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg>", "FILE": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z\"/><path d=\"M14 3v5h5\"/></svg>", "TXT": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h4\"/></svg>"};
+let worldView="backup", WI=null, BK=null, lastTask="";
+function setWorldView(v){worldView=v;$$("#worldSeg button").forEach(b=>b.classList.toggle("on",b.dataset.wv===v));
+  for(const k of ["backup","files","props"])$("#wv-"+k).classList.toggle("hide",k!==v);
+  if(v==="backup"){loadBackups();loadWorldInfo()}if(v==="files"){loadWorldInfo();loadFiles(fPath)}if(v==="props")loadProps()}
+$("#worldSeg").onclick=e=>{const b=e.target.closest("[data-wv]");if(b)setWorldView(b.dataset.wv)};
+function ago(t){const s=Math.max(0,(Date.now()-t)/1000);if(s<60)return"baru saja";if(s<3600)return Math.floor(s/60)+" mnt lalu";if(s<86400)return Math.floor(s/3600)+" jam lalu";return Math.floor(s/86400)+" hari lalu"}
+const fmtDate=t=>{const d=new Date(t),o={day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"};if(d.getFullYear()!==new Date().getFullYear())o.year="numeric";return d.toLocaleString("id",o)};
+async function loadWorldInfo(force){try{WI=await api("/api/world/info"+(force?"?force=1":""));renderWorldInfo();renderQuick()}catch(e){}}
+function renderWorldInfo(){const w=WI;if(!w)return;
+  $("#wName").textContent=w.name;
+  const last=BK&&BK.backups.length?BK.backups[0]:null;
+  $("#wMeta").textContent=w.exists?(fmtSize(w.size)+" · "+(last?"backup terakhir "+ago(last.time):"belum pernah di-backup")):"World belum dibuat. Start server sekali dulu.";
+  $("#wDims").innerHTML=[["Overworld",w.overworld,true,"#5fd068"],["Nether",w.nether,w.netherExists,"#ef6b5b"],["End",w.end,w.endExists,"#b48cf2"]].map(([k,v,ex,c])=>'<div class="dim" style="--c:'+c+'"><div class="k">'+k+'</div><div class="v">'+(w.exists&&ex?fmtSize(v):"-")+'</div></div>').join("");
+  const alive=["running","starting","stopping"].includes(S.state);
+  $$("[data-resetdim]").forEach(b=>{const ex=b.dataset.resetdim==="nether"?w.netherExists:w.endExists;b.disabled=!ex||alive});
+  $("#bResetWorld").disabled=!w.exists||alive;
+  $("#dzNote").textContent=alive?"Matikan server dulu untuk memakai aksi di sini.":"Backup dulu kalau masih butuh. Aksi ini tidak bisa dibatalkan.";$("#bBackup").disabled=!w.exists||!!(S.task);
 }
-$("#bBackup").onclick=()=>act("/api/backups/create",null,"Backup dimulai").then(()=>setTimeout(loadBackups,3000));
+function backupMeta(b){const m=/^(auto-)?(.+)-(\d{8})-(\d{6})\.zip$/.exec(b.name);
+  if(!m)return{title:b.name.replace(/\.zip$/,""),kind:"Upload",cls:"info"};
+  return{title:fmtDate(b.time),kind:m[1]?"Otomatis":"Manual",cls:""}}
+async function loadBackups(){
+  try{BK=await api("/api/backups");renderBackups();renderWorldInfo()}catch(e){toast(e.message,true)}
+}
+function renderBackups(){const r=BK;if(!r)return;
+  $("#bCount").textContent=r.backups.length||"";
+  $("#backupList").innerHTML=r.backups.length?r.backups.map((b,i)=>{const m=backupMeta(b);
+    return '<div class="mrow brow"><div class="bico">'+IC.ZIP+'</div><div class="n"><b title="'+esc(b.name)+'">'+esc(m.title)+'</b><span>'+fmtSize(b.size)+' · '+ago(b.time)+'</span>'+
+      '<div class="tags">'+(i===0?'<span class="tag ok">Terbaru</span>':'')+'<span class="tag '+m.cls+'">'+m.kind+'</span></div></div>'+
+      '<a class="ibtn" title="Unduh" aria-label="Unduh" href="/api/backups/download?name='+encodeURIComponent(b.name)+'" download="'+esc(b.name)+'">'+IC.DL+'</a>'+
+      '<button class="ibtn" title="Restore" aria-label="Restore" data-restore="'+esc(b.name)+'"'+(r.running?" disabled":"")+'>'+IC.RESTORE+'</button>'+
+      '<button class="ibtn danger" title="Hapus" aria-label="Hapus" data-bdel="'+esc(b.name)+'">'+TRASH+'</button></div>'}).join("")
+    :'<div class="empty">Belum ada backup'+(r.worldExists?". Tekan Backup sekarang.":" (world belum dibuat)")+'</div>';
+  const on=r.autoHours>0;$("#abOn").checked=on;$("#abOpts").classList.toggle("hide",!on);
+  if(on){$("#abHours").value=String(r.autoHours);$("#abKeep").value=String(r.keep);
+    if(!$("#abHours").value){$("#abHours").insertAdjacentHTML("beforeend",'<option value="'+r.autoHours+'">'+r.autoHours+' jam</option>');$("#abHours").value=String(r.autoHours)}
+    if(!$("#abKeep").value){$("#abKeep").insertAdjacentHTML("beforeend",'<option value="'+r.keep+'">'+r.keep+' terakhir</option>');$("#abKeep").value=String(r.keep)}}
+  $("#abInfo").textContent=on?("Tiap "+r.autoHours+" jam, simpan "+r.keep+" terakhir. "+(r.lastAuto?"Terakhir "+ago(r.lastAuto)+".":"Belum ada backup otomatis.")):"Mati. Nyalakan supaya world di-backup sendiri selama server jalan.";
+}
+function renderBackupProgress(){const t=S.task||"",busy=/^(Backup|Restore)/.test(t);
+  $("#bProgress").classList.toggle("hide",!busy);
+  if(busy){$("#bProgText").textContent=t+"…";const p=S.taskProgress;$("#bProgPct").textContent=p>=0?p+"%":"";$("#bProgBar").style.width=(p>=0?p:15)+"%"}
+  if(lastTask&&!t&&tab==="world"){loadBackups();loadWorldInfo(true);if(worldView==="files")loadFiles(fPath)}
+  lastTask=t;
+  if(WI&&tab==="world")renderWorldInfo();else if($("#bBackup"))$("#bBackup").disabled=!!t||(WI&&!WI.exists);
+  if(BK&&tab==="world"&&BK.running!==["running","starting","stopping"].includes(S.state)){BK.running=!BK.running;renderBackups()}
+}
+$("#bBackup").onclick=()=>act("/api/backups/create",null,"Backup dimulai");
 $("#backupList").onclick=async e=>{const r=e.target.closest("[data-restore]"),d=e.target.closest("[data-bdel]");
-  if(r&&confirm("Ganti world sekarang dengan "+r.dataset.restore+"?"))await act("/api/backups/restore",{name:r.dataset.restore},"Restore dimulai");
-  if(d&&confirm("Hapus backup "+d.dataset.bdel+"?")){await act("/api/backups/delete",{name:d.dataset.bdel});loadBackups()}};
+  if(r&&!r.disabled&&confirm("Ganti world sekarang dengan backup ini?\n"+r.dataset.restore+"\n\nWorld yang sekarang akan ditimpa."))await act("/api/backups/restore",{name:r.dataset.restore},"Restore dimulai");
+  if(d&&confirm("Hapus backup "+d.dataset.bdel+"?")){await act("/api/backups/delete",{name:d.dataset.bdel},"Backup dihapus");loadBackups()}};
 $("#worldUpload").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{toast("Upload "+f.name+" ("+fmtSize(f.size)+")…");await api("/api/backups/upload?name="+encodeURIComponent(f.name.replace(/[^\w.\-]/g,"_")),{method:"PUT",body:f});toast("Upload selesai, tekan Restore");loadBackups()}catch(err){toast(err.message,true)}e.target.value=""};
-$("#bResetWorld").onclick=()=>{if(confirm("Hapus world sekarang? Backup dulu kalau masih butuh.")&&prompt("Ketik HAPUS untuk lanjut")==="HAPUS")act("/api/world/reset",null,"World dihapus")};
+$("#bResetWorld").onclick=()=>{if(confirm("Hapus world sekarang? Backup dulu kalau masih butuh.")&&prompt("Ketik HAPUS untuk lanjut")==="HAPUS")act("/api/world/reset",null,"World dihapus").then(()=>loadWorldInfo(true))};
+document.addEventListener("click",e=>{const b=e.target.closest("[data-resetdim]");if(!b||b.disabled)return;const n=b.dataset.resetdim==="nether"?"Nether":"End";
+  if(confirm("Reset "+n+"? Semua bangunan dan barang di "+n+" hilang."))act("/api/world/reset-dim",{dim:b.dataset.resetdim},n+" direset").then(()=>loadWorldInfo(true))});
+async function saveAutoBackup(){const on=$("#abOn").checked;
+  try{await api("/api/settings",{form:{autoBackupHours:on?($("#abHours").value||"6"):"0",backupKeep:$("#abKeep").value||"5"}});toast(on?"Backup otomatis aktif":"Backup otomatis mati");loadBackups()}catch(e){toast(e.message,true)}}
+$("#abOn").onchange=()=>{if($("#abOn").checked&&!BK.autoHours){$("#abHours").value="6";$("#abKeep").value="5"}saveAutoBackup()};
+$("#abHours").onchange=saveAutoBackup;$("#abKeep").onchange=saveAutoBackup;
+
+// ---------------------------------------------------------- file world
+let fPath="", FL=null, fMenu=null, edFile=null, edDirty=false;
+const joinP=(a,b)=>a?a+"/"+b:b;
+function renderQuick(){const w=WI||{},wn=w.name||"world";
+  const q=[["Overworld",wn,w.exists?fmtSize(w.overworld):"belum ada","#5fd068",w.exists],["Nether",wn+"/DIM-1",w.netherExists?fmtSize(w.nether):"belum ada","#ef6b5b",w.netherExists],
+    ["End",wn+"/DIM1",w.endExists?fmtSize(w.end):"belum ada","#b48cf2",w.endExists],["config","config",w.config?fmtSize(w.config):"kosong","#6fb7ff",true],["mods","mods",fmtSize(w.mods||0),"#f2b84b",true],["Server","","semua file","#93a597",true]];
+  $("#fQuick").innerHTML=q.map(([k,p,v,c,ok])=>'<button class="qk" style="--c:'+c+'" data-fgo="'+esc(p)+'"'+(ok?"":" disabled")+'><div class="k">'+k+'</div><div class="v">'+v+'</div></button>').join("")}
+$("#fQuick").onclick=e=>{const b=e.target.closest("[data-fgo]");if(b&&!b.disabled)loadFiles(b.dataset.fgo)};
+async function loadFiles(p){closeFMenu();
+  try{FL=await api("/api/files/list?path="+encodeURIComponent(p));fPath=FL.path;renderFiles()}
+  catch(e){if(p){toast(e.message,true);return loadFiles("")}$("#fList").innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
+function renderFiles(){const d=FL;
+  const parts=d.path?d.path.split("/"):[];
+  $("#fCrumbs").innerHTML='<button data-fgo="">Server</button>'+parts.map((x,i)=>'<span class="sep">/</span><button data-fgo="'+esc(parts.slice(0,i+1).join("/"))+'">'+esc(x)+'</button>').join("");
+  const locked=d.running&&d.inWorld;$("#fWarn").classList.toggle("hide",!locked);
+  $("#fZip").href="/api/files/download?path="+encodeURIComponent(d.path);$("#fZip").setAttribute("download",(parts[parts.length-1]||"server")+".zip");
+  $("#fList").innerHTML=(d.path?'<div class="mrow frow" data-fgo="'+esc(parts.slice(0,-1).join("/"))+'"><div class="fico dir">'+IC.FOLDER+'</div><div class="n"><b>..</b><span>Folder atas</span></div></div>':"")+
+    (d.entries.length?d.entries.map(f=>{const kind=f.dir?"dir":f.text?"txt":"file";
+      const meta=f.dir?(f.items+" item"):(fmtSize(f.size)+" · "+fmtDate(f.time));
+      return '<div class="mrow frow" data-fname="'+esc(f.name)+'"><div class="fico '+kind+'">'+(f.dir?IC.FOLDER:f.text?IC.TXT:IC.FILE)+'</div><div class="n"><b title="'+esc(f.name)+'">'+esc(f.name)+'</b><span>'+meta+'</span></div>'+
+        '<button class="ibtn" aria-label="Aksi untuk '+esc(f.name)+'" data-fmenu="'+esc(f.name)+'">'+ICO_DOTS+'</button></div>'}).join(""):'<div class="empty">Folder kosong</div>');
+}
+$("#fCrumbs").onclick=e=>{const b=e.target.closest("[data-fgo]");if(b)loadFiles(b.dataset.fgo)};
+function fEntry(n){return FL&&FL.entries.find(x=>x.name===n)}
+function closeFMenu(){if(fMenu){fMenu.remove();fMenu=null}}
+function openFMenu(btn,name){closeFMenu();const f=fEntry(name);if(!f)return;const p=joinP(fPath,name),locked=FL.running&&(FL.inWorld||(!fPath&&name===FL.world));
+  const m=document.createElement("div");m.className="menu";
+  m.innerHTML=(f.dir?'<button data-fa="open">Buka</button>':"")+(f.text?'<button data-fa="edit">'+(locked?"Lihat isi":"Edit")+'</button>':"")+
+    '<a href="/api/files/download?path='+encodeURIComponent(p)+'" download="'+esc(f.dir?name+".zip":name)+'"><button data-fa="dl">'+(f.dir?"Unduh .zip":"Unduh")+'</button></a>'+
+    '<button data-fa="rename"'+(locked?" disabled":"")+'>Ganti nama</button><hr><button class="bad" data-fa="del"'+(locked?" disabled":"")+'>Hapus</button>';
+  m.dataset.name=name;btn.closest(".frow").appendChild(m);fMenu=m;placeMenu(m,btn)}
+function placeMenu(m,btn){const r=btn.getBoundingClientRect(),h=m.offsetHeight,navH=window.innerWidth<860?72:0;
+  if(r.bottom+h+8>window.innerHeight-navH&&r.top-h>60)m.classList.add("up")}
+document.addEventListener("click",e=>{if(fMenu&&!e.target.closest(".menu")&&!e.target.closest("[data-fmenu]"))closeFMenu()});
+$("#fList").onclick=async e=>{
+  const mb=e.target.closest("[data-fmenu]");if(mb){e.stopPropagation();if(fMenu&&fMenu.dataset.name===mb.dataset.fmenu)closeFMenu();else openFMenu(mb,mb.dataset.fmenu);return}
+  const a=e.target.closest("[data-fa]");
+  if(a){const name=a.closest(".menu").dataset.name,p=joinP(fPath,name),act2=a.dataset.fa;if(a.disabled)return;
+    if(act2==="dl"){setTimeout(closeFMenu,50);return}
+    closeFMenu();
+    if(act2==="open")return loadFiles(p);
+    if(act2==="edit")return openEditor(p);
+    if(act2==="rename"){const to=prompt("Nama baru",name);if(!to||to===name)return;try{await api("/api/files/rename",{form:{path:p,to:to.trim()}});toast("Nama diganti");loadFiles(fPath)}catch(err){toast(err.message,true)}return}
+    if(act2==="del"){const f=fEntry(name);if(!confirm("Hapus "+(f&&f.dir?"folder":"file")+" "+name+"?"+(f&&f.dir?"\nSemua isinya ikut terhapus.":"")))return;
+      try{await api("/api/files/delete",{form:{path:p}});toast(name+" dihapus");loadFiles(fPath);loadWorldInfo(true)}catch(err){toast(err.message,true)}return}
+    return}
+  if(e.target.closest(".menu"))return;
+  const up=e.target.closest(".frow[data-fgo]");if(up)return loadFiles(up.dataset.fgo);
+  const row=e.target.closest(".frow[data-fname]");if(!row)return;const f=fEntry(row.dataset.fname);if(!f)return;const p=joinP(fPath,f.name);
+  if(f.dir)return loadFiles(p);
+  if(f.text)return openEditor(p);
+  location.href="/api/files/download?path="+encodeURIComponent(p)};
+$("#fRefresh").onclick=()=>{loadFiles(fPath);loadWorldInfo(true)};
+$("#fMkdir").onclick=async()=>{const n=prompt("Nama folder baru");if(!n)return;try{await api("/api/files/mkdir",{form:{path:fPath,name:n.trim()}});loadFiles(fPath)}catch(e){toast(e.message,true)}};
+$("#fUpload").onchange=async e=>{for(const f of e.target.files){try{toast("Upload "+f.name+"…");await api("/api/files/upload?path="+encodeURIComponent(fPath)+"&name="+encodeURIComponent(f.name),{method:"PUT",body:f})}catch(err){toast(f.name+": "+err.message,true)}}
+  e.target.value="";loadFiles(fPath);loadWorldInfo(true)};
+// editor
+async function openEditor(p){try{const r=await fetch("/api/files/read?path="+encodeURIComponent(p));const t=await r.text();
+    if(!r.ok){let m=t;try{m=JSON.parse(t).error}catch(_){}throw new Error(m)}
+    edFile=p;edDirty=false;const name=p.split("/").pop();$("#edName").textContent=name;$("#edPath").textContent=p;$("#edText").value=t;
+    const ro=FL&&FL.running&&(FL.inWorld||p.startsWith((FL.world||"world")+"/"));$("#edText").readOnly=!!ro;$("#edSave").disabled=!!ro;
+    $("#edNote").textContent=ro?"Hanya baca selama server jalan (file ini bagian dari world).":/^config\//.test(p)?"Restart server supaya perubahan config mod dipakai.":p==="server.properties"?"Restart server supaya perubahan dipakai.":"Simpan lalu restart server kalau file ini dipakai server.";
+    $("#editModal").classList.remove("hide");setTimeout(()=>$("#edText").focus(),50)}catch(e){toast(e.message,true)}}
+function closeEditor(){if(edDirty&&!confirm("Tutup tanpa menyimpan perubahan?"))return;$("#editModal").classList.add("hide");edFile=null}
+async function saveEditor(){if(!edFile||$("#edSave").disabled)return;try{await api("/api/files/write?path="+encodeURIComponent(edFile),{body:$("#edText").value,type:"text/plain; charset=utf-8"});edDirty=false;toast("Tersimpan");loadFiles(fPath);if(edFile==="server.properties")loadProps()}catch(e){toast(e.message,true)}}
+$("#edText").addEventListener("input",()=>{edDirty=true});
+$("#edText").addEventListener("keydown",e=>{if(e.key==="Tab"&&!e.target.readOnly){e.preventDefault();const t=e.target,a=t.selectionStart;t.setRangeText("  ",a,t.selectionEnd,"end");edDirty=true}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();saveEditor()}});
+$("#edClose").onclick=closeEditor;$("#edSave").onclick=saveEditor;
+$("#editModal").onclick=e=>{if(e.target.id==="editModal")closeEditor()};
 
 const PROPS=[["motd","Nama server (MOTD)","text"],["max-players","Maks pemain","number"],["view-distance","View distance (chunk)","number","HP: 5 sampai 8. Makin besar makin berat."],["simulation-distance","Simulation distance","number","HP: 4 sampai 6."],
   ["difficulty","Kesulitan","select:peaceful,easy,normal,hard"],["gamemode","Gamemode default","select:survival,creative,adventure,spectator"],["online-mode","Online mode (akun premium)","bool","Nyala: cuma akun Minecraft asli (premium) yang bisa join. Kalau ada teman pakai Minecraft crack / non-premium (TLauncher dan sejenisnya), <b>matikan</b> ini. Saat mati, wajib nyalakan Whitelist, karena siapa pun bisa masuk pakai nama orang lain."],
@@ -944,11 +1248,19 @@ $("#bSavePin").onclick=()=>{const p=$("#newPin").value.trim();act("/api/settings
 $("#bLogout").onclick=async()=>{await api("/api/logout",{post:true}).catch(()=>{});location.reload()};
 $("#bBattery").onclick=()=>bridge&&bridge.requestIgnoreBattery();
 $("#bAppInfo").onclick=()=>bridge&&bridge.openAppInfo();
-$("#bSaveSecret").onclick=()=>{const v=$("#playitSecret").value.trim();if(!v)return toast("Secret kosong",true);act("/api/settings",{playitSecret:v},"Secret disimpan").then(()=>loadTunnels(true));$("#playitSecret").value=""};
-$("#bTunnelStart").onclick=()=>act("/api/playit/start",null,"Tunnel dinyalakan").then(()=>setTimeout(()=>loadTunnels(true),4000));
-$("#bTunnelRefresh").onclick=()=>loadTunnels(true);
-$("#bSaveDomain").onclick=()=>act("/api/settings",{customDomain:$("#customDomain").value},"Domain disimpan");
-$("#bTunnelStop").onclick=()=>act("/api/playit/stop",null,"Tunnel dimatikan");
+async function saveSecret(inp){const v=inp.value.trim();if(!v)return toast("Secret key kosong",true);
+  try{await api("/api/settings",{form:{playitSecret:v}});inp.value="";editSecret=false;toast("Secret key disimpan");await refresh();tunnels=null;await loadTunnels(true);
+    if(S.playit.available&&S.playit.state!=="running"&&confirm("Nyalakan tunnel sekarang?"))tunnelToggle()}catch(e){toast(e.message,true)}}
+$("#bSaveSecret").onclick=()=>saveSecret($("#playitSecret"));
+$("#bSaveSecret2").onclick=()=>saveSecret($("#playitSecretNew"));
+$("#bEditSecret").onclick=()=>{editSecret=!editSecret;renderTunnelHero();if(editSecret)$("#playitSecretNew").focus()};
+$("#bCancelSecret").onclick=()=>{editSecret=false;$("#playitSecretNew").value="";renderTunnelHero()};
+$("#bClearSecret").onclick=async()=>{if(!confirm("Putuskan akun playit dari HP ini? Tunnel dimatikan dan secret key dihapus."))return;
+  try{if(S.playit.state==="running")await api("/api/playit/stop",{post:true});await api("/api/settings",{form:{clearPlayitSecret:"true"}});editSecret=false;tunnels=null;toast("playit diputus");refresh()}catch(e){toast(e.message,true)}};
+async function tunnelToggle(){const run=S.playit&&S.playit.state==="running";
+  await act(run?"/api/playit/stop":"/api/playit/start",null,run?"Tunnel dimatikan":"Tunnel dinyalakan");if(!run)setTimeout(()=>loadTunnels(true),4000)}
+$("#bTunnelToggle").onclick=tunnelToggle;
+$("#bTunnelRefresh").onclick=e=>{e.preventDefault();e.stopPropagation();loadTunnels(true)};
 
 // ---------------------------------------------------------- fabric
 let gameVersions=[];

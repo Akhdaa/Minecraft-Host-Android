@@ -29,9 +29,11 @@ public class PanelApi implements MiniHttp.Handler {
     private final Host host;
     private final Set<String> sessions = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final SecureRandom random = new SecureRandom();
+    private final FileApi files;
 
     public PanelApi(Host host) {
         this.host = host;
+        this.files = new FileApi(host);
     }
 
     @Override
@@ -59,6 +61,10 @@ public class PanelApi implements MiniHttp.Handler {
             res.error(403, "Header X-Panel hilang");
             return;
         }
+        if (files.handles(p)) {
+            files.handle(p, req, res, post);
+            return;
+        }
         switch (p) {
             case "/api/status": status(req, res); return;
             case "/api/log": log(req, res); return;
@@ -84,7 +90,8 @@ public class PanelApi implements MiniHttp.Handler {
             case "/api/backups/delete": requirePost(post); backupDelete(req, res); return;
             case "/api/backups/restore": requirePost(post); host.restoreBackup(req.param("name", "")); res.ok(); return;
             case "/api/backups/upload": requirePost(post); upload(req, res, host.backupDir, ".zip"); return;
-            case "/api/world/reset": requirePost(post); host.resetWorld(); res.ok(); return;
+            case "/api/world/reset": requirePost(post); host.resetWorld(); files.invalidate(); res.ok(); return;
+            case "/api/world/reset-dim": requirePost(post); host.resetDimension(req.param("dim", "")); files.invalidate(); res.ok(); return;
             case "/api/playit/start": requirePost(post); host.playit.start(); res.ok(); return;
             case "/api/playit/stop": requirePost(post); host.playit.stop(); res.ok(); return;
             case "/api/playit/tunnels": playitTunnels(req, res); return;
@@ -211,6 +218,7 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("state", host.mc.state())
                 .put("task", host.task())
                 .put("taskError", host.taskError())
+                .put("taskProgress", host.progress())
                 .put("runtimeReady", host.runtimeReady())
                 .put("installed", host.mc.installed())
                 .put("mcVersion", host.cfg.get(Config.MC_VERSION, ""))
@@ -307,6 +315,18 @@ public class PanelApi implements MiniHttp.Handler {
             if ("true".equals(req.param("clearCfToken"))) c.set(Config.CF_TOKEN, "");
             String auto = req.param("cfAutosync");
             if (auto != null) c.set(Config.CF_AUTOSYNC, String.valueOf("true".equals(auto)));
+            String abh = req.param("autoBackupHours");
+            if (abh != null) {
+                int h = Integer.parseInt(abh.trim());
+                if (h < 0 || h > 168) throw new IllegalArgumentException("Interval backup 0 sampai 168 jam");
+                c.set(Config.AUTO_BACKUP_HOURS, String.valueOf(h));
+            }
+            String keep = req.param("backupKeep");
+            if (keep != null) {
+                int k = Integer.parseInt(keep.trim());
+                if (k < 1 || k > 50) throw new IllegalArgumentException("Simpan 1 sampai 50 backup");
+                c.set(Config.BACKUP_KEEP, String.valueOf(k));
+            }
             String pin = req.param("pin");
             if (pin != null && !pin.trim().isEmpty()) {
                 if (!req.isLocal()) throw new IllegalStateException("PIN hanya bisa diganti dari aplikasi di HP");
@@ -501,7 +521,12 @@ public class PanelApi implements MiniHttp.Handler {
         }
         arr.append(']');
         res.json(200, Json.obj().raw("backups", arr.toString()).put("world", host.worldDir().getName())
-                .put("worldExists", host.worldDir().exists()).toString());
+                .put("worldExists", host.worldDir().exists())
+                .put("running", host.mc.alive())
+                .put("autoHours", host.cfg.getInt(Config.AUTO_BACKUP_HOURS, 0))
+                .put("keep", host.cfg.getInt(Config.BACKUP_KEEP, 5))
+                .put("lastAuto", host.lastAutoBackup())
+                .toString());
     }
 
     private File backupFile(MiniHttp.Req req) {
@@ -518,6 +543,7 @@ public class PanelApi implements MiniHttp.Handler {
 
     private void backupDelete(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
         if (!backupFile(req).delete()) throw new IOException("Gagal hapus");
+        files.invalidate();
         res.ok();
     }
 

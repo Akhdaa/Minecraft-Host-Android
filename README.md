@@ -48,7 +48,11 @@
 - **Store Modrinth** di dalam app: populer, kategori, cari, dependency ikut terpasang.
 - **Paket optimasi HP** sekali klik: Lithium, FerriteCore, Krypton, ModernFix, Chunky.
 - **Kelola mod**: cari, nyalakan, matikan, hapus, upload `.jar`.
-- **Backup & restore world**, upload world dari PC, download backup.
+- **Backup & restore world** dengan progress, upload world dari PC, download backup.
+- **Backup otomatis** tiap beberapa jam selama server jalan, yang lama dihapus sendiri.
+- **File world**: jelajah folder server, ukuran Overworld/Nether/End, unduh, upload, ganti nama, hapus.
+- **Editor config** langsung dari panel untuk file `.toml`, `.json`, `.properties` dan sejenisnya.
+- **Reset Nether atau End** saja tanpa menghapus Overworld.
 - **Editor server.properties** dengan penjelasan (termasuk online mode untuk pemain crack).
 
     </td>

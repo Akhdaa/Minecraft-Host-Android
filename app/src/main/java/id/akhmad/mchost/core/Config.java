@@ -27,6 +27,8 @@ public class Config {
     public static final String CUSTOM_DOMAIN = "custom_domain";
     public static final String CF_TOKEN = "cf_token";
     public static final String CF_AUTOSYNC = "cf_autosync";
+    public static final String AUTO_BACKUP_HOURS = "auto_backup_hours";
+    public static final String BACKUP_KEEP = "backup_keep";
 
     private final File file;
     private final Properties p = new Properties();
@@ -55,6 +57,8 @@ public class Config {
         def(CUSTOM_DOMAIN, "");
         def(CF_TOKEN, "");
         def(CF_AUTOSYNC, "true");
+        def(AUTO_BACKUP_HOURS, "0");
+        def(BACKUP_KEEP, "5");
         if (get(PIN, "").isEmpty()) {
             SecureRandom r = new SecureRandom();
             p.setProperty(PIN, String.valueOf(100000 + r.nextInt(900000)));

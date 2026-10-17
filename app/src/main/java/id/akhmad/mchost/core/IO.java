@@ -278,27 +278,84 @@ public final class IO {
 
     // ---------------------------------------------------------------- zip
 
+    /** Receives byte counts as work progresses. */
+    public interface Progress {
+        void add(long bytes);
+    }
+
+    private static final Progress NO_PROGRESS = n -> { };
+
     public static void zipDir(File dir, File zipFile, String rootName) throws IOException {
+        zipDir(dir, zipFile, rootName, NO_PROGRESS);
+    }
+
+    public static void zipDir(File dir, File zipFile, String rootName, Progress p) throws IOException {
         try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
             zos.setLevel(5);
-            addToZip(zos, dir, rootName);
+            addToZip(zos, dir, rootName, p == null ? NO_PROGRESS : p);
         }
     }
 
-    private static void addToZip(ZipOutputStream zos, File f, String path) throws IOException {
+    private static void addToZip(ZipOutputStream zos, File f, String path, Progress p) throws IOException {
         if (f.isDirectory()) {
             File[] kids = f.listFiles();
             zos.putNextEntry(new ZipEntry(path + "/"));
             zos.closeEntry();
-            if (kids != null) for (File k : kids) addToZip(zos, k, path + "/" + k.getName());
+            if (kids != null) for (File k : kids) addToZip(zos, k, path + "/" + k.getName(), p);
             return;
         }
         if (f.getName().equals("session.lock")) return;
         zos.putNextEntry(new ZipEntry(path));
         try (InputStream in = new FileInputStream(f)) {
-            copy(in, zos);
+            byte[] buf = new byte[64 * 1024];
+            int n;
+            while ((n = in.read(buf)) != -1) {
+                zos.write(buf, 0, n);
+                p.add(n);
+            }
         }
         zos.closeEntry();
+    }
+
+    /** Total size of a file or directory tree (symlinks are not followed). */
+    public static long dirSize(File f) {
+        if (f == null || !f.exists()) return 0;
+        if (!f.isDirectory()) return f.length();
+        if (isSymlink(f)) return 0;
+        long total = 0;
+        File[] kids = f.listFiles();
+        if (kids != null) for (File k : kids) total += dirSize(k);
+        return total;
+    }
+
+    private static final class CountingInputStream extends java.io.FilterInputStream {
+        private final Progress p;
+
+        CountingInputStream(InputStream in, Progress p) {
+            super(in);
+            this.p = p;
+        }
+
+        @Override
+        public int read() throws IOException {
+            int c = super.read();
+            if (c >= 0) p.add(1);
+            return c;
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            int n = super.read(b, off, len);
+            if (n > 0) p.add(n);
+            return n;
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            long k = super.skip(n);
+            if (k > 0) p.add(k);
+            return k;
+        }
     }
 
     /**
@@ -306,10 +363,16 @@ public final class IO {
      * level.dat, that folder is stripped, so both "world/level.dat" and "level.dat" zips work.
      */
     public static void unzipWorld(File zip, File destDir) throws IOException {
+        unzipWorld(zip, destDir, NO_PROGRESS);
+    }
+
+    /** Progress reports compressed bytes read from the zip file. */
+    public static void unzipWorld(File zip, File destDir, Progress p) throws IOException {
         String strip = detectWorldRoot(zip);
         String destCanon = destDir.getCanonicalPath() + File.separator;
         destDir.mkdirs();
-        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(zip)))) {
+        InputStream raw = new CountingInputStream(new FileInputStream(zip), p == null ? NO_PROGRESS : p);
+        try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(raw, 65536))) {
             ZipEntry e;
             while ((e = zis.getNextEntry()) != null) {
                 String name = e.getName().replace('\\', '/');

@@ -29,6 +29,12 @@ public class Host {
     private volatile String task = "";
     private volatile String taskError = "";
     private volatile boolean runtimeReady;
+    private volatile int progress = -1;
+    private final java.util.concurrent.ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "host-timer");
+        t.setDaemon(true);
+        return t;
+    });
 
     public Host(Platform platform) {
         this.platform = platform;
@@ -41,6 +47,21 @@ public class Host {
         this.cfg = new Config(new File(base, "panel.properties"));
         this.mc = new McServer(this, mcLog);
         this.playit = new Playit(this, tunnelLog);
+        timer.scheduleWithFixedDelay(this::autoBackupTick, 2, 1, java.util.concurrent.TimeUnit.MINUTES);
+    }
+
+    /** Percentage (0..99) of the running backup/restore task, or -1 when unknown. */
+    public int progress() {
+        return progress;
+    }
+
+    private IO.Progress tracker(long total) {
+        final long[] done = {0};
+        progress = total > 0 ? 0 : -1;
+        return n -> {
+            done[0] += n;
+            if (total > 0) progress = (int) Math.min(99, done[0] * 100 / total);
+        };
     }
 
     /** Prepares the runtime in the background, then honours auto-start settings. */
@@ -170,28 +191,63 @@ public class Host {
         return new ArrayList<>(Arrays.asList(f));
     }
 
+    public static final String AUTO_PREFIX = "auto-";
+
     public void createBackup() {
+        createBackup(false);
+    }
+
+    public void createBackup(boolean auto) {
         File world = worldDir();
         if (!world.exists()) throw new IllegalStateException("World belum ada (start server sekali dulu)");
-        runTask("Backup world", () -> {
+        runTask(auto ? "Backup otomatis" : "Backup world", () -> {
             boolean running = "running".equals(mc.state());
             if (running) {
                 mc.send("save-off");
                 if (!mc.saveAndWait(20_000)) mcLog.panel("save-all tidak terkonfirmasi, lanjut backup.");
             }
             String stamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date());
-            File out = new File(backupDir, world.getName() + "-" + stamp + ".zip");
+            File out = new File(backupDir, (auto ? AUTO_PREFIX : "") + world.getName() + "-" + stamp + ".zip");
             File tmp = new File(backupDir, ".tmp-" + stamp);
             try {
-                IO.zipDir(world, tmp, world.getName());
+                IO.zipDir(world, tmp, world.getName(), tracker(IO.dirSize(world)));
                 if (!tmp.renameTo(out)) throw new IOException("Gagal menyimpan backup");
             } finally {
+                progress = -1;
                 if (running) mc.send("save-on");
                 if (tmp.exists()) //noinspection ResultOfMethodCallIgnored
                     tmp.delete();
             }
-            mcLog.panel("Backup tersimpan: " + out.getName() + " (" + out.length() / 1024 / 1024 + " MB)");
+            mcLog.panel((auto ? "Backup otomatis" : "Backup") + " tersimpan: " + out.getName() + " (" + out.length() / 1024 / 1024 + " MB)");
+            if (auto) pruneAutoBackups();
         });
+    }
+
+    /** Keeps only the newest N automatic backups; manual and uploaded ones are never touched. */
+    private void pruneAutoBackups() {
+        int keep = Math.max(1, cfg.getInt(Config.BACKUP_KEEP, 5));
+        int seen = 0;
+        for (File f : backups()) {
+            if (!f.getName().startsWith(AUTO_PREFIX)) continue;
+            if (++seen > keep && f.delete()) mcLog.panel("Backup otomatis lama dihapus: " + f.getName());
+        }
+    }
+
+    public long lastAutoBackup() {
+        for (File f : backups()) if (f.getName().startsWith(AUTO_PREFIX)) return f.lastModified();
+        return 0;
+    }
+
+    private void autoBackupTick() {
+        try {
+            int hours = cfg.getInt(Config.AUTO_BACKUP_HOURS, 0);
+            if (hours <= 0 || !"running".equals(mc.state()) || !task.isEmpty() || !worldDir().exists()) return;
+            long last = lastAutoBackup();
+            if (last > 0 && System.currentTimeMillis() - last < hours * 3_600_000L) return;
+            if (last == 0 && mc.uptimeSec() < 10 * 60) return; // first one after 10 min of play
+            createBackup(true);
+        } catch (Throwable ignored) {
+        }
     }
 
     public void restoreBackup(String name) {
@@ -204,15 +260,37 @@ public class Host {
             IO.deleteRecursive(old);
             if (world.exists() && !world.renameTo(old)) throw new IOException("Gagal memindah world lama");
             try {
-                IO.unzipWorld(zip, world);
+                IO.unzipWorld(zip, world, tracker(zip.length()));
             } catch (Exception e) {
                 IO.deleteRecursive(world);
                 //noinspection ResultOfMethodCallIgnored
                 old.renameTo(world);
                 throw e;
+            } finally {
+                progress = -1;
             }
             IO.deleteRecursive(old);
             mcLog.panel("World dipulihkan dari " + name);
+        });
+    }
+
+    /** Deletes one dimension so it regenerates: "nether" (DIM-1) or "end" (DIM1). */
+    public void resetDimension(String which) {
+        final String dir;
+        final String label;
+        if ("nether".equals(which)) {
+            dir = "DIM-1";
+            label = "Nether";
+        } else if ("end".equals(which)) {
+            dir = "DIM1";
+            label = "End";
+        } else throw new IllegalArgumentException("Dimensi tidak dikenal");
+        if (mc.alive()) throw new IllegalStateException("Matikan server dulu");
+        File d = new File(worldDir(), dir);
+        if (!d.exists()) throw new IllegalArgumentException(label + " belum pernah dibuat");
+        runTask("Reset " + label, () -> {
+            IO.deleteRecursive(d);
+            mcLog.panel(label + " direset. Akan dibuat ulang saat ada pemain masuk ke sana.");
         });
     }
 
@@ -254,5 +332,6 @@ public class Host {
         playit.stop();
         if (mc.alive()) mc.stopAndWait(waitMs);
         tasks.shutdownNow();
+        timer.shutdownNow();
     }
 }
