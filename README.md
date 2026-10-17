@@ -13,7 +13,7 @@
 [![Android](https://img.shields.io/badge/Android-8.0%2B%20arm64-3fa34a?style=for-the-badge&logo=android&logoColor=white&labelColor=0d1117)](#download)
 [![Minecraft](https://img.shields.io/badge/Fabric-1.20.1-5fd068?style=for-the-badge&labelColor=0d1117)](#fitur)
 [![Java](https://img.shields.io/badge/Java-17%20bundled-e8efe9?style=for-the-badge&logo=openjdk&logoColor=white&labelColor=0d1117)](#cara-kerja)
-[![License](https://img.shields.io/badge/License-MIT-93a597?style=for-the-badge&labelColor=0d1117)](LICENSE)
+[![License](https://img.shields.io/badge/License-GPLv3-93a597?style=for-the-badge&labelColor=0d1117)](LICENSE)
 
 <br/>
 
@@ -214,7 +214,7 @@ Pasang Paket optimasi HP, turunkan *view distance* ke 5 sampai 6, pre-generate w
 
 </div>
 
-Kode MC Host berlisensi [MIT](LICENSE). APK hasil build ikut membawa OpenJDK (GPLv2 dengan Classpath Exception) dan playitd (BSD 2-Clause), rinciannya di [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
+Kode MC Host berlisensi [GNU GPL v3](LICENSE) atau versi yang lebih baru (GPL-3.0-or-later). Kamu bebas memakai, mengubah, dan membagikan ulang, termasuk menjual, asalkan versi yang kamu sebarkan juga open source dengan lisensi yang sama dan menyertakan kode sumbernya. APK hasil build ikut membawa OpenJDK (GPLv2 dengan Classpath Exception) dan playitd (BSD 2-Clause), rinciannya di [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
 
 * **Tidak membundel Minecraft.** Server vanilla dan Fabric diunduh di HP dari sumber resmi saat install.
 * **Mod tetap milik pembuatnya.** Mod dari Modrinth mengikuti lisensi masing-masing.

@@ -1,7 +1,20 @@
 THIRD PARTY NOTICES
 ===================
 
-MC Host source code is licensed under the MIT License (see LICENSE).
+MC Host source code is licensed under the GNU General Public License v3.0
+or later (GPL-3.0-or-later), see LICENSE.
+
+  MC Host, Minecraft Fabric server host for Android
+  Copyright (C) 2026 Akhda
+
+  This program is free software: you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the Free
+  Software Foundation, either version 3 of the License, or (at your option)
+  any later version. This program is distributed WITHOUT ANY WARRANTY; see
+  the GNU General Public License for more details:
+  https://www.gnu.org/licenses/gpl-3.0.html
+  Source code: https://github.com/Akhdaa/Minecraft-Host-Android
+
 The APK built by CI also bundles the following third party software.
 None of it is modified by this project.
 
