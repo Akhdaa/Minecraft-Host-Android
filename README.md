@@ -146,20 +146,6 @@ Setelah itu teman cukup join ke `xxx.joinmc.link` atau `mc.domainkamu.com`. Nyal
 
 ---
 
-<div align="center">
-
-<h1><a id="build"></a>Build sendiri</h1>
-
-</div>
-
-Fork repo ini, lalu push ke `main`. Workflow [`build.yml`](.github/workflows/build.yml) akan:
-
-1. Mengambil paket `openjdk-17` Termux (aarch64, bionic) beserta dependency, merapikan symlink, mengganti `cacerts`, dan mengemasnya jadi `assets/runtime/jre.bin`.
-2. Cross compile `playitd` untuk Android dengan NDK (opsional, kalau gagal APK tetap jadi tanpa tunnel).
-3. Build APK release lalu menerbitkannya di Releases.
-
-Jalankan manual dari **Actions > Build APK > Run workflow** untuk memilih `openjdk-21` (Minecraft 1.20.5 ke atas). Kunci signing bawaan ada di `keystore/`; ganti dengan milikmu lewat secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
-
 <details>
 <summary><b>Struktur project</b></summary>
 
@@ -214,7 +200,7 @@ Pasang Paket optimasi HP, turunkan *view distance* ke 5 sampai 6, pre-generate w
 
 </div>
 
-Kode MC Host berlisensi [GNU GPL v3](LICENSE) atau versi yang lebih baru (GPL-3.0-or-later). Kamu bebas memakai, mengubah, dan membagikan ulang, termasuk menjual, asalkan versi yang kamu sebarkan juga open source dengan lisensi yang sama dan menyertakan kode sumbernya. APK hasil build ikut membawa OpenJDK (GPLv2 dengan Classpath Exception) dan playitd (BSD 2-Clause), rinciannya di [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
+Kode MC Host berlisensi [GNU GPL v3](LICENSE) atau versi yang lebih baru (GPL-3.0-or-later) lisensi yang sama dan menyertakan kode sumbernya. APK hasil build ikut membawa OpenJDK (GPLv2 dengan Classpath Exception) dan playitd (BSD 2-Clause), rinciannya di [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
 
 * **Tidak membundel Minecraft.** Server vanilla dan Fabric diunduh di HP dari sumber resmi saat install.
 * **Mod tetap milik pembuatnya.** Mod dari Modrinth mengikuti lisensi masing-masing.
