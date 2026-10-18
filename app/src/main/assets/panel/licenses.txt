@@ -50,3 +50,6 @@ None of it is modified by this project.
    maven.neoforged.net). Running
    the server requires accepting the Minecraft EULA: https://aka.ms/MinecraftEULA
    Mods and plugins installed from Modrinth keep their own licenses.
+
+5. Software logos (panel/img/: Paper, Purpur, Fabric, Forge, NeoForge, Vanilla) are taken from
+   the Anvil-MC app; the marks belong to their respective projects.

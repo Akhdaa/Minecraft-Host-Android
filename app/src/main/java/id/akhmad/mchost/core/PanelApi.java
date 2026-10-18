@@ -726,6 +726,7 @@ public class PanelApi implements MiniHttp.Handler {
         if (n.endsWith(".svg")) return "image/svg+xml";
         if (n.endsWith(".png")) return "image/png";
         if (n.endsWith(".woff2")) return "font/woff2";
+        if (n.endsWith(".webp")) return "image/webp";
         if (n.endsWith(".json")) return "application/json";
         if (n.endsWith(".txt")) return "text/plain; charset=utf-8";
         return "application/octet-stream";

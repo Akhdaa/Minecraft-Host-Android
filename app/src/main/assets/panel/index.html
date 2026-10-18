@@ -298,6 +298,33 @@ nav .fab svg{width:26px;height:26px}
 .wfoot{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom));background:var(--card);padding:12px 0 4px;margin-top:14px}.wfoot .btn{width:100%;justify-content:center;padding:13px}
 .eula{display:flex;gap:10px;align-items:flex-start;margin:16px 0 0;font-size:14px}.eula input{margin-top:3px}
 .cnt:empty{display:none}
+.sgear{width:34px;height:34px;margin-left:4px}.sgear svg{width:18px;height:18px}
+.sico:has(img){background:var(--card2);overflow:hidden}.sico img{width:100%;height:100%;object-fit:contain;display:block}
+/* ---------- Anvil-style console */
+.chead{display:flex;align-items:center;gap:8px;margin:-4px 0 10px}.chead .ibtn{width:34px;height:34px}
+.live{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.live i{width:8px;height:8px;border-radius:50%;background:#94a3b8}.live i.on{background:var(--online);box-shadow:0 0 8px var(--online)}
+.findbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.lvls{margin:0 -16px 8px}.lvls .chip b{font-weight:700;opacity:.75;margin-left:2px}
+.logwrap{position:relative}
+.console>div{display:flex;gap:8px;align-items:baseline;padding:1px 0}
+.console .lt{flex:none;color:var(--muted);font-size:11.5px}
+.console .lb{flex:none;font-size:10px;font-weight:700;letter-spacing:.03em;padding:0 5px;border-radius:4px;background:var(--card2);color:var(--muted)}
+.console .lm{flex:1;min-width:0;word-break:break-word}
+.console [data-lv=warn]{color:#ffbd2e}.console [data-lv=warn] .lb{background:rgba(255,189,46,.15);color:#ffbd2e}
+.console [data-lv=error]{color:var(--bad)}.console [data-lv=error] .lb{background:rgba(255,95,86,.15);color:var(--bad)}
+.console [data-lv=panel]{color:var(--info)}.console [data-lv=panel] .lb{background:rgba(96,165,250,.15);color:var(--info)}
+.console [data-lv=cmd]{color:var(--accent)}
+#log[data-f=info]>div:not([data-lv=info]),#log[data-f=warn]>div:not([data-lv=warn]),#log[data-f=error]>div:not([data-lv=error]),
+#log[data-f=panel]>div:not([data-lv=panel]),#log[data-f=cmd]>div:not([data-lv=cmd]),#log.q>div:not(.hit){display:none}
+#log.q>.hit .lm,#log.q>.hit:not(:has(.lm)){background:rgba(107,229,144,.12)}
+.lempty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}.lempty a{pointer-events:auto;color:var(--accent)}
+.jump{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:6px;background:var(--accent2);color:#08140c;border:0;border-radius:99px;padding:7px 12px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.jump svg{width:15px;height:15px}
+.cchips{margin:10px -16px 0}.cchips .chip{font-family:var(--mono);font-size:12px}
+.cmd{position:relative}.cmd .ibtn{flex:none;width:40px;height:auto}
+.menu.hist{top:auto;bottom:calc(100% + 6px);left:0;right:auto;max-height:260px;overflow:auto;min-width:240px}
+.menu.hist button{font-family:var(--mono);font-size:13px}
 </style>
 </head>
 <body>
@@ -347,7 +374,7 @@ nav .fab svg{width:26px;height:26px}
   </div>
 
   <div class="card scard" id="activeCard">
-    <div class="srow"><span class="sdot" id="sDot"></span><b class="sstate" id="statePill">-</b><span class="small muted" id="sUp"></span><span class="grow"></span><span class="tag" id="sJava"></span></div>
+    <div class="srow"><span class="sdot" id="sDot"></span><b class="sstate" id="statePill">-</b><span class="small muted" id="sUp"></span><span class="grow"></span><span class="tag" id="sJava"></span><button class="ibtn sgear" id="bSrvSettings" title="Pengaturan server" aria-label="Pengaturan server"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
     <div class="sid"><div class="sico" id="sIco">?</div><div class="n"><b id="sName">-</b><span id="sInfo">-</span></div></div>
     <div class="ipbox" id="addrList"></div>
     <div class="pbar">
@@ -363,12 +390,6 @@ nav .fab svg{width:26px;height:26px}
       <button class="btn primary" id="bStart"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg> Start</button>
       <button class="btn" id="bStop">Stop</button>
       <button class="btn" id="bRestart">Restart</button>
-    </div>
-    <div class="sicons">
-      <button class="ibtn" data-go="mods" title="Mod &amp; plugin" aria-label="Mod dan plugin"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg></button>
-      <button class="ibtn" data-go="world" title="Dunia &amp; file" aria-label="Dunia dan file"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></button>
-      <button class="ibtn" data-go="console" title="Konsol" aria-label="Konsol"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></button>
-      <button class="ibtn" id="bSrvSettings" title="Pengaturan server" aria-label="Pengaturan server"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     </div>
   </div>
 
@@ -402,17 +423,15 @@ nav .fab svg{width:26px;height:26px}
     </form>
     <div class="plist" id="plList"><div class="empty">Memuat…</div></div>
   </div>
-  <div class="card">
-    <h2><span class="grow">Konsol</span>
-      <label class="small muted row" style="gap:6px"><input type="checkbox" id="autoScroll" checked> auto scroll</label>
-      <button class="btn small danger" id="bKill" title="Matikan paksa">Kill</button>
-    </h2>
-    <div class="console" id="log"></div>
-    <form class="cmd" id="cmdForm">
-      <input type="text" id="cmdInput" placeholder="ketik command, contoh: op NamaKamu" autocomplete="off" autocapitalize="off" spellcheck="false">
-      <button class="btn primary">Kirim</button>
-    </form>
-    <div class="chips" id="chips">
+  <div class="card ccard">
+    <div class="chead"><span class="live"><i id="liveDot"></i>LIVE OUTPUT</span><span class="grow"></span>
+      <button class="ibtn" id="bLogFind" title="Cari di log" aria-label="Cari di log"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <button class="ibtn" id="bLogCopy" title="Salin semua log" aria-label="Salin semua log"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
+      <button class="btn small danger" id="bKill" title="Matikan paksa">Kill</button></div>
+    <div class="findbar hide" id="findBar"><div class="searchbox"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="logQ" placeholder="Cari di log" autocomplete="off" spellcheck="false"></div><span class="small muted" id="logQn"></span></div>
+    <div class="chips scroll lvls" id="lvlPills"><span class="chip on" data-lvl="">Semua <b class="cnt"></b></span><span class="chip" data-lvl="info">INFO <b class="cnt"></b></span><span class="chip" data-lvl="warn">WARN <b class="cnt"></b></span><span class="chip" data-lvl="error">ERROR <b class="cnt"></b></span><span class="chip" data-lvl="panel">Panel <b class="cnt"></b></span><span class="chip" data-lvl="cmd">Perintah <b class="cnt"></b></span></div>
+    <div class="logwrap"><div class="console" id="log"></div><div class="empty lempty hide" id="logEmpty"></div><button class="jump hide" id="bJump" type="button"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Ke terbaru</button></div>
+    <div class="chips scroll cchips" id="chips">
       <span class="chip" data-cmd="list">list</span>
       <span class="chip" data-cmd="save-all">save-all</span>
       <span class="chip" data-cmd="whitelist on">whitelist on</span>
@@ -426,6 +445,12 @@ nav .fab svg{width:26px;height:26px}
       <span class="chip" data-fill="chunky radius 1000">chunky radius</span>
       <span class="chip" data-cmd="chunky start">chunky start</span>
     </div>
+    <form class="cmd" id="cmdForm">
+      <button type="button" class="ibtn" id="bHist" title="Riwayat perintah" aria-label="Riwayat perintah"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
+      <input type="text" id="cmdInput" placeholder="ketik command, contoh: op NamaKamu" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="btn primary">Kirim</button>
+      <div class="menu hist hide" id="histMenu"></div>
+    </form>
   </div>
 </section>
 
@@ -1026,7 +1051,9 @@ const TYPE={paper:{n:"Paper",c:"#60a5fa",tag:"Plugin",d:"Performa tinggi, paling
   forge:{n:"Forge",c:"#fb923c",tag:"Mod",d:"Mod loader klasik, untuk mod Forge dan kebanyakan modpack 1.20.1"},
   neoforge:{n:"NeoForge",c:"#f87171",tag:"Mod",d:"Penerus Forge, untuk mod NeoForge dan modpack baru"},
   vanilla:{n:"Vanilla",c:"#4ade80",tag:"Tanpa mod",d:"Minecraft murni dari Mojang, tanpa mod atau plugin"}};
+for(const k in TYPE)TYPE[k].logo="img/"+k+(k==="forge"||k==="purpur"?".svg":".webp");
 const tinfo=t=>TYPE[t]||TYPE.vanilla;
+const logo=t=>'<img src="'+tinfo(t).logo+'" alt="'+tinfo(t).n+'" onerror="this.parentNode.textContent=this.alt.charAt(0)">';
 const ADDON={paper:"plugin",purpur:"plugin",fabric:"mod",forge:"mod",neoforge:"mod",vanilla:""};
 const initial=n=>esc((n||"?").trim().charAt(0).toUpperCase()||"?");
 let lastServer=null;
@@ -1039,7 +1066,7 @@ async function refresh(){
   $("#sUp").textContent=st==="running"&&S.uptime?"· "+fmtDur(S.uptime):"";
   $("#hdrSub").textContent=has?S.serverName+" · "+ti.n+" "+S.mcVersion:"Belum ada server";
   $("#welcomeCard").classList.toggle("hide",has);$("#activeCard").classList.toggle("hide",!has);$("#logCard").classList.toggle("hide",!has);
-  if(has){const ic=$("#sIco");ic.innerHTML=initial(S.serverName);ic.style.setProperty("--c",ti.c);$("#sName").textContent=S.serverName;
+  if(has){const ic=$("#sIco");ic.innerHTML=logo(S.type);ic.style.setProperty("--c",ti.c);$("#sName").textContent=S.serverName;
     const me=SV&&SV.servers.find(x=>x.active),addon=ADDON[S.type];
     $("#sInfo").textContent=ti.n+" "+S.mcVersion+(S.installed?"":" · belum terpasang")+(addon&&me?" · "+me.addons+" "+addon:"");
     $("#sJava").textContent=S.java?"Java "+S.java:"";$("#sJava").classList.toggle("hide",!S.java);
@@ -1061,6 +1088,7 @@ async function refresh(){
   steps.forEach(([id,ok])=>$(id).classList.toggle("done",ok));
   $("#setupCard").classList.toggle("hide",!has||(S.runtimeReady&&S.installed&&S.eula&&(st==="running"||S.uptime>0||localStorage.getItem("setupDone")==="1")));
   if(st==="running")try{localStorage.setItem("setupDone","1")}catch(e){}
+  $("#liveDot").className=st==="running"?"on":"";
   renderAddresses();
   $("#pinBox").classList.toggle("hide",!S.local);$("#remoteBox").classList.toggle("hide",S.local);
   if(S.local)$("#pinShow").textContent=S.pin;
@@ -1090,7 +1118,7 @@ function renderServers(){if(!SV)return;
   const others=SV.servers.filter(x=>!x.active),busy=["running","starting","stopping"].includes(S.state)||!!S.task;
   $("#otherBox").classList.toggle("hide",!others.length);$("#otherCount").textContent=others.length||"";
   const html=others.map(x=>{const ti=tinfo(x.type);
-    return '<button class="ocard" data-sel="'+esc(x.id)+'"'+(busy?' aria-disabled="true"':'')+'><div class="sico" style="--c:'+ti.c+'">'+initial(x.name)+'</div>'+
+    return '<button class="ocard" data-sel="'+esc(x.id)+'"'+(busy?' aria-disabled="true"':'')+'><div class="sico" style="--c:'+ti.c+'">'+logo(x.type)+'</div>'+
       '<div class="n"><b>'+esc(x.name)+'</b><span>'+ti.n+' '+esc(x.mcVersion)+(x.addons&&ADDON[x.type]?' · '+x.addons+' '+ADDON[x.type]:'')+(x.installed?'':' · belum terpasang')+'</span></div>'+
       '<span class="go">'+(busy?'Matikan dulu':'Pakai')+'</span></button>'}).join("");
   const box=$("#otherList");if(box.dataset.h!==html){box.innerHTML=html;box.dataset.h=html}}
@@ -1128,7 +1156,7 @@ function renderWiz(){const [t,sub]=WSTEPS[W.step],b=$("#wizBody"),next=$("#wizNe
   $("#wizStep").textContent="LANGKAH "+(W.step+1)+" DARI 4";$("#wizTitle").textContent=t;$("#wizSub").textContent=sub;$("#wizBar").style.width=((W.step+1)*25)+"%";
   $("#wizBack").style.visibility=W.step?"visible":"hidden";next.textContent=W.step<3?"Lanjut":"Buat server";
   if(W.step===0){b.innerHTML=Object.keys(TYPE).map(k=>{const ti=TYPE[k];
-      return '<button class="choice'+(W.type===k?' on':'')+'" data-wt="'+k+'"><span class="radio"></span><div class="sico" style="--c:'+ti.c+'">'+ti.n.charAt(0)+'</div><div class="n"><b>'+ti.n+'</b> <span class="tag '+(ti.tag==="Plugin"?"info":ti.tag==="Mod"?"warn":"ok")+'">'+ti.tag+'</span><div class="d">'+ti.d+'</div></div></button>'}).join("");
+      return '<button class="choice'+(W.type===k?' on':'')+'" data-wt="'+k+'"><span class="radio"></span><div class="sico" style="--c:'+ti.c+'">'+logo(k)+'</div><div class="n"><b>'+ti.n+'</b> <span class="tag '+(ti.tag==="Plugin"?"info":ti.tag==="Mod"?"warn":"ok")+'">'+ti.tag+'</span><div class="d">'+ti.d+'</div></div></button>'}).join("");
     next.disabled=!W.type}
   if(W.step===1){b.innerHTML='<div class="searchbox" style="margin-bottom:10px">'+SEARCH_SVG+'<input type="search" id="wVerQ" placeholder="Cari versi, misal 1.21" autocomplete="off" inputmode="decimal"></div><div class="vlist" id="wVers"><div class="empty">Memuat versi '+tinfo(W.type).n+'…</div></div>';
     $("#wVerQ").oninput=renderVers;next.disabled=!W.ver;
@@ -1205,17 +1233,55 @@ $("#bKill").onclick=()=>{if(confirm("Matikan paksa? World yang belum tersimpan b
 
 // ---------------------------------------------------------- log
 function cls(l){if(l.includes("[Panel]"))return"p";if(l.startsWith("> "))return"c";if(/\/(ERROR|FATAL)\]|Exception|Error:/.test(l))return"e";if(/\/WARN\]/.test(l))return"w";return""}
+// Anvil-style rows: [time] [thread/LEVEL]: message -> time, level badge, message; others stay plain
+const LOGRX=/^\[(\d\d:\d\d:\d\d)\] \[([^\]]+)\]:? ?(.*)$/;
+let LV={},lvF="",logQ="";
+function lvOf(l,tag){if(l.startsWith("> "))return"cmd";if(tag==="Panel")return"panel";
+  const m=/\/(INFO|WARN|ERROR|FATAL|DEBUG)$/.exec(tag||"");if(m)return m[1]==="FATAL"?"error":m[1]==="DEBUG"?"info":m[1].toLowerCase();
+  const c=cls(l);return c==="e"?"error":c==="w"?"warn":c==="p"?"panel":"info"}
+function logRow(l){const d=document.createElement("div"),m=LOGRX.exec(l),lv=lvOf(l,m&&m[2]);d.dataset.lv=lv;d._raw=l;
+  if(m){const t=document.createElement("span"),b=document.createElement("span"),x=document.createElement("span");
+    t.className="lt";t.textContent=m[1];b.className="lb";b.textContent=lv==="panel"?"PANEL":lv.toUpperCase();x.className="lm";x.textContent=m[3];d.append(t,b,x)}
+  else d.textContent=l;
+  return d}
 function renderLines(el,lines,keepScroll){
-  const atBottom=el.scrollTop+el.clientHeight>=el.scrollHeight-30;
+  const atBottom=el.scrollTop+el.clientHeight>=el.scrollHeight-30,isLog=el.id==="log";
   const frag=document.createDocumentFragment();
-  for(const l of lines){const d=document.createElement("div");const c=cls(l);if(c)d.className=c;d.textContent=l;frag.appendChild(d)}
-  el.appendChild(frag);while(el.childElementCount>1500)el.firstChild.remove();
+  for(const l of lines){const d=logRow(l);if(isLog){LV[d.dataset.lv]=(LV[d.dataset.lv]||0)+1;if(logQ&&l.toLowerCase().includes(logQ))d.classList.add("hit")}frag.appendChild(d)}
+  el.appendChild(frag);while(el.childElementCount>1500){const f=el.firstChild;if(isLog)LV[f.dataset.lv]--;f.remove()}
   if(!keepScroll||atBottom)el.scrollTop=el.scrollHeight;
+  if(isLog)renderLogMeta();
 }
+function renderLogMeta(){const el=$("#log");let all=0;for(const k in LV)all+=LV[k]||0;
+  $$("#lvlPills [data-lvl]").forEach(p=>{const k=p.dataset.lvl,n=k?(LV[k]||0):all;p.querySelector("b").textContent=n||""});
+  const vis=logQ?el.querySelectorAll(lvF?'.hit[data-lv="'+lvF+'"]':".hit").length:lvF?(LV[lvF]||0):all;
+  $("#logQn").textContent=logQ?vis+" cocok":"";
+  const e=$("#logEmpty");e.classList.toggle("hide",vis>0);
+  e.innerHTML=all?'Tidak ada yang cocok. <a href="#" data-clrf>Hapus filter</a>':"Belum ada log. Start server untuk melihat output.";
+  jumpVis()}
+function applyLogFilter(){const el=$("#log");el.dataset.f=lvF;el.classList.toggle("q",!!logQ);
+  for(const d of el.children)d.classList.toggle("hit",!!logQ&&d._raw.toLowerCase().includes(logQ));
+  renderLogMeta();el.scrollTop=el.scrollHeight}
+function jumpVis(){const el=$("#log");$("#bJump").classList.toggle("hide",el.scrollTop+el.clientHeight>=el.scrollHeight-30)}
+$("#log").addEventListener("scroll",jumpVis,{passive:true});
+$("#bJump").onclick=()=>{const el=$("#log");el.scrollTop=el.scrollHeight};
+$("#lvlPills").onclick=e=>{const c=e.target.closest("[data-lvl]");if(!c)return;lvF=c.dataset.lvl;$$("#lvlPills .chip").forEach(x=>x.classList.toggle("on",x===c));applyLogFilter()};
+$("#bLogFind").onclick=()=>{const f=$("#findBar"),open=f.classList.toggle("hide");if(!open)$("#logQ").focus();else if(logQ){logQ="";$("#logQ").value="";applyLogFilter()}};
+let logQT;$("#logQ").oninput=e=>{clearTimeout(logQT);logQT=setTimeout(()=>{logQ=e.target.value.trim().toLowerCase();applyLogFilter()},200)};
+$("#logEmpty").onclick=e=>{if(!e.target.closest("[data-clrf]"))return;e.preventDefault();lvF="";logQ="";$("#logQ").value="";
+  $$("#lvlPills .chip").forEach(x=>x.classList.toggle("on",x.dataset.lvl===""));applyLogFilter()};
+$("#bLogCopy").onclick=()=>{const t=[...$("#log").children].map(d=>d._raw).join("\n");if(!t)return toast("Log masih kosong",true);
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Log disalin ("+$("#log").childElementCount+" baris)"))
+  .catch(()=>{const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove();toast("Log disalin")})};
+$("#bHist").onclick=e=>{e.stopPropagation();const m=$("#histMenu");if(!m.classList.contains("hide")){m.classList.add("hide");return}
+  m.innerHTML='<div class="lbl">Riwayat perintah</div>'+(hist.length?hist.slice(0,20).map(h=>'<button type="button" data-hist="'+esc(h)+'">'+esc(h)+'</button>').join(""):'<div class="small muted" style="padding:6px 10px">Belum ada perintah</div>');
+  m.classList.remove("hide")};
+$("#histMenu").onclick=e=>{const b=e.target.closest("[data-hist]");if(!b)return;$("#cmdInput").value=b.dataset.hist;$("#histMenu").classList.add("hide");$("#cmdInput").focus()};
+document.addEventListener("click",e=>{if(!e.target.closest("#histMenu,#bHist"))$("#histMenu").classList.add("hide")});
 async function pollLog(){
   try{const r=await api("/api/log?since="+logSince);
-    if(r.next<logSince){$("#log").innerHTML="";$("#miniLog").innerHTML=""}
-    if(r.lines.length){renderLines($("#log"),r.lines,!$("#autoScroll").checked);
+    if(r.next<logSince){$("#log").innerHTML="";$("#miniLog").innerHTML="";LV={}}
+    if(r.lines.length){renderLines($("#log"),r.lines,true);
       const mini=$("#miniLog");renderLines(mini,r.lines,false);while(mini.childElementCount>60)mini.firstChild.remove()}
     logSince=r.next}catch(e){}
 }
@@ -1244,10 +1310,10 @@ const prettyMod=n=>n.replace(/\.disabled$/,"").replace(/\.jar$/,"");
 function renderMods(){
   const q=norm($("#modFilter").value||""),all=installedMods;
   const list=all.filter(m=>(!q||norm(m.name).includes(q))&&(modShow==="all"||(modShow==="on")===m.enabled));
-  const on=all.filter(m=>m.enabled).length;
+  const on=all.filter(m=>m.enabled).length,kind=addonKind();
   $("#modBadge").textContent=all.length||"";
   $("#modCount").textContent=all.length?(list.length===all.length?all.length+" "+kind+" · "+on+" aktif":list.length+" dari "+all.length+" "+kind):"";
-  const kind=addonKind();$("#modUpload").closest("label").classList.toggle("hide",!kind);
+  $("#modUpload").closest("label").classList.toggle("hide",!kind);
   if(!kind){$("#modCount").textContent="";$("#modList").innerHTML='<div class="empty">Server Vanilla tidak memakai mod atau plugin. Datapack bisa dipasang dari Store.</div>';return}
   $("#modList").innerHTML=list.length?list.map(m=>'<div class="mrow'+(m.enabled?"":" off")+'"><div class="n"><b title="'+esc(m.name)+'">'+esc(prettyMod(m.name))+'</b><span>'+fmtSize(m.size||0)+(m.enabled?"":" · nonaktif")+'</span></div>'+
     '<input type="checkbox" class="toggle" aria-label="Aktifkan '+esc(prettyMod(m.name))+'" data-toggle="'+esc(m.name)+'"'+(m.enabled?" checked":"")+'>'+
