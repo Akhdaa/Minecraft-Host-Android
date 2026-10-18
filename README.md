@@ -63,7 +63,7 @@ Bikin server Minecraft di Android biasanya ribet—harus install Termux, setup P
 - **Player Management:** Atur OP, Whitelist, Gamemode, Kick, Ban, dll.
 - **Monitoring HP:** Cek RAM server, baterai, suhu HP, & uptime real-time.
 
-#### 🌐 Mabar Online (Public Access)
+#### 🌐 Multiplayer (Public Access)
 - **Playit.gg Integration:** Tunneling gratis bawaan app tanpa perlu ubah router/IP publik.
 - **Custom Domain Cloudflare:** Auto-setup record SRV via API token Cloudflare.
 - **Share Alamat Langsung:** Tinggal salin IP/domain di beranda dan kirim ke temen.
