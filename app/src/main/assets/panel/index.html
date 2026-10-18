@@ -58,7 +58,7 @@ nav button.on{color:var(--accent)}
 section{display:none}section.on{display:block}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
 .card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
-.card h2 .grow{flex:1}
+.grow{flex:1}
 .muted{color:var(--muted)}.small{font-size:12.5px}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -442,6 +442,10 @@ nav .fab svg{width:26px;height:26px}
       <span class="chip" data-cmd="time set day">siang</span>
       <span class="chip" data-cmd="weather clear">cerah</span>
       <span class="chip" data-fill="say ">say …</span>
+      <span class="chip" data-diff="peaceful">damai</span>
+      <span class="chip" data-diff="easy">mudah</span>
+      <span class="chip" data-diff="normal">normal</span>
+      <span class="chip" data-diff="hard">sulit</span>
       <span class="chip" data-fill="chunky radius 1000">chunky radius</span>
       <span class="chip" data-cmd="chunky start">chunky start</span>
     </div>
@@ -1064,7 +1068,7 @@ async function refresh(){
   const hp=$("#hdrPill");hp.className="pill "+(S.task?"starting":st);hp.textContent=label;
   $("#statePill").textContent=label;$("#sDot").className="sdot "+(S.task?"starting":st);
   $("#sUp").textContent=st==="running"&&S.uptime?"· "+fmtDur(S.uptime):"";
-  $("#hdrSub").textContent=has?S.serverName+" · "+ti.n+" "+S.mcVersion:"Belum ada server";
+  const sw=ti.n+" "+S.mcVersion;$("#hdrSub").textContent=has?(S.serverName===sw?sw:S.serverName+" · "+sw):"Belum ada server";
   $("#welcomeCard").classList.toggle("hide",has);$("#activeCard").classList.toggle("hide",!has);$("#logCard").classList.toggle("hide",!has);
   if(has){const ic=$("#sIco");ic.innerHTML=logo(S.type);ic.style.setProperty("--c",ti.c);$("#sName").textContent=S.serverName;
     const me=SV&&SV.servers.find(x=>x.active),addon=ADDON[S.type];
@@ -1292,6 +1296,7 @@ let hist=[],hi=-1;
 $("#cmdInput").addEventListener("keydown",e=>{if(e.key==="ArrowUp"&&hist.length){hi=Math.min(hi+1,hist.length-1);e.target.value=hist[hi];e.preventDefault()}
   if(e.key==="ArrowDown"){hi=Math.max(hi-1,-1);e.target.value=hi<0?"":hist[hi];e.preventDefault()}});
 $("#chips").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;
+  if(c.dataset.diff)return setDifficulty(c.dataset.diff,c.textContent);
   if(c.dataset.cmd){api("/api/command",{form:{cmd:c.dataset.cmd}}).then(pollLog).catch(err=>toast(err.message,true))}
   else{const i=$("#cmdInput");i.value=c.dataset.fill;i.focus()}};
 
@@ -1548,6 +1553,12 @@ const PROPS=[["motd","Nama server (MOTD)","text"],["max-players","Maks pemain","
   ["white-list","Whitelist","bool","Cuma pemain yang ditambahkan di Konsol &gt; Pemain yang bisa masuk."],["pvp","PvP","bool"],["allow-flight","Izinkan terbang (mod)","bool"],["spawn-protection","Spawn protection","number"],["level-seed","Seed world baru","text"],["server-port","Port","number"]];
 let propLines=[];
 const PROP_DEF={"online-mode":"true","pvp":"true","white-list":"false","allow-flight":"false","difficulty":"easy","gamemode":"survival","max-players":"20","view-distance":"10","simulation-distance":"10","spawn-protection":"16","server-port":"25565","motd":"A Minecraft Server"};
+// difficulty dari server.properties dipaksa ke world tiap start, jadi command saja hilang setelah restart
+async function setDifficulty(d,label){try{
+  const t=await api("/api/properties"),nt=/^difficulty=/m.test(t)?t.replace(/^difficulty=.*$/m,"difficulty="+d):t.replace(/\n?$/,"\ndifficulty="+d+"\n");
+  await api("/api/properties",{body:nt,type:"text/plain; charset=utf-8"});
+  if(S.state==="running"){await api("/api/command",{form:{cmd:"difficulty "+d}});pollLog()}
+  toast("Difficulty: "+label)}catch(e){toast(e.message,true)}}
 async function loadProps(){try{const t=await api("/api/properties");$("#propRaw").value=t;propLines=t.split("\n");renderPropForm()}catch(e){toast(e.message,true)}}
 function propGet(k){for(const l of propLines){if(l.startsWith(k+"="))return l.slice(k.length+1)}return""}
 function renderPropForm(){$("#propForm").innerHTML='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">'+PROPS.map(([k,l,t,d])=>{const raw=propGet(k),v=raw!==""?raw:(t==="text"||t==="number"?"":(PROP_DEF[k]||""));const dd=d?'<div class="d">'+d+'</div>':"";
