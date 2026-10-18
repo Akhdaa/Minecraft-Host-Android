@@ -1,4 +1,4 @@
-package id.akhmad.mchost;
+package id.mchost;
 
 import android.Manifest;
 import android.annotation.SuppressLint;

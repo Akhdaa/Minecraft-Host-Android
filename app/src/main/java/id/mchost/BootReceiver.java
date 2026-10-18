@@ -1,4 +1,4 @@
-package id.akhmad.mchost;
+package id.mchost;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,7 +6,7 @@ import android.content.Intent;
 
 import java.io.File;
 
-import id.akhmad.mchost.core.Config;
+import id.mchost.core.Config;
 
 /** Starts the panel after reboot when "Jalan saat HP dinyalakan" is on. */
 public class BootReceiver extends BroadcastReceiver {

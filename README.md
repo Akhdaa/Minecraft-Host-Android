@@ -164,8 +164,8 @@ Jalankan manual dari **Actions > Build APK > Run workflow** untuk memilih `openj
 <summary><b>Struktur project</b></summary>
 
 ```
-app/src/main/java/id/akhmad/mchost/core/   logika panel: HTTP server, proses server, mod, backup, tunnel, Cloudflare (Java murni)
-app/src/main/java/id/akhmad/mchost/        Activity WebView, foreground service, boot receiver
+app/src/main/java/id/mchost/core/   logika panel: HTTP server, proses server, mod, backup, tunnel, Cloudflare (Java murni)
+app/src/main/java/id/mchost/        Activity WebView, foreground service, boot receiver
 app/src/main/assets/panel/index.html       UI panel web
 scripts/fetch_termux_runtime.py            ambil dan rapikan OpenJDK Termux
 scripts/build_playit.sh                    cross compile playitd pakai NDK

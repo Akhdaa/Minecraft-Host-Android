@@ -5,7 +5,7 @@ plugins {
 def env = System.getenv()
 
 android {
-    namespace 'id.akhmad.mchost'
+    namespace 'id.mchost'
     compileSdk 34
 
     defaultConfig {

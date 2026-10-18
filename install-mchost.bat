@@ -47,7 +47,7 @@ adb shell dumpsys deviceidle whitelist +id.akhmad.mchost >nul
 adb shell cmd appops set id.akhmad.mchost RUN_ANY_IN_BACKGROUND allow >nul 2>nul
 
 echo [5/5] Membuka MC Host...
-adb shell am start -n id.akhmad.mchost/.MainActivity >nul
+adb shell am start -n id.akhmad.mchost/id.mchost.MainActivity >nul
 
 echo.
 echo Selesai. Tunggu "Java runtime siap" di aplikasi, lalu buka tab Server untuk install Fabric.

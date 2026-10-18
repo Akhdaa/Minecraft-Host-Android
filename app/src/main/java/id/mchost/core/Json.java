@@ -1,4 +1,4 @@
-package id.akhmad.mchost.core;
+package id.mchost.core;
 
 import java.util.Collection;
 

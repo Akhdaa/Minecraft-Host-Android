@@ -1,4 +1,4 @@
-package id.akhmad.mchost;
+package id.mchost;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -13,14 +13,14 @@ import android.os.PowerManager;
 
 import java.io.IOException;
 
-import id.akhmad.mchost.core.Config;
-import id.akhmad.mchost.core.Host;
-import id.akhmad.mchost.core.MiniHttp;
-import id.akhmad.mchost.core.PanelApi;
+import id.mchost.core.Config;
+import id.mchost.core.Host;
+import id.mchost.core.MiniHttp;
+import id.mchost.core.PanelApi;
 
 /** Foreground service that keeps the panel, the Minecraft server and the tunnel alive. */
 public class ServerService extends Service {
-    public static final String ACTION_SHUTDOWN = "id.akhmad.mchost.SHUTDOWN";
+    public static final String ACTION_SHUTDOWN = "id.mchost.SHUTDOWN";
     private static final String CHANNEL = "server";
     private static final int NOTIF_ID = 25565;
 

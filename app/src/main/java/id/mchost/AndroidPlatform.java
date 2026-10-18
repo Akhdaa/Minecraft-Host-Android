@@ -1,4 +1,4 @@
-package id.akhmad.mchost;
+package id.mchost;
 
 import android.content.Context;
 import android.content.Intent;
@@ -20,10 +20,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import id.akhmad.mchost.core.IO;
-import id.akhmad.mchost.core.Json;
-import id.akhmad.mchost.core.LogBuffer;
-import id.akhmad.mchost.core.Platform;
+import id.mchost.core.IO;
+import id.mchost.core.Json;
+import id.mchost.core.LogBuffer;
+import id.mchost.core.Platform;
 
 /**
  * Android implementation: Termux-built OpenJDKs (assets/runtime/jreNN.bin, one per Java major) extracted on first
