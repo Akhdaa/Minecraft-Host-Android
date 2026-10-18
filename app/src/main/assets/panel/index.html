@@ -123,6 +123,24 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .shake{animation:shake .35s}@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 .pin{font-size:28px;letter-spacing:8px;text-align:center;font-family:var(--mono)}
 .bar{height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--accent2)}
+.intro{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;justify-content:center;overflow:auto;padding:28px 16px 20px}
+.iwrap{width:100%;max-width:440px;display:flex;flex-direction:column;gap:18px}
+.islide{flex:1}.islide .eye{color:var(--accent);font-size:12px;font-weight:700;letter-spacing:.08em}
+.islide h1{font-size:28px;line-height:1.15;margin:10px 0}.islide p{color:var(--muted);margin:0}
+.ipts{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:10px}
+.ipts li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.ipts li:before{content:"✓";color:var(--accent);font-weight:700}
+.ilogos{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}.ilogos img{width:44px;height:44px;border-radius:10px;background:var(--card2);object-fit:contain}
+.ilang{display:grid;gap:10px;margin-top:22px}.ilang .btn{justify-content:flex-start;height:56px;font-size:16px}
+.ilang .btn.on{border-color:var(--accent);color:var(--accent)}
+.inote{font-size:12px;color:var(--muted);margin-top:18px!important}
+.idots{display:flex;gap:6px;justify-content:center}.idots i{width:7px;height:7px;border-radius:9px;background:var(--line2);transition:width .2s}.idots i.on{background:var(--accent);width:20px}
+.ibtns{display:flex;gap:10px}.ibtns .btn{flex:1;height:48px;justify-content:center}
+#tour{position:fixed;inset:0;z-index:95}
+.tspot{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.7);outline:2px solid var(--accent);transition:all .25s;pointer-events:none}
+.tbub{position:fixed;left:16px;right:16px;max-width:380px;margin:0 auto;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:14px 16px;box-shadow:0 12px 32px rgba(0,0,0,.45);transition:top .25s}
+.tbub .tn{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.06em}.tbub b{display:block;font-size:17px;margin:4px 0 6px}
+.tbub p{margin:0 0 12px;color:var(--muted);font-size:14px;line-height:1.5}.tbub .row{display:flex;gap:8px;align-items:center}
 .hide{display:none!important}
 .players{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .players span{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px}
@@ -684,6 +702,7 @@ nav .fab svg{width:26px;height:26px}
     <h2>Pengaturan aplikasi</h2>
     <p class="small muted" style="margin:-6px 0 6px">Berlaku untuk semua server. Nama, versi, dan RAM diatur per server lewat ikon gerigi di kartu server.</p>
     <div class="sw"><div><div class="t">Bahasa</div></div><select id="langSel" aria-label="Bahasa" style="width:auto"><option value="en">English</option><option value="id">Indonesia</option></select></div>
+    <div class="sw"><div><div class="t">Tutorial</div><div class="d">Lihat lagi pengenalan dan tur fitur</div></div><button class="btn small" id="bReplay" type="button">Ulangi</button></div>
     <div class="sw"><div><div class="t">Setuju EULA Minecraft</div><div class="d">Wajib. Baca di <a href="https://aka.ms/MinecraftEULA" target="_blank" rel="noopener">aka.ms/MinecraftEULA</a></div></div><input type="checkbox" class="toggle" id="eula"></div>
     <div class="sw"><div><div class="t">Auto restart saat crash</div><div class="d">Berhenti jika crash 4x dalam 10 menit</div></div><input type="checkbox" class="toggle" id="autoRestart"></div>
     <div class="sw"><div><div class="t">Start server saat aplikasi dibuka</div><div class="d">Server yang sedang dipilih langsung menyala</div></div><input type="checkbox" class="toggle" id="autoStart"></div>
@@ -810,6 +829,14 @@ nav .fab svg{width:26px;height:26px}
 </div></div>
 <div id="toast"></div>
 
+<div id="intro" class="intro hide" role="dialog" aria-modal="true" aria-label="Tutorial">
+  <div class="iwrap"><div class="islide" id="iSlide"></div><div class="idots" id="iDots"></div>
+    <div class="ibtns"><button class="btn" id="iSkip" type="button">Lewati</button><button class="btn primary" id="iNext" type="button">Lanjut</button></div></div>
+</div>
+<div id="tour" class="hide" role="dialog" aria-modal="true" aria-label="Tutorial"><div class="tspot" id="tSpot"></div>
+  <div class="tbub" id="tBub"><div class="tn" id="tN"></div><b id="tT"></b><p id="tB"></p>
+    <div class="row"><button class="btn small" id="tSkip" type="button">Lewati tur</button><span class="grow"></span><button class="btn small primary" id="tNext" type="button">Lanjut</button></div></div>
+</div>
 <script src="lang-en.js"></script>
 <script>
 "use strict";
@@ -824,7 +851,7 @@ document.documentElement.lang=LANG;
 const EN=window.EN||{},ENP=[],ENS=Object.keys(EN).filter(k=>!k.includes("{0}")&&k.includes(" ")&&k.length>5).sort((a,b)=>b.length-a.length);
 for(const k of Object.keys(EN))if(k.includes("{0}")){const ids=[];
   const rx=k.replace(/[.*+?^$()|[\]\\]/g,"\\$&").replace(/\{(\d)\}/g,(_,d)=>{ids.push(+d);return"(.+?)"});ENP.push([new RegExp("^"+rx+"$"),ids,EN[k]])}
-function tr(s){if(LANG!=="en"||!s)return s;const k=String(s).trim();if(!k||!/[a-z]/i.test(k))return s;
+function tr(s){if(LANG!=="en"||!s)return s;const k=String(s).trim();if(!k||k.length>400||!/[a-z]/i.test(k))return s;
   let v=EN[k];
   if(v==null)for(const [rx,ids,val] of ENP){const m=rx.exec(k);if(m){v=val.replace(/\{(\d)\}/g,(_,d)=>tr(m[ids.indexOf(+d)+1]));break}}
   // ponytail: ganti potongan multi-kata (pesan gabungan dari JS/Java); kamus kalimat utuh kalau hasilnya janggal
@@ -1101,6 +1128,7 @@ let lastServer=null;
 async function refresh(){
   try{S=await api("/api/status")}catch(e){return}
   if(S.lang&&S.lang!==LANG)return setLang(S.lang);
+  tutorialCheck();
   const st=S.state, label=S.task?"Sibuk":STATE_ID[st]||st, has=!!S.serverId, ti=tinfo(S.type);
   if(S.deviceRamMb>0)deviceRam=S.deviceRamMb;
   const hp=$("#hdrPill");hp.className="pill "+(S.task?"starting":st);hp.textContent=label;
@@ -1617,6 +1645,67 @@ $("#bSaveProps").onclick=async()=>{try{await api("/api/properties",{body:$("#pro
 // ---------------------------------------------------------- settings
 $("#langSel").value=LANG;
 $("#langSel").onchange=async e=>{const l=e.target.value;try{await api("/api/settings",{form:{lang:l}});setLang(l)}catch(err){toast(err.message,true)}};
+
+// ---- tutorial: intro (bahasa + 3 slide) lalu tur sorot, gaya Anvil. Flag per browser di localStorage.
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+const INTRO=[
+  {lang:true,eye:"MC HOST",t:"Pilih bahasa",d:"Bisa diganti kapan saja di Pengaturan."},
+  {eye:"APA ITU MC HOST",t:"Server Minecraft, langsung dari HP",d:"Tanpa PC, tanpa VPS. HP di tanganmu yang jadi server.",
+   pts:["World tersimpan di HP kamu sendiri.","Teman join dari internet lewat playit.gg, gratis.","Main bareng dari HP, PC, atau laptop."]},
+  {eye:"SEPERTI DI PC",t:"Konsol langsung di saku",d:"Pantau server menyala dan kirim perintah persis seperti host di PC.",logos:true,
+   pts:["Pasang mod & plugin dari Modrinth tanpa keluar aplikasi.","Backup world otomatis, restore kapan saja.","Panel juga bisa dibuka dari laptop di WiFi yang sama."]},
+  {eye:"SIAP?",t:"Ayo mulai",d:"Kita buat server bareng, lalu keliling sebentar melihat fitur-fiturnya.",note:true}];
+let II=0;
+function introOpen(i){II=i||0;$("#intro").classList.remove("hide");introRender()}
+function introRender(){const sl=INTRO[II];
+  $("#iSlide").innerHTML='<div class="eye">'+esc(sl.eye)+'</div><h1>'+esc(sl.t)+'</h1><p>'+esc(sl.d)+'</p>'
+    +(sl.lang?'<div class="ilang"><button class="btn'+(LANG==="en"?" on":"")+'" data-lang="en" type="button">English</button><button class="btn'+(LANG==="id"?" on":"")+'" data-lang="id" type="button">Indonesia</button></div>':"")
+    +(sl.logos?'<div class="ilogos">'+["paper","purpur","fabric","forge","neoforge","vanilla"].map(k=>'<img alt="'+k+'" src="'+TYPE[k].logo+'">').join("")+'</div>':"")
+    +(sl.pts?'<ul class="ipts">'+sl.pts.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>':"")
+    +(sl.note?'<p class="inote">Bukan produk resmi Minecraft. Tidak terkait dengan Mojang atau Microsoft.</p>':"");
+  $("#iDots").innerHTML=INTRO.map((_,i)=>'<i class="'+(i===II?"on":"")+'"></i>').join("");
+  $("#iNext").textContent=II===INTRO.length-1?"Mulai":"Lanjut";$("#iSkip").classList.toggle("hide",II===INTRO.length-1)}
+$("#iSlide").onclick=async e=>{const b=e.target.closest("[data-lang]");if(!b)return;const l=b.dataset.lang;
+  if(l===LANG){II++;return introRender()}
+  try{await api("/api/settings",{form:{lang:l}})}catch(err){}
+  lsSet("introStep","1");setLang(l)};
+$("#iNext").onclick=()=>{if(II<INTRO.length-1){II++;return introRender()}introDone(true)};
+$("#iSkip").onclick=()=>introDone(false);
+function introDone(tour){$("#intro").classList.add("hide");lsSet("introDone","1");lsSet("introStep",null);
+  if(!tour){lsSet("tourDone","1");return}
+  if(S.serverId)tourStart();else{lsSet("tourPending","1");openWizard()}}
+const TOUR=[
+  {tab:"home",sel:"#activeCard .srow",t:"Kartu server",b:"Ini dashboard server kamu: status, versi Java, dan gerigi untuk pengaturan server seperti nama, RAM, dan versi."},
+  {tab:"home",sel:"#addrList",t:"Alamat untuk teman",b:"Teman join pakai alamat di sini. JAVA IP dan DOMAIN untuk dari internet, LAN untuk yang satu WiFi, PANEL untuk buka panel dari laptop. Tekan ikon salin lalu kirim ke teman."},
+  {tab:"home",sel:"#activeCard .pbar",t:"Siapa yang main",b:"Pemain online tampil di sini. Tekan Kelola pemain untuk whitelist, OP, kick, atau ban."},
+  {tab:"home",sel:"#activeCard .sbtns",t:"Nyalakan server",b:"Start menyalakan server. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world."},
+  {tab:"console",sel:"#tab-console .logwrap",t:"Membaca konsol",b:"Server melapor di sini: pemain masuk dan keluar, world tersimpan, dan alasannya kalau ada error. Pakai filter level dan tombol cari."},
+  {tab:"console",sel:"#cmdForm",t:"Mengirim perintah",b:"Perintah yang diketik di sini langsung dijalankan server dengan izin penuh. Chip di atasnya jalan pintas: siang, cerah, difficulty, whitelist."},
+  {tab:"mods",sel:"#modSeg",t:"Mod & plugin",b:"Kelola yang terpasang, atau cari dan pasang langsung dari Modrinth lewat Store. Versinya otomatis disesuaikan dengan server."},
+  {tab:"world",sel:"#tab-world .card",t:"Dunia & backup",b:"Backup world kapan saja atau otomatis, unduh ke HP, upload world dari PC, lalu restore."},
+  {tab:"tunnel",sel:"#tab-tunnel .card:not(.hide)",t:"Main dari internet",b:"Hubungkan playit.gg (gratis) supaya teman di luar WiFi bisa join. Domain Cloudflare opsional untuk alamat yang lebih rapi."},
+  {tab:"home",sel:"#bNew,#bNewSide",t:"Server lain",b:"Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus. Tutorial bisa diulang dari Pengaturan."}];
+let TI=-1;
+function tourStart(){lsSet("tourPending",null);TI=0;$("#tour").classList.remove("hide");tourShow()}
+function tourEnd(){TI=-1;$("#tour").classList.add("hide");lsSet("tourDone","1");go("home")}
+function tourEl(){return TI<0?null:$$(TOUR[TI].sel).find(e=>e.offsetParent)}
+function tourShow(){const st=TOUR[TI];if(tab!==st.tab)go(st.tab);
+  setTimeout(()=>{const el=tourEl();if(!el){if(++TI>=TOUR.length)return tourEnd();return tourShow()}
+    el.scrollIntoView({block:"center"});
+    $("#tN").textContent=(TI+1)+" / "+TOUR.length;$("#tT").textContent=st.t;$("#tB").textContent=st.b;
+    $("#tNext").textContent=TI===TOUR.length-1?"Selesai":"Lanjut";setTimeout(tourPlace,200)},150)}
+function tourPlace(){const el=tourEl();if(!el)return;const r=el.getBoundingClientRect(),p=6,b=$("#tBub");
+  Object.assign($("#tSpot").style,{left:r.left-p+"px",top:r.top-p+"px",width:r.width+2*p+"px",height:r.height+2*p+"px"});
+  const h=b.offsetHeight,below=r.bottom+p+12+h<=innerHeight-8;
+  b.style.top=(below?r.bottom+p+12:Math.max(8,r.top-p-12-h))+"px"}
+$("#tNext").onclick=()=>{if(++TI>=TOUR.length)return tourEnd();tourShow()};
+$("#tSkip").onclick=tourEnd;
+addEventListener("resize",()=>TI>=0&&tourPlace());addEventListener("scroll",()=>TI>=0&&tourPlace(),{passive:true});
+let introChecked=false;
+function tutorialCheck(){
+  if(!introChecked){introChecked=true;if(!lsGet("introDone"))return introOpen(+lsGet("introStep")||0)}
+  if(lsGet("tourPending")&&S.serverId&&TI<0&&$("#newModal").classList.contains("hide"))setTimeout(tourStart,600)}
+$("#bReplay").onclick=()=>{["introDone","tourDone","tourPending"].forEach(k=>lsSet(k,null));introChecked=false;introOpen(0)};
 async function loadSettings(){try{const s=await api("/api/settings");
   for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer"])$("#"+k).checked=s[k];
   if(s.deviceRamMb>0)deviceRam=s.deviceRamMb;$("#customDomain").value=s.customDomain||"";$("#cfAutosync").checked=!!s.cfAutosync}catch(e){toast(e.message,true)}}
