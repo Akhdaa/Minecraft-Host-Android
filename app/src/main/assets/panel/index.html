@@ -47,6 +47,7 @@ nav button.on{color:var(--accent)}
 }
 @media(min-width:1024px){
   #tab-home.on{display:grid;grid-template-columns:minmax(360px,1fr) minmax(0,1.25fr);grid-template-areas:"wel wel" "set set" "act log" "oth log";column-gap:14px;align-items:start}
+  #tab-home.on{grid-template-rows:auto auto auto 1fr}
   #welcomeCard{grid-area:wel}#setupCard{grid-area:set}#activeCard{grid-area:act}#otherBox{grid-area:oth}
   #logCard{grid-area:log;position:sticky;top:84px;height:calc(100vh - 108px);min-height:420px;display:flex;flex-direction:column}
   #logCard .console.mini{flex:1;height:auto;min-height:0}
@@ -141,6 +142,21 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .tbub{position:fixed;left:16px;right:16px;max-width:380px;margin:0 auto;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:14px 16px;box-shadow:0 12px 32px rgba(0,0,0,.45);transition:top .25s}
 .tbub .tn{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.06em}.tbub b{display:block;font-size:17px;margin:4px 0 6px}
 .tbub p{margin:0 0 12px;color:var(--muted);font-size:14px;line-height:1.5}.tbub .row{display:flex;gap:8px;align-items:center}
+#otherBox{margin-bottom:14px}
+.pnames{flex:1;min-width:0;color:var(--muted);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mbar{display:flex;gap:8px;align-items:stretch}.mbar .btn{flex:none;gap:6px}
+.modal.ask{align-items:center;z-index:110}
+.askbox{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:18px;width:min(380px,calc(100% - 32px));box-shadow:0 16px 40px rgba(0,0,0,.5)}
+#askMsg{white-space:pre-line;margin:0 0 16px;line-height:1.5;word-break:break-word}.askbox input{width:100%;margin:-4px 0 16px}
+.askbox .row{display:flex;gap:8px;justify-content:flex-end}.askbox .btn.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+.dd{position:relative;display:block}.storebar .dd{flex:none}
+.dd>button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:40px;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:8px 12px;color:var(--text);font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.dd>button:after{content:"";width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);opacity:.6;transition:transform .15s}
+.dd.open>button:after{transform:translateY(2px) rotate(-135deg)}.dd>button:disabled{opacity:.5}
+.dd-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:100%;z-index:40;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:5px;box-shadow:0 12px 28px rgba(0,0,0,.45);max-height:290px;overflow:auto}
+.dd-menu button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);padding:9px 12px;border-radius:8px;font:inherit;font-size:14px;white-space:nowrap;cursor:pointer}
+.dd-menu button:hover{background:var(--bg2)}.dd-menu button.on{background:var(--accent2);color:#08140c;font-weight:600}
+@media(max-width:759px){.modal>.sheet:before{content:"";display:block;width:40px;height:4px;border-radius:4px;background:var(--line2);margin:-6px auto 10px}}
 .hide{display:none!important}
 .players{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .players span{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px}
@@ -162,7 +178,7 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .kv{display:flex;justify-content:space-between;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;margin:5px 0;font-size:13px}.kv span{color:var(--muted)}
 .seg{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin-bottom:14px;position:sticky;top:58px;z-index:4}
 .seg button{flex:1;border:0;background:none;color:var(--muted);font-weight:700;padding:9px 6px;border-radius:9px;cursor:pointer}
-.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 0 rgba(255,255,255,.04),0 2px 8px rgba(0,0,0,.25)}
+.seg button.on{background:var(--accent2);color:#08140c;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .seg .cnt{font-size:11px;background:var(--line);border-radius:99px;padding:1px 7px;margin-left:4px;color:var(--text)}
 .searchbox{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:0 11px;flex:1;min-width:0}
 .searchbox:focus-within{border-color:var(--accent2)}.searchbox svg{color:var(--muted);flex:none}
@@ -344,7 +360,7 @@ nav .fab svg{width:26px;height:26px}
 .lempty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}.lempty a{pointer-events:auto;color:var(--accent)}
 .jump{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:6px;background:var(--accent2);color:#08140c;border:0;border-radius:99px;padding:7px 12px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4)}
 .jump svg{width:15px;height:15px}
-.cchips{margin:10px -16px 0}.cchips .chip{font-family:var(--mono);font-size:12px}
+.cchips,.chips.scroll.cchips{margin:10px -16px 0}.cchips .chip{font-family:var(--mono);font-size:12px}
 @media(min-width:860px){.cchips.scroll{flex-wrap:wrap;overflow:visible;margin:10px 0 0;padding:0}}
 .cmd{position:relative}.cmd .ibtn{flex:none;width:40px;height:auto}
 .menu.hist{top:auto;bottom:calc(100% + 6px);left:0;right:auto;max-height:260px;overflow:auto;min-width:240px}
@@ -402,7 +418,7 @@ nav .fab svg{width:26px;height:26px}
     <div class="sid"><div class="sico" id="sIco">?</div><div class="n"><b id="sName">-</b><span id="sInfo">-</span></div></div>
     <div class="ipbox" id="addrList"></div>
     <div class="pbar">
-      <div class="heads" id="playerList"></div>
+      <div class="pnames" id="playerList"></div>
       <div class="n"><b id="sPlayers">0</b><a href="#" data-go="console">Kelola pemain</a></div>
     </div>
     <div class="usage">
@@ -494,13 +510,13 @@ nav .fab svg{width:26px;height:26px}
 
   <div id="mv-manage">
     <div class="card">
-      <div class="searchbox"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="modFilter" placeholder="Cari mod terpasang" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+      <div class="mbar"><div class="searchbox"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="modFilter" placeholder="Cari mod terpasang" autocomplete="off" autocapitalize="off" spellcheck="false"></div><label class="btn primary" title="Upload .jar"><input type="file" id="modUpload" accept=".jar" multiple hidden><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>Upload</label></div>
       <div class="chips" id="modShow" style="margin:10px 0 4px">
         <span class="chip on" data-show="all">Semua</span><span class="chip" data-show="on">Aktif</span><span class="chip" data-show="off">Nonaktif</span>
       </div>
       <div class="row" style="justify-content:space-between;margin:8px 0 10px">
         <span class="small muted" id="modCount"></span>
-        <label class="btn small"><input type="file" id="modUpload" accept=".jar" multiple hidden>Upload .jar</label>
+        
       </div>
       <div class="list" id="modList"><div class="empty">Memuat…</div></div>
       <p class="small muted" style="margin:12px 0 0">Mod konten (item, mob, dimensi) wajib dipasang juga di client teman dengan versi yang sama. Mod optimasi cukup di server.</p>
@@ -653,7 +669,7 @@ nav .fab svg{width:26px;height:26px}
 
    <div class="tcol">
     <div class="card" id="dCard">
-      <h2><span class="grow">Domain sendiri</span><button class="btn small" data-help="cf">Bantuan</button><span class="pill" id="dnsPill">Opsional</span></h2>
+      <h2><span class="grow">Domain Cloudflare</span><button class="btn small" data-help="cf">Bantuan</button><span class="pill" id="dnsPill">Opsional</span></h2>
       <div id="dView" class="hide">
         <div class="taddr"><div class="n"><span class="small muted">Teman join pakai</span><b class="addr" id="dName"></b></div><button class="btn small" id="bEditDomain">Ubah</button></div>
         <p class="small" id="dnsStatus" style="margin:10px 0"></p>
@@ -732,7 +748,7 @@ nav .fab svg{width:26px;height:26px}
   <div class="sheet-head">
    <button class="ibtn" id="wizBack" aria-label="Kembali"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
    <div style="flex:1;min-width:0"><div class="step" id="wizStep">LANGKAH 1 DARI 4</div><h2 id="wizTitle" style="margin:0">Pilih software</h2></div>
-   <button class="btn small" id="wizClose">Tutup</button>
+   <button class="btn small" id="wizClose" data-close>Tutup</button>
   </div>
   <div class="wbar"><i id="wizBar"></i></div>
   <p class="small muted" id="wizSub" style="margin:4px 0 14px"></p>
@@ -742,7 +758,7 @@ nav .fab svg{width:26px;height:26px}
 </div>
 <div id="srvModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="srvTitle">
  <div class="sheet">
-  <div class="sheet-head"><div style="flex:1;min-width:0"><h2 id="srvTitle" style="margin:0">Pengaturan server</h2><div class="small muted" id="srvSoft"></div></div><button class="btn small" id="srvClose">Tutup</button></div>
+  <div class="sheet-head"><div style="flex:1;min-width:0"><h2 id="srvTitle" style="margin:0">Pengaturan server</h2><div class="small muted" id="srvSoft"></div></div><button class="btn small" id="srvClose" data-close>Tutup</button></div>
   <label class="f"><span>Nama server</span><input type="text" id="srvName" maxlength="40" autocomplete="off"></label>
   <label class="f"><span>RAM untuk server: <b id="srvRamLabel">-</b> <span class="ramdev"></span></span>
     <input type="range" id="srvRam" min="512" max="8192" step="128" style="width:100%"></label>
@@ -764,7 +780,7 @@ nav .fab svg{width:26px;height:26px}
 </div>
 <div id="helpModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
  <div class="sheet">
-  <div class="sheet-head"><h2 id="helpTitle" style="margin:0;flex:1">Panduan tunnel &amp; domain</h2><button class="btn small" id="bHelpClose">Tutup</button></div>
+  <div class="sheet-head"><h2 id="helpTitle" style="margin:0;flex:1">Panduan tunnel &amp; domain</h2><button class="btn small" id="bHelpClose" data-close>Tutup</button></div>
   <div class="tabs" id="helpTabs"><button class="on" data-h="playit">1. playit.gg</button><button data-h="cf">2. Cloudflare (opsional)</button></div>
 
   <div class="hpane" id="h-playit">
@@ -810,7 +826,7 @@ nav .fab svg{width:26px;height:26px}
 <div id="editModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="edName">
  <div class="sheet edsheet">
   <div class="sheet-head"><div style="flex:1;min-width:0"><b id="edName" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></b><div class="small muted" id="edPath" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div></div>
-   <button class="btn small" id="edClose">Tutup</button><button class="btn small primary" id="edSave">Simpan</button></div>
+   <button class="btn small" id="edClose" data-close>Tutup</button><button class="btn small primary" id="edSave">Simpan</button></div>
   <textarea id="edText" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
   <p class="small muted" id="edNote" style="margin:8px 0 0">Restart server supaya perubahan config dipakai.</p>
  </div>
@@ -836,6 +852,10 @@ nav .fab svg{width:26px;height:26px}
 <div id="tour" class="hide" role="dialog" aria-modal="true" aria-label="Tutorial"><div class="tspot" id="tSpot"></div>
   <div class="tbub" id="tBub"><div class="tn" id="tN"></div><b id="tT"></b><p id="tB"></p>
     <div class="row"><button class="btn small" id="tSkip" type="button">Lewati tur</button><span class="grow"></span><button class="btn small primary" id="tNext" type="button">Lanjut</button></div></div>
+</div>
+<div id="askModal" class="modal ask hide" role="alertdialog" aria-modal="true" aria-labelledby="askMsg">
+  <div class="askbox"><p id="askMsg"></p><input type="text" id="askIn" class="hide" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="row"><button class="btn" id="askNo" type="button">Batal</button><button class="btn primary" id="askOk" type="button">Oke</button></div></div>
 </div>
 <script src="lang-en.js"></script>
 <script>
@@ -864,7 +884,6 @@ function trEl(el){if(el.closest(I18N_SKIP))return;I18N_ATTR.forEach(a=>trAttr(el
   const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);let n;
   while((n=w.nextNode()))n.nodeType===3?trNode(n):I18N_ATTR.forEach(a=>trAttr(n,a))}
 if(LANG==="en"){
-  for(const f of ["alert","confirm","prompt"]){const o=window[f].bind(window);window[f]=(m,...a)=>o(tr(String(m??"")),...a)}
   trEl(document.body);
   new MutationObserver(ms=>{for(const m of ms){
     if(m.type==="characterData")trNode(m.target);
@@ -986,7 +1005,7 @@ function renderDomainForm(){const has=!!S.customDomain,editing=!has||editDomain;
 }
 $("#bEditDomain").onclick=()=>{editDomain=true;$("#customDomain").value=S.customDomain||"";renderDomainForm();$("#customDomain").focus()};
 $("#bCancelDomain").onclick=()=>{editDomain=false;renderDomainForm()};
-$("#bClearDomain").onclick=async()=>{if(!confirm("Hapus domain "+S.customDomain+" dari panel? Record di Cloudflare tidak dihapus."))return;
+$("#bClearDomain").onclick=async()=>{if(!await ask("Hapus domain "+S.customDomain+" dari panel? Record di Cloudflare tidak dihapus."))return;
   try{await api("/api/settings",{form:{customDomain:""}});editDomain=false;dnsInfo=null;$("#customDomain").value="";toast("Domain dihapus");await refresh()}catch(e){toast(e.message,true)}};
 $("#bSaveDomain").onclick=async()=>{const v=$("#customDomain").value.trim();if(!v)return toast("Isi domain dulu",true);
   try{await api("/api/settings",{form:{customDomain:v}});editDomain=false;toast("Domain disimpan");await refresh();loadDomain(true)}catch(e){toast(e.message,true)}};
@@ -1028,7 +1047,7 @@ async function syncDns(auto){const addr=$("#domainTunnel").value;
 $("#domainTunnel").onchange=()=>loadDomain(true);
 $("#bCheckDns").onclick=()=>loadDomain(true);
 $("#bSaveCf").onclick=()=>{const v=$("#cfToken").value.trim();if(!v)return toast("Token kosong",true);act("/api/settings",{cfToken:v},"Token disimpan").then(()=>loadDomain(true));$("#cfToken").value=""};
-$("#bClearCf").onclick=()=>{if(confirm("Hapus token Cloudflare dari HP ini?"))act("/api/settings",{clearCfToken:"true"},"Token dihapus").then(()=>loadDomain(true))};
+$("#bClearCf").onclick=async()=>{if(await ask("Hapus token Cloudflare dari HP ini?"))act("/api/settings",{clearCfToken:"true"},"Token dihapus").then(()=>loadDomain(true))};
 $("#bSyncDns").onclick=()=>syncDns(false);
 $("#cfAutosync").onchange=e=>act("/api/settings",{cfAutosync:String(e.target.checked)},"Tersimpan");
 
@@ -1068,13 +1087,13 @@ function openMenu(btn,n){closeMenu();const p=PL,op=has(p.ops,n),wl=has(p.whiteli
 document.addEventListener("click",e=>{if(plMenu&&!e.target.closest(".menu")&&!e.target.closest("[data-pmenu]"))closeMenu()});
 const ACT_MSG={op:"jadi OP",deop:"bukan OP lagi","wl-add":"masuk whitelist","wl-remove":"keluar whitelist",kick:"di-kick",ban:"di-ban",pardon:"di-unban",heal:"di-heal",feed:"dikenyangkan",survival:"jadi Survival",creative:"jadi Creative",adventure:"jadi Adventure",spectator:"jadi Spectator"};
 async function playerAct(action,name){
-  if(action==="ban"&&!confirm("Ban "+name+"?"))return false;
-  if(action==="op"&&!confirm("Jadikan "+name+" OP? OP bisa pakai semua command server."))return false;
+  if(action==="ban"&&!await ask("Ban "+name+"?"))return false;
+  if(action==="op"&&!await ask("Jadikan "+name+" OP? OP bisa pakai semua command server."))return false;
   try{await api("/api/players/action",{form:{action,name}});toast(name?name+" "+(ACT_MSG[action]||action):"Oke");setTimeout(()=>loadPlayers(true),700);pollLog();return true}catch(e){toast(e.message,true);return false}}
 $("#plTabs").onclick=e=>{const b=e.target.closest("[data-pt]");if(!b)return;plTab=b.dataset.pt;closeMenu();renderPlayers()};
-$("#plList").onclick=e=>{const m=e.target.closest("[data-pmenu]");if(m){e.stopPropagation();if(plMenu&&plMenu.parentNode===m.closest(".prow"))closeMenu();else openMenu(m,m.dataset.pmenu);return}
+$("#plList").onclick=async e=>{const m=e.target.closest("[data-pmenu]");if(m){e.stopPropagation();if(plMenu&&plMenu.parentNode===m.closest(".prow"))closeMenu();else openMenu(m,m.dataset.pmenu);return}
   const a=e.target.closest("[data-pa]");if(a){closeMenu();playerAct(a.dataset.pa,a.dataset.pn);return}
-  const d=e.target.closest("[data-pdel]");if(d&&!d.disabled){const n=d.dataset.pdel;if(plTab==="ops"||confirm(({whitelist:"Keluarkan "+n+" dari whitelist?",banned:"Unban "+n+"?"})[plTab]||"Hapus?"))playerAct(PT[plTab].del,n)}};
+  const d=e.target.closest("[data-pdel]");if(d&&!d.disabled){const n=d.dataset.pdel;if(plTab==="ops"||await ask(({whitelist:"Keluarkan "+n+" dari whitelist?",banned:"Unban "+n+"?"})[plTab]||"Hapus?"))playerAct(PT[plTab].del,n)}};
 $("#plAddForm").onsubmit=async e=>{e.preventDefault();const n=$("#plName").value.trim();if(!n)return;if(!/^[A-Za-z0-9_.]{2,20}$/.test(n))return toast("Nama pemain cuma huruf, angka, _ dan titik (2 sampai 20)",true);
   if(await playerAct(PT[plTab].add,n))$("#plName").value=""};
 $("#wlToggle").onchange=e=>{playerAct(e.target.checked?"whitelist-on":"whitelist-off","")};
@@ -1147,7 +1166,7 @@ async function refresh(){
   $("#bStart").disabled=alive||!!S.task||!S.runtimeReady||!S.installed;$("#bStop").disabled=!alive;$("#bRestart").disabled=st!=="running";
   $("#sPlayers").textContent=S.players.length+" / "+S.maxPlayers+" pemain";
   const P=S.players;
-  $("#playerList").innerHTML=P.length?P.slice(0,5).map(avatar).join("")+(P.length>5?'<div class="more">+'+(P.length-5)+'</div>':''):'<span class="none">'+(st==="running"?"Belum ada yang online":"Server mati")+'</span>';
+  $("#playerList").textContent=P.length?P.slice(0,3).join(", ")+(P.length>3?" +"+(P.length-3):""):st==="running"?"Belum ada yang online":"Server mati";
   if(S.rssMb>0){$("#sRam").textContent=(S.rssMb/1024).toFixed(1)+" / "+(S.ramMb/1024).toFixed(1)+" GB";$("#sRamBar").style.width=Math.min(100,S.rssMb/S.ramMb*100)+"%"}
   else{$("#sRam").textContent="- / "+(S.ramMb/1024).toFixed(1)+" GB";$("#sRamBar").style.width="0"}
   $("#sUptime").textContent=fmtDur(S.uptime);
@@ -1194,6 +1213,8 @@ function renderServers(){if(!SV)return;
   const box=$("#otherList");if(box.dataset.h!==html){box.innerHTML=html;box.dataset.h=html}}
 $("#otherList").onclick=async e=>{const b=e.target.closest("[data-sel]");if(!b)return;
   if(b.getAttribute("aria-disabled")==="true")return toast("Matikan "+S.serverName+" dulu, cuma satu server yang bisa jalan",true);
+  const to=((SV&&SV.servers.find(x=>x.id===b.dataset.sel))||{}).name||b.dataset.sel;
+  if(!await ask("Pakai server "+to+"? Server "+S.serverName+" berhenti dipakai, datanya tetap aman."))return;
   try{await api("/api/servers/select",{form:{id:b.dataset.sel}});await refresh();window.scrollTo(0,0);toast("Sekarang memakai "+S.serverName)}catch(err){toast(err.message,true)}};
 
 // ---------------------------------------------------------- versions per software
@@ -1288,9 +1309,9 @@ $("#srvClose").onclick=closeSrv;$("#srvModal").onclick=e=>{if(e.target.id==="srv
 $("#srvSave").onclick=async()=>{try{await api("/api/servers/update",{form:{id:SS.id,name:$("#srvName").value,ram:$("#srvRamNum").value,jvmArgs:$("#srvJvm").value}});
   toast("Tersimpan, RAM dan JVM args berlaku saat start berikutnya");closeSrv();await loadServers();refresh()}catch(e){toast(e.message,true)}};
 $("#srvInstall").onclick=async()=>{const v=$("#srvVer").value;if(!v)return;
-  if(!confirm(v===SS.mcVersion?"Install ulang "+tinfo(SS.type).n+" "+v+"?":"Ganti "+SS.name+" dari "+SS.mcVersion+" ke "+v+"? Mod atau plugin lama mungkin tidak cocok."))return;
+  if(!await ask(v===SS.mcVersion?"Install ulang "+tinfo(SS.type).n+" "+v+"?":"Ganti "+SS.name+" dari "+SS.mcVersion+" ke "+v+"? Mod atau plugin lama mungkin tidak cocok."))return;
   try{await api("/api/install",{form:{mc:v}});toast("Install dimulai, pantau di Konsol");closeSrv();refresh()}catch(e){toast(e.message,true)}};
-$("#srvDelete").onclick=async()=>{const n=prompt("Ketik nama server untuk menghapus:\n"+SS.name);if(n===null)return;
+$("#srvDelete").onclick=async()=>{const n=await askText("Ketik nama server untuk menghapus:\n"+SS.name);if(n===null)return;
   if(n.trim()!==SS.name.trim())return toast("Nama tidak sama, batal",true);
   try{await api("/api/servers/delete",{form:{id:SS.id}});toast(SS.name+" dihapus");closeSrv();await refresh();loadServers()}catch(e){toast(e.message,true)}};
 document.addEventListener("click",e=>{const c=e.target.closest("[data-copy]");if(!c)return;const v=c.dataset.copy;
@@ -1299,7 +1320,7 @@ document.addEventListener("click",e=>{const c=e.target.closest("[data-copy]");if
 $("#bStart").onclick=()=>act("/api/start",null,"Server dinyalakan");
 $("#bStop").onclick=()=>act("/api/stop",null,"Mematikan server");
 $("#bRestart").onclick=()=>act("/api/restart",null,"Restart dimulai");
-$("#bKill").onclick=()=>{if(confirm("Matikan paksa? World yang belum tersimpan bisa hilang."))act("/api/kill",null,"Dimatikan paksa")};
+$("#bKill").onclick=async()=>{if(await ask("Matikan paksa? World yang belum tersimpan bisa hilang."))act("/api/kill",null,"Dimatikan paksa")};
 
 // ---------------------------------------------------------- log
 function cls(l){if(l.includes("[Panel]"))return"p";if(l.startsWith("> "))return"c";if(/\/(ERROR|FATAL)\]|Exception|Error:/.test(l))return"e";if(/\/WARN\]/.test(l))return"w";return""}
@@ -1395,7 +1416,7 @@ function renderMods(){
 }
 $("#modFilter").oninput=renderMods;
 $("#modShow").onclick=e=>{const c=e.target.closest("[data-show]");if(!c)return;modShow=c.dataset.show;$$("#modShow .chip").forEach(x=>x.classList.toggle("on",x===c));renderMods()};
-$("#modList").onclick=async e=>{const d=e.target.closest("[data-del]");if(d&&confirm("Hapus "+prettyMod(d.dataset.del)+"?")){try{await api("/api/mods/delete",{form:{name:d.dataset.del}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}}};
+$("#modList").onclick=async e=>{const d=e.target.closest("[data-del]");if(d&&await ask("Hapus "+prettyMod(d.dataset.del)+"?")){try{await api("/api/mods/delete",{form:{name:d.dataset.del}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}}};
 $("#modList").onchange=async e=>{const t=e.target.closest("[data-toggle]");if(!t)return;try{await api("/api/mods/toggle",{form:{name:t.dataset.toggle}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}};
 $("#modUpload").onchange=async e=>{for(const f of e.target.files){try{toast("Upload "+f.name+"…");await api("/api/mods/upload?name="+encodeURIComponent(f.name),{method:"PUT",body:f});window._modChanged=1}catch(err){toast(f.name+": "+err.message,true)}}e.target.value="";loadMods()};
 $("#bModRestart").onclick=()=>act("/api/restart",null,"Restart dimulai").then(()=>{window._modChanged=0;renderMods()});
@@ -1436,7 +1457,7 @@ $("#bPerfPack").onclick=async e=>{const b=e.target;b.disabled=true;b.textContent
 // store
 const store={type:"mod",q:"",cat:"",sort:"downloads",offset:0,total:0,hits:[],loaded:false,busy:false,seq:0};
 const kindLabel=()=>store.type==="datapack"?"datapack":addonKind()+" "+tinfo(S.type).n;
-const compact=n=>Intl.NumberFormat("id",{notation:"compact",maximumFractionDigits:1}).format(n);
+const compact=n=>Intl.NumberFormat(LANG,{notation:"compact",maximumFractionDigits:1}).format(n);
 async function storeSearch(reset){
   if(store.busy&&!reset)return;
   if(reset){store.offset=0;store.hits=[];store.total=0;$("#searchResults").innerHTML='<div class="empty">Memuat…</div>';$("#storeMore").textContent=""}
@@ -1488,7 +1509,7 @@ function setWorldView(v){worldView=v;$$("#worldSeg button").forEach(b=>b.classLi
   if(v==="backup"){loadBackups();loadWorldInfo()}if(v==="files"){loadWorldInfo();loadFiles(fPath)}if(v==="props")loadProps()}
 $("#worldSeg").onclick=e=>{const b=e.target.closest("[data-wv]");if(b)setWorldView(b.dataset.wv)};
 function ago(t){const s=Math.max(0,(Date.now()-t)/1000);if(s<60)return"baru saja";if(s<3600)return Math.floor(s/60)+" mnt lalu";if(s<86400)return Math.floor(s/3600)+" jam lalu";return Math.floor(s/86400)+" hari lalu"}
-const fmtDate=t=>{const d=new Date(t),o={day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"};if(d.getFullYear()!==new Date().getFullYear())o.year="numeric";return d.toLocaleString("id",o)};
+const fmtDate=t=>{const d=new Date(t),o={day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"};if(d.getFullYear()!==new Date().getFullYear())o.year="numeric";return d.toLocaleString(LANG,o)};
 async function loadWorldInfo(force){try{WI=await api("/api/world/info"+(force?"?force=1":""));renderWorldInfo();renderQuick()}catch(e){}}
 function renderWorldInfo(){const w=WI;if(!w)return;
   $("#wName").textContent=w.name;
@@ -1531,12 +1552,12 @@ function renderBackupProgress(){const t=S.task||"",busy=/^(Backup|Restore)/.test
 }
 $("#bBackup").onclick=()=>act("/api/backups/create",null,"Backup dimulai");
 $("#backupList").onclick=async e=>{const r=e.target.closest("[data-restore]"),d=e.target.closest("[data-bdel]");
-  if(r&&!r.disabled&&confirm("Ganti world sekarang dengan backup ini?\n"+r.dataset.restore+"\n\nWorld yang sekarang akan ditimpa."))await act("/api/backups/restore",{name:r.dataset.restore},"Restore dimulai");
-  if(d&&confirm("Hapus backup "+d.dataset.bdel+"?")){await act("/api/backups/delete",{name:d.dataset.bdel},"Backup dihapus");loadBackups()}};
+  if(r&&!r.disabled&&await ask("Ganti world sekarang dengan backup ini?\n"+r.dataset.restore+"\n\nWorld yang sekarang akan ditimpa."))await act("/api/backups/restore",{name:r.dataset.restore},"Restore dimulai");
+  if(d&&await ask("Hapus backup "+d.dataset.bdel+"?")){await act("/api/backups/delete",{name:d.dataset.bdel},"Backup dihapus");loadBackups()}};
 $("#worldUpload").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{toast("Upload "+f.name+" ("+fmtSize(f.size)+")…");await api("/api/backups/upload?name="+encodeURIComponent(f.name.replace(/[^\w.\-]/g,"_")),{method:"PUT",body:f});toast("Upload selesai, tekan Restore");loadBackups()}catch(err){toast(err.message,true)}e.target.value=""};
-$("#bResetWorld").onclick=()=>{if(confirm("Hapus world sekarang? Backup dulu kalau masih butuh.")&&prompt("Ketik HAPUS untuk lanjut")==="HAPUS")act("/api/world/reset",null,"World dihapus").then(()=>loadWorldInfo(true))};
-document.addEventListener("click",e=>{const b=e.target.closest("[data-resetdim]");if(!b||b.disabled)return;const n=b.dataset.resetdim==="nether"?"Nether":"End";
-  if(confirm("Reset "+n+"? Semua bangunan dan barang di "+n+" hilang."))act("/api/world/reset-dim",{dim:b.dataset.resetdim},n+" direset").then(()=>loadWorldInfo(true))});
+$("#bResetWorld").onclick=async()=>{if(await ask("Hapus world sekarang? Backup dulu kalau masih butuh.")&&(await askText("Ketik HAPUS untuk lanjut"))==="HAPUS")act("/api/world/reset",null,"World dihapus").then(()=>loadWorldInfo(true))};
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-resetdim]");if(!b||b.disabled)return;const n=b.dataset.resetdim==="nether"?"Nether":"End";
+  if(await ask("Reset "+n+"? Semua bangunan dan barang di "+n+" hilang."))act("/api/world/reset-dim",{dim:b.dataset.resetdim},n+" direset").then(()=>loadWorldInfo(true))});
 async function saveAutoBackup(){const on=$("#abOn").checked;
   try{await api("/api/settings",{form:{autoBackupHours:on?($("#abHours").value||"6"):"0",backupKeep:$("#abKeep").value||"5"}});toast(on?"Backup otomatis aktif":"Backup otomatis mati");loadBackups()}catch(e){toast(e.message,true)}}
 $("#abOn").onchange=()=>{if($("#abOn").checked&&!BK.autoHours){$("#abHours").value="6";$("#abKeep").value="5"}saveAutoBackup()};
@@ -1585,8 +1606,8 @@ $("#fList").onclick=async e=>{
     closeFMenu();
     if(act2==="open")return loadFiles(p);
     if(act2==="edit")return openEditor(p);
-    if(act2==="rename"){const to=prompt("Nama baru",name);if(!to||to===name)return;try{await api("/api/files/rename",{form:{path:p,to:to.trim()}});toast("Nama diganti");loadFiles(fPath)}catch(err){toast(err.message,true)}return}
-    if(act2==="del"){const f=fEntry(name);if(!confirm("Hapus "+(f&&f.dir?"folder":"file")+" "+name+"?"+(f&&f.dir?"\nSemua isinya ikut terhapus.":"")))return;
+    if(act2==="rename"){const to=await askText("Nama baru",name);if(!to||to===name)return;try{await api("/api/files/rename",{form:{path:p,to:to.trim()}});toast("Nama diganti");loadFiles(fPath)}catch(err){toast(err.message,true)}return}
+    if(act2==="del"){const f=fEntry(name);if(!await ask("Hapus "+(f&&f.dir?"folder":"file")+" "+name+"?"+(f&&f.dir?"\nSemua isinya ikut terhapus.":"")))return;
       try{await api("/api/files/delete",{form:{path:p}});toast(name+" dihapus");loadFiles(fPath);loadWorldInfo(true)}catch(err){toast(err.message,true)}return}
     return}
   if(e.target.closest(".menu"))return;
@@ -1596,7 +1617,7 @@ $("#fList").onclick=async e=>{
   if(f.text)return openEditor(p);
   location.href="/api/files/download?path="+encodeURIComponent(p)};
 $("#fRefresh").onclick=()=>{loadFiles(fPath);loadWorldInfo(true)};
-$("#fMkdir").onclick=async()=>{const n=prompt("Nama folder baru");if(!n)return;try{await api("/api/files/mkdir",{form:{path:fPath,name:n.trim()}});loadFiles(fPath)}catch(e){toast(e.message,true)}};
+$("#fMkdir").onclick=async()=>{const n=await askText("Nama folder baru");if(!n)return;try{await api("/api/files/mkdir",{form:{path:fPath,name:n.trim()}});loadFiles(fPath)}catch(e){toast(e.message,true)}};
 $("#fUpload").onchange=async e=>{for(const f of e.target.files){try{toast("Upload "+f.name+"…");await api("/api/files/upload?path="+encodeURIComponent(fPath)+"&name="+encodeURIComponent(f.name),{method:"PUT",body:f})}catch(err){toast(f.name+": "+err.message,true)}}
   e.target.value="";loadFiles(fPath);loadWorldInfo(true)};
 // editor
@@ -1606,7 +1627,7 @@ async function openEditor(p){try{const r=await fetch("/api/files/read?path="+enc
     const ro=FL&&FL.running&&(FL.inWorld||p.startsWith((FL.world||"world")+"/"));$("#edText").readOnly=!!ro;$("#edSave").disabled=!!ro;
     $("#edNote").textContent=ro?"Hanya baca selama server jalan (file ini bagian dari world).":/^config\//.test(p)?"Restart server supaya perubahan config mod dipakai.":p==="server.properties"?"Restart server supaya perubahan dipakai.":"Simpan lalu restart server kalau file ini dipakai server.";
     $("#editModal").classList.remove("hide");setTimeout(()=>$("#edText").focus(),50)}catch(e){toast(e.message,true)}}
-function closeEditor(){if(edDirty&&!confirm("Tutup tanpa menyimpan perubahan?"))return;$("#editModal").classList.add("hide");edFile=null}
+async function closeEditor(){if(edDirty&&!await ask("Tutup tanpa menyimpan perubahan?"))return;$("#editModal").classList.add("hide");edFile=null}
 async function saveEditor(){if(!edFile||$("#edSave").disabled)return;try{await api("/api/files/write?path="+encodeURIComponent(edFile),{body:$("#edText").value,type:"text/plain; charset=utf-8"});edDirty=false;toast("Tersimpan");loadFiles(fPath);if(edFile==="server.properties")loadProps()}catch(e){toast(e.message,true)}}
 $("#edText").addEventListener("input",()=>{edDirty=true});
 $("#edText").addEventListener("keydown",e=>{if(e.key==="Tab"&&!e.target.readOnly){e.preventDefault();const t=e.target,a=t.selectionStart;t.setRangeText("  ",a,t.selectionEnd,"end");edDirty=true}
@@ -1632,7 +1653,7 @@ function renderPropForm(){$("#propForm").innerHTML='<div class="grid" style="gri
   if(t.startsWith("select:"))return '<label class="f"><span>'+l+'</span><select data-prop="'+k+'">'+t.slice(7).split(",").map(o=>'<option'+(o===v?" selected":"")+'>'+o+'</option>').join("")+'</select></label>';
   return '<label class="f"><span>'+l+'</span><input type="'+t+'" data-prop="'+k+'" value="'+esc(v)+'" placeholder="'+esc(PROP_DEF[k]||"")+'">'+(d?'<span class="small muted" style="display:block;margin-top:4px">'+d+'</span>':'')+'</label>'}).join("")+'</div><div id="crackWarn" class="banner err hide" style="margin:12px 0 0">Online mode mati dan Whitelist mati: siapa pun yang tahu alamat server bisa masuk, termasuk pakai nama kamu. Nyalakan Whitelist lalu tambahkan nama teman di Konsol.</div>';
   checkCrack();
-  if(!propLines.join("").trim())$("#propForm").insertAdjacentHTML("afterbegin",'<p class="small muted">server.properties dibuat saat Install Fabric. Isi form lalu simpan juga bisa.</p>')}
+  if(!propLines.join("").trim())$("#propForm").insertAdjacentHTML("afterbegin",'<p class="small muted">server.properties dibuat saat Install Fabric. Isi form lalu simpan juga bisa.</p>');$$("#propForm select").forEach(dropdown)}
 $("#propForm").addEventListener("input",e=>syncPropsToRaw(e.target));$("#propForm").addEventListener("change",e=>syncPropsToRaw(e.target));
 function checkCrack(){const om=$('[data-prop="online-mode"]'),wl=$('[data-prop="white-list"]');if(!om||!wl)return;$("#crackWarn").classList.toggle("hide",om.checked||wl.checked)}
 function syncPropsToRaw(el){checkCrack();if(!el||!el.dataset||!el.dataset.prop)return;
@@ -1706,6 +1727,47 @@ function tutorialCheck(){
   if(!introChecked){introChecked=true;if(!lsGet("introDone"))return introOpen(+lsGet("introStep")||0)}
   if(lsGet("tourPending")&&S.serverId&&TI<0&&$("#newModal").classList.contains("hide"))setTimeout(tourStart,600)}
 $("#bReplay").onclick=()=>{["introDone","tourDone","tourPending"].forEach(k=>lsSet(k,null));introChecked=false;introOpen(0)};
+
+// ---- popup konfirmasi di tengah layar (pengganti confirm/prompt bawaan browser)
+let askDone=null;
+function askOpen(msg,input,value){return new Promise(res=>{if(askDone)askDone(null);
+  askDone=v=>{askDone=null;$("#askModal").classList.add("hide");res(v)};
+  $("#askMsg").textContent=msg;const i=$("#askIn"),ok=$("#askOk");i.classList.toggle("hide",!input);i.value=value||"";
+  ok.className="btn "+(!input&&/^(Hapus|Ban|Matikan paksa|Reset|Putuskan|Ganti world)/.test(msg)?"bad":"primary");
+  $("#askModal").classList.remove("hide");setTimeout(()=>(input?i:ok).focus(),30)})}
+const ask=msg=>askOpen(msg,false).then(v=>v===true),askText=(msg,value)=>askOpen(msg,true,value);
+$("#askOk").onclick=()=>askDone&&askDone($("#askIn").classList.contains("hide")?true:$("#askIn").value);
+$("#askNo").onclick=()=>askDone&&askDone(null);
+$("#askModal").onclick=e=>{if(e.target.id==="askModal"&&askDone)askDone(null)};
+$("#askIn").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$("#askOk").click()}};
+document.addEventListener("keydown",e=>{if(askDone&&e.key==="Escape"){e.stopImmediatePropagation();askDone(null)}},true);
+
+// ---- sheet bisa ditutup dengan digeser ke bawah (HP); menekan tombol [data-close] milik sheet itu
+$$(".modal>.sheet").forEach(sh=>{let y0=null,dy=0,t0=0;
+  sh.addEventListener("touchstart",e=>{if(sh.scrollTop>0||e.target.closest("textarea,input,select,.dd-menu"))return;y0=e.touches[0].clientY;dy=0;t0=Date.now()},{passive:true});
+  sh.addEventListener("touchmove",e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;if(dy<0){dy=0}sh.style.transition="none";sh.style.transform="translateY("+dy+"px)"},{passive:true});
+  sh.addEventListener("touchend",()=>{if(y0==null)return;y0=null;sh.style.transition="transform .2s";
+    const fling=dy>40&&Date.now()-t0<250;sh.style.transform="";
+    if(dy>90||fling){const c=sh.querySelector("[data-close]");if(c)c.click()}})});
+
+// ---- dropdown yang membuka daftar ke bawah, pengganti popup <select> native di Android
+const SELVAL=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value");
+function ddClose(){$$(".dd-menu").forEach(m=>{m.parentNode.classList.remove("open");m.remove()})}
+function dropdown(sel){if(sel._dd)return sel._dd();
+  const w=document.createElement("div"),b=document.createElement("button");w.className="dd";b.type="button";
+  w.style.cssText=sel.style.cssText;sel.style.display="none";sel.after(w);w.append(b);
+  if(sel.getAttribute("aria-label"))b.setAttribute("aria-label",sel.getAttribute("aria-label"));
+  const sync=()=>{const o=sel.options[sel.selectedIndex];b.textContent=o?o.textContent:"";b.disabled=sel.disabled};
+  b.onclick=e=>{e.stopPropagation();const was=w.classList.contains("open");ddClose();if(was)return;
+    const m=document.createElement("div");m.className="dd-menu";
+    [...sel.options].forEach((o,i)=>{const x=document.createElement("button");x.type="button";x.textContent=o.textContent;if(i===sel.selectedIndex)x.className="on";
+      x.onclick=ev=>{ev.stopPropagation();ddClose();if(sel.selectedIndex===i)return;sel.selectedIndex=i;sync();sel.dispatchEvent(new Event("change",{bubbles:true}))};m.append(x)});
+    w.append(m);w.classList.add("open");const on=m.querySelector(".on");if(on)on.scrollIntoView({block:"nearest"})};
+  Object.defineProperty(sel,"value",{get(){return SELVAL.get.call(this)},set(v){SELVAL.set.call(this,v);sync()}});
+  new MutationObserver(sync).observe(sel,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["disabled"]});
+  sel._dd=sync;sync()}
+document.addEventListener("click",ddClose);document.addEventListener("keydown",e=>{if(e.key==="Escape")ddClose()});
+$$("select").forEach(dropdown);
 async function loadSettings(){try{const s=await api("/api/settings");
   for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer"])$("#"+k).checked=s[k];
   if(s.deviceRamMb>0)deviceRam=s.deviceRamMb;$("#customDomain").value=s.customDomain||"";$("#cfAutosync").checked=!!s.cfAutosync}catch(e){toast(e.message,true)}}
@@ -1718,12 +1780,12 @@ $("#bBattery").onclick=()=>bridge&&bridge.requestIgnoreBattery();
 $("#bAppInfo").onclick=()=>bridge&&bridge.openAppInfo();
 async function saveSecret(inp){const v=inp.value.trim();if(!v)return toast("Secret key kosong",true);
   try{await api("/api/settings",{form:{playitSecret:v}});inp.value="";editSecret=false;toast("Secret key disimpan");await refresh();tunnels=null;await loadTunnels(true);
-    if(S.playit.available&&S.playit.state!=="running"&&confirm("Nyalakan tunnel sekarang?"))tunnelToggle()}catch(e){toast(e.message,true)}}
+    if(S.playit.available&&S.playit.state!=="running"&&await ask("Nyalakan tunnel sekarang?"))tunnelToggle()}catch(e){toast(e.message,true)}}
 $("#bSaveSecret").onclick=()=>saveSecret($("#playitSecret"));
 $("#bSaveSecret2").onclick=()=>saveSecret($("#playitSecretNew"));
 $("#bEditSecret").onclick=()=>{editSecret=!editSecret;renderTunnelHero();if(editSecret)$("#playitSecretNew").focus()};
 $("#bCancelSecret").onclick=()=>{editSecret=false;$("#playitSecretNew").value="";renderTunnelHero()};
-$("#bClearSecret").onclick=async()=>{if(!confirm("Putuskan akun playit dari HP ini? Tunnel dimatikan dan secret key dihapus."))return;
+$("#bClearSecret").onclick=async()=>{if(!await ask("Putuskan akun playit dari HP ini? Tunnel dimatikan dan secret key dihapus."))return;
   try{if(S.playit.state==="running")await api("/api/playit/stop",{post:true});await api("/api/settings",{form:{clearPlayitSecret:"true"}});editSecret=false;tunnels=null;toast("playit diputus");refresh()}catch(e){toast(e.message,true)}};
 async function tunnelToggle(){const run=S.playit&&S.playit.state==="running";
   await act(run?"/api/playit/stop":"/api/playit/start",null,run?"Tunnel dimatikan":"Tunnel dinyalakan");if(!run)setTimeout(()=>loadTunnels(true),4000)}

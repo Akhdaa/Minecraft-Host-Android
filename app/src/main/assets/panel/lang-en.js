@@ -725,5 +725,17 @@ window.EN = {
 "Main dari internet": "Playing over the internet",
 "Hubungkan playit.gg (gratis) supaya teman di luar WiFi bisa join. Domain Cloudflare opsional untuk alamat yang lebih rapi.": "Connect playit.gg (free) so friends outside your Wi-Fi can join. A Cloudflare domain is optional for a nicer address.",
 "Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus. Tutorial bisa diulang dari Pengaturan.": "Create more servers with other versions or mods here. Only one can run at a time. You can replay this tutorial from Settings.",
-"Server dibuat. Install {0} dimulai": "Server created. Installing {0}"
+"Server dibuat. Install {0} dimulai": "Server created. Installing {0}",
+"Pakai server {0}? Server {1} berhenti dipakai, datanya tetap aman.": "Switch to {0}? {1} stops being the active server; its data stays safe.",
+"Jadikan {0} OP? OP bisa pakai semua command server.": "Make {0} an OP? OPs can use every server command.",
+"Keluarkan {0} dari whitelist?": "Remove {0} from the whitelist?",
+"Install ulang {0}?": "Reinstall {0}?",
+"Ganti {0} dari {1} ke {2}? Mod atau plugin lama mungkin tidak cocok.": "Change {0} from {1} to {2}? Old mods or plugins may not work.",
+"Hapus backup {0}?": "Delete backup {0}?",
+"Hapus domain {0} dari panel? Record di Cloudflare tidak dihapus.": "Remove domain {0} from the panel? The record on Cloudflare is not deleted.",
+"Reset {0}? Semua bangunan dan barang di {1} hilang.": "Reset {0}? All builds and items in {1} will be lost.",
+"Hapus file {0}?": "Delete file {0}?",
+"Hapus {0}?": "Delete {0}?",
+"Hapus folder": "Delete folder",
+"oleh {0}": "by {0}"
 };
