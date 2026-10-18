@@ -53,6 +53,7 @@ nav button.on{color:var(--accent)}
   #tab-console.on{display:grid;grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:14px;align-items:stretch;height:calc(100vh - 140px);min-height:560px}
   #tab-console>.card{margin:0;display:flex;flex-direction:column;min-height:0}
   #tab-console .plist{flex:1;overflow:auto;min-height:0;padding-right:2px}
+  #tab-console .logwrap{flex:1;min-height:0;display:flex;flex-direction:column}
   #tab-console #log{flex:1;height:auto;min-height:0}
 }
 section{display:none}section.on{display:block}
@@ -322,6 +323,7 @@ nav .fab svg{width:26px;height:26px}
 .jump{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:6px;background:var(--accent2);color:#08140c;border:0;border-radius:99px;padding:7px 12px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4)}
 .jump svg{width:15px;height:15px}
 .cchips{margin:10px -16px 0}.cchips .chip{font-family:var(--mono);font-size:12px}
+@media(min-width:860px){.cchips.scroll{flex-wrap:wrap;overflow:visible;margin:10px 0 0;padding:0}}
 .cmd{position:relative}.cmd .ibtn{flex:none;width:40px;height:auto}
 .menu.hist{top:auto;bottom:calc(100% + 6px);left:0;right:auto;max-height:260px;overflow:auto;min-width:240px}
 .menu.hist button{font-family:var(--mono);font-size:13px}
