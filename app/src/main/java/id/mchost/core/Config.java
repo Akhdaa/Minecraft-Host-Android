@@ -30,6 +30,7 @@ public class Config {
     public static final String AUTO_BACKUP_HOURS = "auto_backup_hours";
     public static final String BACKUP_KEEP = "backup_keep";
     public static final String ACTIVE = "active_server";
+    public static final String LANG = "lang";
     // per-server keys (servers/<id>/mchost.properties); RAM_MB, JVM_ARGS, MC_VERSION, LOADER, INSTALLER live there too
     public static final String NAME = "name";
     public static final String TYPE = "type";
@@ -57,6 +58,7 @@ public class Config {
         def(RAM_MB, "3072");
         def(JVM_ARGS, "");
         def(AUTO_RESTART, "true");
+        def(LANG, "en");
         def(AUTO_START, "false");
         def(BOOT_START, "false");
         def(EULA, "false");

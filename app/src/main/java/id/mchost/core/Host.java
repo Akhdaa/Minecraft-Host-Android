@@ -52,6 +52,7 @@ public class Host {
         this.serversRoot = new File(base, "servers");
         this.backupsRoot = new File(base, "backups");
         this.cfg = new Config(new File(base, "panel.properties"));
+        lang = cfg.get(Config.LANG, "en");
         migrateSingleServer();
         serversRoot.mkdirs();
         this.mc = new McServer(this, mcLog);
@@ -522,20 +523,27 @@ public class Host {
 
     // ------------------------------------------------------------ summary
 
+    /** Bahasa panel ("en" default, "id"); dipakai untuk teks yang tidak lewat panel (notifikasi). */
+    public static volatile String lang = "en";
+
+    public static String tr(String en, String id) {
+        return "id".equals(lang) ? id : en;
+    }
+
     public String summary() {
         if (!task.isEmpty()) return task + "...";
         String s = mc.state();
         switch (s) {
             case "running":
-                return srv.get(Config.NAME, "Server") + " jalan, " + mc.players().size() + " pemain online";
+                return srv.get(Config.NAME, "Server") + tr(" running, ", " jalan, ") + mc.players().size() + tr(" players online", " pemain online");
             case "starting":
-                return "Server sedang menyala...";
+                return tr("Server starting...", "Server sedang menyala...");
             case "stopping":
-                return "Server sedang mati...";
+                return tr("Server stopping...", "Server sedang mati...");
             case "crashed":
-                return "Server crash";
+                return tr("Server crashed", "Server crash");
             default:
-                return "Server mati, panel aktif";
+                return tr("Server stopped, panel active", "Server mati, panel aktif");
         }
     }
 

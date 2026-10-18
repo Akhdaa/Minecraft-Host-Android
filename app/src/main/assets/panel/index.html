@@ -448,10 +448,10 @@ nav .fab svg{width:26px;height:26px}
       <span class="chip" data-cmd="time set day">siang</span>
       <span class="chip" data-cmd="weather clear">cerah</span>
       <span class="chip" data-fill="say ">say …</span>
-      <span class="chip" data-diff="peaceful">damai</span>
-      <span class="chip" data-diff="easy">mudah</span>
-      <span class="chip" data-diff="normal">normal</span>
-      <span class="chip" data-diff="hard">sulit</span>
+      <span class="chip" data-diff="peaceful">Peaceful</span>
+      <span class="chip" data-diff="easy">Easy</span>
+      <span class="chip" data-diff="normal">Normal</span>
+      <span class="chip" data-diff="hard">Hard</span>
       <span class="chip" data-fill="chunky radius 1000">chunky radius</span>
       <span class="chip" data-cmd="chunky start">chunky start</span>
     </div>
@@ -683,6 +683,7 @@ nav .fab svg{width:26px;height:26px}
   <div class="card">
     <h2>Pengaturan aplikasi</h2>
     <p class="small muted" style="margin:-6px 0 6px">Berlaku untuk semua server. Nama, versi, dan RAM diatur per server lewat ikon gerigi di kartu server.</p>
+    <div class="sw"><div><div class="t">Bahasa</div></div><select id="langSel" aria-label="Bahasa" style="width:auto"><option value="en">English</option><option value="id">Indonesia</option></select></div>
     <div class="sw"><div><div class="t">Setuju EULA Minecraft</div><div class="d">Wajib. Baca di <a href="https://aka.ms/MinecraftEULA" target="_blank" rel="noopener">aka.ms/MinecraftEULA</a></div></div><input type="checkbox" class="toggle" id="eula"></div>
     <div class="sw"><div><div class="t">Auto restart saat crash</div><div class="d">Berhenti jika crash 4x dalam 10 menit</div></div><input type="checkbox" class="toggle" id="autoRestart"></div>
     <div class="sw"><div><div class="t">Start server saat aplikasi dibuka</div><div class="d">Server yang sedang dipilih langsung menyala</div></div><input type="checkbox" class="toggle" id="autoStart"></div>
@@ -809,12 +810,42 @@ nav .fab svg{width:26px;height:26px}
 </div></div>
 <div id="toast"></div>
 
+<script src="lang-en.js"></script>
 <script>
 "use strict";
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const STATE_ID={stopped:"Mati",starting:"Menyala…",running:"Jalan",stopping:"Mematikan…",crashed:"Crash"};
 const bridge=window.AndroidHost||null;
+// i18n: teks sumber bahasa Indonesia, English (default) dari window.EN (lang-en.js). MutationObserver
+// menerjemahkan teks statis, hasil render JS, toast, dan pesan dari server; ganti bahasa = reload.
+let LANG="en";try{LANG=localStorage.getItem("lang")||"en"}catch(e){}
+document.documentElement.lang=LANG;
+const EN=window.EN||{},ENP=[],ENS=Object.keys(EN).filter(k=>!k.includes("{0}")&&k.includes(" ")&&k.length>5).sort((a,b)=>b.length-a.length);
+for(const k of Object.keys(EN))if(k.includes("{0}")){const ids=[];
+  const rx=k.replace(/[.*+?^$()|[\]\\]/g,"\\$&").replace(/\{(\d)\}/g,(_,d)=>{ids.push(+d);return"(.+?)"});ENP.push([new RegExp("^"+rx+"$"),ids,EN[k]])}
+function tr(s){if(LANG!=="en"||!s)return s;const k=String(s).trim();if(!k||!/[a-z]/i.test(k))return s;
+  let v=EN[k];
+  if(v==null)for(const [rx,ids,val] of ENP){const m=rx.exec(k);if(m){v=val.replace(/\{(\d)\}/g,(_,d)=>tr(m[ids.indexOf(+d)+1]));break}}
+  // ponytail: ganti potongan multi-kata (pesan gabungan dari JS/Java); kamus kalimat utuh kalau hasilnya janggal
+  if(v==null){let o=k;for(const f of ENS)if(o.includes(f))o=o.split(f).join(EN[f]);if(o!==k)v=o}
+  return v==null?s:String(s).replace(k,()=>v)}
+const I18N_SKIP=".console,script,style,textarea,[data-noi18n]",I18N_ATTR=["placeholder","title","aria-label"];
+function trAttr(el,a){const v=el.getAttribute(a);if(v){const t=tr(v);if(t!==v)el.setAttribute(a,t)}}
+function trNode(n){const p=n.parentElement;if(!p||p.closest(I18N_SKIP))return;const v=tr(n.data);if(v!==n.data)n.data=v}
+function trEl(el){if(el.closest(I18N_SKIP))return;I18N_ATTR.forEach(a=>trAttr(el,a));
+  const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);let n;
+  while((n=w.nextNode()))n.nodeType===3?trNode(n):I18N_ATTR.forEach(a=>trAttr(n,a))}
+if(LANG==="en"){
+  for(const f of ["alert","confirm","prompt"]){const o=window[f].bind(window);window[f]=(m,...a)=>o(tr(String(m??"")),...a)}
+  trEl(document.body);
+  new MutationObserver(ms=>{for(const m of ms){
+    if(m.type==="characterData")trNode(m.target);
+    else if(m.type==="attributes"){if(!m.target.closest(I18N_SKIP))trAttr(m.target,m.attributeName)}
+    else for(const n of m.addedNodes)n.nodeType===3?trNode(n):n.nodeType===1&&trEl(n)}})
+    .observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:I18N_ATTR})}
+// simpan pilihan lokal lalu reload; kalau storage tidak bisa dipakai, tidak reload (hindari loop)
+function setLang(l){try{localStorage.setItem("lang",l);if(localStorage.getItem("lang")===l&&l!==LANG)location.reload()}catch(e){}}
 let S={}, tab="home", logSince=0, tunnelSince=0, installedMods=[], installedPacks=[], loggingIn=false;
 
 function toast(msg,err){const d=document.createElement("div");if(err)d.className="err";d.textContent=msg;$("#toast").appendChild(d);setTimeout(()=>d.remove(),err?5200:2800)}
@@ -1069,6 +1100,7 @@ const initial=n=>esc((n||"?").trim().charAt(0).toUpperCase()||"?");
 let lastServer=null;
 async function refresh(){
   try{S=await api("/api/status")}catch(e){return}
+  if(S.lang&&S.lang!==LANG)return setLang(S.lang);
   const st=S.state, label=S.task?"Sibuk":STATE_ID[st]||st, has=!!S.serverId, ti=tinfo(S.type);
   if(S.deviceRamMb>0)deviceRam=S.deviceRamMb;
   const hp=$("#hdrPill");hp.className="pill "+(S.task?"starting":st);hp.textContent=label;
@@ -1251,7 +1283,7 @@ function lvOf(l,tag){if(l.startsWith("> "))return"cmd";if(tag==="Panel")return"p
   const c=cls(l);return c==="e"?"error":c==="w"?"warn":c==="p"?"panel":"info"}
 function logRow(l){const d=document.createElement("div"),m=LOGRX.exec(l),lv=lvOf(l,m&&m[2]);d.dataset.lv=lv;d._raw=l;
   if(m){const t=document.createElement("span"),b=document.createElement("span"),x=document.createElement("span");
-    t.className="lt";t.textContent=m[1];b.className="lb";b.textContent=lv==="panel"?"PANEL":lv.toUpperCase();x.className="lm";x.textContent=m[3];d.append(t,b,x)}
+    t.className="lt";t.textContent=m[1];b.className="lb";b.textContent=lv==="panel"?"PANEL":lv.toUpperCase();x.className="lm";x.textContent=lv==="panel"?tr(m[3]):m[3];d.append(t,b,x)}
   else d.textContent=l;
   return d}
 function renderLines(el,lines,keepScroll){
@@ -1583,6 +1615,8 @@ $("#propRaw").addEventListener("change",()=>{propLines=$("#propRaw").value.split
 $("#bSaveProps").onclick=async()=>{try{await api("/api/properties",{body:$("#propRaw").value,type:"text/plain; charset=utf-8"});toast("Tersimpan, restart server untuk menerapkan");loadProps()}catch(e){toast(e.message,true)}};
 
 // ---------------------------------------------------------- settings
+$("#langSel").value=LANG;
+$("#langSel").onchange=async e=>{const l=e.target.value;try{await api("/api/settings",{form:{lang:l}});setLang(l)}catch(err){toast(err.message,true)}};
 async function loadSettings(){try{const s=await api("/api/settings");
   for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer"])$("#"+k).checked=s[k];
   if(s.deviceRamMb>0)deviceRam=s.deviceRamMb;$("#customDomain").value=s.customDomain||"";$("#cfAutosync").checked=!!s.cfAutosync}catch(e){toast(e.message,true)}}

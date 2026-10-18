@@ -236,6 +236,7 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("taskProgress", host.progress())
                 .put("runtimeReady", host.runtimeReady())
                 .put("installed", host.mc.installed())
+                .put("lang", Host.lang)
                 .put("serverId", host.activeId())
                 .put("serverName", host.srv.get(Config.NAME, ""))
                 .put("type", host.hasServer() ? host.type() : "")
@@ -317,6 +318,12 @@ public class PanelApi implements MiniHttp.Handler {
                 c.set(Config.CF_TOKEN, cf.trim());
             }
             if ("true".equals(req.param("clearCfToken"))) c.set(Config.CF_TOKEN, "");
+            String lang = req.param("lang");
+            if (lang != null) {
+                if (!lang.equals("en") && !lang.equals("id")) throw new IllegalArgumentException("lang: en | id");
+                c.set(Config.LANG, lang);
+                Host.lang = lang;
+            }
             String auto = req.param("cfAutosync");
             if (auto != null) c.set(Config.CF_AUTOSYNC, String.valueOf("true".equals(auto)));
             String abh = req.param("autoBackupHours");

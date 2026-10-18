@@ -31,7 +31,7 @@ public class ServerService extends Service {
     private PowerManager.WakeLock wake;
     private WifiManager.WifiLock wifi;
     private NotificationManager nm;
-    private String lastSummary = "Menyiapkan panel...";
+    private String lastSummary = Host.tr("Starting panel...", "Menyiapkan panel...");
 
     public static Host host() {
         return host;
@@ -135,7 +135,7 @@ public class ServerService extends Service {
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setContentIntent(open)
-                .addAction(new Notification.Action.Builder(null, "Matikan semua", shut).build())
+                .addAction(new Notification.Action.Builder(null, Host.tr("Stop all", "Matikan semua"), shut).build())
                 .build();
     }
 }
