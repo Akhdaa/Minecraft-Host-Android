@@ -45,9 +45,13 @@ nav button.on{color:var(--accent)}
   .seg{top:76px}
   #toast{bottom:28px;left:calc(50% + 108px)}
 }
+@media(min-width:1024px){
+  #tab-home.on{display:grid;grid-template-columns:minmax(360px,1fr) minmax(0,1.25fr);grid-template-areas:"wel wel" "set set" "act log" "oth log";column-gap:14px;align-items:start}
+  #welcomeCard{grid-area:wel}#setupCard{grid-area:set}#activeCard{grid-area:act}#otherBox{grid-area:oth}
+  #logCard{grid-area:log;position:sticky;top:84px;height:calc(100vh - 108px);min-height:420px;display:flex;flex-direction:column}
+  #logCard .console.mini{flex:1;height:auto;min-height:0}
+}
 @media(min-width:1240px){
-  #tab-home.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:stretch}
-  #tab-home>.card{margin:0;display:flex;flex-direction:column}#tab-home>#setupCard,#tab-home>.card:last-child{grid-column:1/-1}
   #tab-home .online-box{flex:1;display:flex;flex-direction:column}#tab-home .online-box .onl{flex:1;align-content:flex-start}
   #tab-home .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   #tab-console.on{display:grid;grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:14px;align-items:stretch;height:calc(100vh - 140px);min-height:560px}
