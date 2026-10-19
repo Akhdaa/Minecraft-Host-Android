@@ -63,9 +63,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash scripts/build_playit.sh app/src/main/assets/runtime
 
-      - name: Kunci signing dari secrets (opsional)
-        if: env.KEYSTORE_BASE64 != ''
+      - name: Kunci signing dari secrets
         run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            # fork PRs get no secrets: debug-signed APK, never published
+            [ "${{ github.event_name }}" = pull_request ] && { echo "::warning::tanpa kunci release, APK debug"; exit 0; }
+            echo "::error::secret KEYSTORE_BASE64 kosong, build release butuh kunci signing"; exit 1
+          fi
           echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
           echo "KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
 

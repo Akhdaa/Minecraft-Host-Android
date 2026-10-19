@@ -19,9 +19,9 @@ public class McServer extends ManagedProcess {
     private static final Pattern JOIN = Pattern.compile("\\]: ([A-Za-z0-9_.]{2,20}) joined the game");
     private static final Pattern LEAVE = Pattern.compile("\\]: ([A-Za-z0-9_.]{2,20}) left the game");
     private static final Pattern SAVED = Pattern.compile("Saved the game|Saved the world");
-    // anchored to the logger's "]: " so chat ("]: <Player> ...") can't fake lag or pre-generation state
-    private static final Pattern LAG = Pattern.compile("]: Can't keep up!.*?Running (\\d{1,9})ms");
-    private static final Pattern CHUNKY = Pattern.compile("]: \\[Chunky] Task (running|finished|paused|stopped|cancelled) for ([\\w:/.-]+?)\\."
+    // matched with lookingAt() on the text after the logger's first "]: ", so chat ("<Player> ...") can't fake them
+    private static final Pattern LAG = Pattern.compile("Can't keep up!.*?Running (\\d{1,9})ms");
+    private static final Pattern CHUNKY = Pattern.compile("\\[Chunky] Task (running|finished|paused|stopped|cancelled) for ([\\w:/.-]+?)\\."
             + "(?: Processed: (\\d+) chunks \\((\\d{1,3}(?:\\.\\d+)?)%\\))?(?:, ETA: ([\\d:]+))?(?:, Rate: ([\\d.]+) cps)?");
 
     private final Host host;
@@ -173,11 +173,13 @@ public class McServer extends ManagedProcess {
 
     @Override
     protected void onLine(String line) {
-        Matcher lag = LAG.matcher(line);
-        if (lag.find()) host.recordLag(Long.parseLong(lag.group(1)));
-        if (line.toLowerCase(java.util.Locale.US).contains("chunky")) {
-            Matcher ck = CHUNKY.matcher(line);
-            if (ck.find()) host.chunkyLine(ck.group(1), ck.group(2), ck.group(4), ck.group(5), ck.group(6));
+        int at = line.indexOf("]: ");
+        String msg = at < 0 ? "" : line.substring(at + 3);
+        Matcher lag = LAG.matcher(msg);
+        if (lag.lookingAt()) host.recordLag(Long.parseLong(lag.group(1)));
+        if (msg.startsWith("[Chunky] ")) {
+            Matcher ck = CHUNKY.matcher(msg);
+            if (ck.lookingAt()) host.chunkyLine(ck.group(1), ck.group(2), ck.group(4), ck.group(5), ck.group(6));
         }
         if (!"running".equals(state) && DONE.matcher(line).find()) {
             state = "running";
