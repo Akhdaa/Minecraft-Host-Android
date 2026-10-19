@@ -46,8 +46,8 @@ nav button.on{color:var(--accent)}
   #toast{bottom:28px;left:calc(50% + 108px)}
 }
 @media(min-width:1024px){
-  #tab-home.on{display:grid;grid-template-columns:minmax(360px,1fr) minmax(0,1.25fr);grid-template-areas:"wel wel" "set set" "act log" "oth log";column-gap:14px;align-items:start}
-  #tab-home.on{grid-template-rows:auto auto auto 1fr}
+  #tab-home.on{display:grid;grid-template-columns:minmax(360px,1fr) minmax(0,1.25fr);grid-template-areas:"wel wel" "set set" "act log" "perf log" "oth log";column-gap:14px;align-items:start}
+  #tab-home.on{grid-template-rows:auto auto auto auto 1fr}#lagCard{grid-area:perf}
   #welcomeCard{grid-area:wel}#setupCard{grid-area:set}#activeCard{grid-area:act}#otherBox{grid-area:oth}
   #logCard{grid-area:log;position:sticky;top:84px;height:calc(100vh - 108px);min-height:420px;display:flex;flex-direction:column}
   #logCard .console.mini{flex:1;height:auto;min-height:0}
@@ -163,6 +163,10 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .mic img{width:100%;height:100%;object-fit:cover;display:block}.mrow .n a{color:inherit;text-decoration:none}
 .mprow{width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit}.mprow .n span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mpic{width:48px;height:48px;border-radius:11px;object-fit:cover;background:var(--card2);flex:none}
+.perfgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pchart{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px 8px;min-width:0}
+.pl{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.pl b{color:var(--text);font-size:14px;white-space:nowrap}.pchart svg{width:100%;height:44px;display:block;overflow:visible}
 .hide{display:none!important}
 .players{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .players span{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px}
@@ -439,6 +443,17 @@ nav .fab svg{width:26px;height:26px}
     </div>
   </div>
 
+  <div class="card" id="lagCard">
+    <h2><span class="grow">Performa</span><span class="small muted">1 jam terakhir</span></h2>
+    <div class="perfgrid">
+      <div class="pchart" id="pv-ram"><div class="pl"><span>RAM</span><b>-</b></div><svg viewBox="0 0 100 32" preserveAspectRatio="none"></svg></div>
+      <div class="pchart" id="pv-cpu"><div class="pl"><span>CPU</span><b>-</b></div><svg viewBox="0 0 100 32" preserveAspectRatio="none"></svg></div>
+      <div class="pchart" id="pv-temp"><div class="pl"><span>Suhu</span><b>-</b></div><svg viewBox="0 0 100 32" preserveAspectRatio="none"></svg></div>
+      <div class="pchart" id="pv-lag"><div class="pl"><span>Lag</span><b>-</b></div><svg viewBox="0 0 100 32" preserveAspectRatio="none"></svg></div>
+    </div>
+    <p class="small muted" id="perfEmpty" style="margin:10px 0 0">Grafik muncul setelah server jalan beberapa saat.</p>
+  </div>
+
   <div id="otherBox" class="hide">
     <h3 class="sect">Server lain <span class="cnt" id="otherCount"></span></h3>
     <div class="list" id="otherList"></div>
@@ -576,6 +591,21 @@ nav .fab svg{width:26px;height:26px}
         <button class="btn primary" id="bBackup">Backup sekarang</button>
         <label class="btn"><input type="file" id="worldUpload" accept=".zip" hidden>Upload world .zip</label>
       </div>
+    </div>
+
+    <div class="card" id="pgCard">
+      <h2><span class="grow">Pre-generate world</span><span class="pill" id="pgPill">-</span></h2>
+      <p class="small muted" style="margin:-4px 0 12px">Buat chunk di sekitar spawn duluan supaya main lebih lancar di HP. Memakai Chunky; server harus jalan.</p>
+      <div id="pgBar" class="hide" style="margin-bottom:12px"><div class="row" style="justify-content:space-between"><span class="small" id="pgText"></span><span class="small muted" id="pgPct"></span></div><div class="bar"><i id="pgFill" style="width:0"></i></div></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end">
+        <label class="f" id="pgRadiusBox" style="margin:0;min-width:150px"><span>Radius</span><select id="pgRadius"><option value="500">500 blok</option><option value="1000" selected>1000 blok</option><option value="2000">2000 blok</option><option value="3000">3000 blok</option></select></label>
+        <button class="btn primary hide" id="pgStart" type="button">Mulai generate</button>
+        <button class="btn hide" id="pgPause" type="button">Jeda</button>
+        <button class="btn primary hide" id="pgCont" type="button">Lanjutkan</button>
+        <button class="btn danger hide" id="pgCancel" type="button">Batal</button>
+        <button class="btn primary hide" id="pgInstall" type="button">Pasang Chunky</button>
+      </div>
+      <p class="small muted" id="pgNote" style="margin:10px 0 0"></p>
     </div>
 
     <div class="card">
@@ -970,7 +1000,7 @@ async function act(path,form,okMsg){try{await api(path,form?{form}:{post:true});
 const proxy=u=>api("/api/proxy?u="+encodeURIComponent(u));
 
 // ---------------------------------------------------------- nav
-function go(t){
+function go(t){setTimeout(()=>{loadPerf();loadPregen()},80);
   if(S.serverId===""&&(t==="mods"||t==="world"||t==="console")){toast("Buat server dulu",true);t="home"}
   tab=t;$$("nav button[data-tab]").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));$$("main section").forEach(s=>s.classList.toggle("on",s.id==="tab-"+t));
   window.scrollTo(0,0);
@@ -1870,6 +1900,45 @@ $$("select").forEach(dropdown);
 $("#cfgImport").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
   if(!await ask("Ganti pengaturan aplikasi dengan isi "+f.name+"?"))return;
   try{await api("/api/config/import",{method:"PUT",body:f});toast("Config dipulihkan");setTimeout(()=>location.reload(),800)}catch(err){toast(err.message,true)}};
+
+// ---- grafik performa: di HP ikut tab Konsol, di layar lebar pindah ke tab Server
+const PERF_DESK=matchMedia("(min-width:1024px)");
+function placePerf(){const c=$("#lagCard");if(PERF_DESK.matches)$("#tab-home").insertBefore(c,$("#otherBox"));else $("#tab-console").appendChild(c)}
+PERF_DESK.addEventListener("change",placePerf);placePerf();
+function sparkLine(vals,max,color){const n=vals.length;if(n<2)return"";let d="",open=false;
+  vals.forEach((x,i)=>{if(x<0){open=false;return}d+=(open?"L":"M")+(i/(n-1)*100).toFixed(2)+" "+(31-Math.min(1,x/max)*29).toFixed(2);open=true});
+  return d?'<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>':""}
+function sparkBars(vals,max,color){const n=vals.length,w=100/Math.max(n,1);
+  return vals.map((x,i)=>x>0?'<rect x="'+(i*w).toFixed(2)+'" y="'+(32-Math.min(1,x/max)*30).toFixed(2)+'" width="'+Math.max(w,.8).toFixed(2)+'" height="'+(Math.min(1,x/max)*30).toFixed(2)+'" fill="'+color+'"/>':"").join("")}
+const lastOk=a=>{for(let i=a.length-1;i>=0;i--)if(a[i]>=0)return a[i];return -1};
+async function loadPerf(){const c=$("#lagCard");if(!c||!c.offsetParent)return;
+  try{const p=await api("/api/perf"),n=p.t.length;$("#perfEmpty").classList.toggle("hide",n>=2);
+    const set=(id,html,val)=>{$("#"+id+" svg").innerHTML=html;$("#"+id+" b").textContent=val};
+    const ramMax=Math.max(p.ramMax,...p.ram,1),r=lastOk(p.ram),cpu=lastOk(p.cpu),tmp=lastOk(p.temp),spikes=p.lag.filter(x=>x>0).length;
+    set("pv-ram",sparkLine(p.ram,ramMax,"var(--accent)"),r>=0?(r/1024).toFixed(1)+" / "+(p.ramMax/1024).toFixed(1)+" GB":"-");
+    set("pv-cpu",sparkLine(p.cpu,100,"#60a5fa"),cpu>=0?cpu+"%":"-");
+    set("pv-temp",sparkLine(p.temp,Math.max(500,...p.temp),"#ffbd2e"),tmp>=0?(tmp/10).toFixed(1)+"°C":"-");
+    set("pv-lag",sparkBars(p.lag,Math.max(2000,...p.lag),"var(--bad)"),n<2?"-":spikes?spikes+" lonjakan":"Lancar")}catch(e){}}
+setInterval(loadPerf,10000);
+
+// ---- pre-generate world (Chunky): pasang, mulai, jeda, lanjut, batal + progress dari log Chunky
+let PG=null;
+async function loadPregen(){if(tab!=="world")return;try{PG=await api("/api/pregen");renderPregen()}catch(e){}}
+function renderPregen(){const p=PG;if(!p)return;const st=p.state,run=st==="running",pause=st==="paused",done=st==="finished";
+  const show=(id,on)=>$(id).classList.toggle("hide",!on),pct=done?100:p.pct;
+  show("#pgInstall",p.supported&&!p.installed);show("#pgStart",p.installed&&!run&&!pause);show("#pgPause",p.installed&&run);
+  show("#pgCont",p.installed&&pause);show("#pgCancel",p.installed&&(run||pause));show("#pgRadiusBox",p.installed&&!run&&!pause);
+  show("#pgBar",p.installed&&(run||pause||done));$("#pgFill").style.width=pct+"%";$("#pgPct").textContent=pct.toFixed(1)+"%";
+  $("#pgText").textContent=run?(p.eta?"ETA "+p.eta+" · "+p.rate+" chunk/dtk":"Sedang membuat chunk"):pause?"Dijeda":done?"Selesai 100%":"";
+  $("#pgPill").textContent=run?"Jalan":pause?"Dijeda":done?"Selesai 100%":st==="cancelled"?"Dibatalkan":"-";
+  $("#pgNote").textContent=!p.supported?"Vanilla tidak bisa memakai Chunky, pre-generate tidak tersedia.":!p.installed?"Chunky belum terpasang. Pasang dulu, lalu restart server.":!p.running?"Nyalakan server dulu untuk mulai pre-generate.":"";
+  $("#pgStart").disabled=!p.running;$("#pgCont").disabled=!p.running}
+async function pgAct(action,extra){try{await api("/api/pregen",{form:Object.assign({action},extra||{})});setTimeout(loadPregen,500);return true}catch(e){toast(e.message,true);return false}}
+$("#pgInstall").onclick=async()=>{if(await pgAct("install"))toast("Memasang Chunky, pantau di Konsol")};
+$("#pgStart").onclick=()=>pgAct("start",{radius:$("#pgRadius").value});
+$("#pgPause").onclick=()=>pgAct("pause");$("#pgCont").onclick=()=>pgAct("continue");
+$("#pgCancel").onclick=async()=>{if(await ask("Batalkan pre-generate? Chunk yang sudah dibuat tetap tersimpan."))pgAct("cancel")};
+setInterval(loadPregen,4000);
 // ---- modpack dari Modrinth (.mrpack): cari, pilih versi, server dibuat lengkap dengan mod-nya
 let mpTimer,mpHits=[],mpVers=[];
 function mpOpen(){if(S.task)return toast("Tunggu proses yang sedang jalan selesai",true);

@@ -19,6 +19,9 @@ public class McServer extends ManagedProcess {
     private static final Pattern JOIN = Pattern.compile("\\]: ([A-Za-z0-9_.]{2,20}) joined the game");
     private static final Pattern LEAVE = Pattern.compile("\\]: ([A-Za-z0-9_.]{2,20}) left the game");
     private static final Pattern SAVED = Pattern.compile("Saved the game|Saved the world");
+    private static final Pattern LAG = Pattern.compile("Can't keep up!.*?Running (\\d+)ms");
+    private static final Pattern CHUNKY = Pattern.compile("Task (running|finished|paused|stopped|cancelled) for ([\\w:/.-]+?)\\."
+            + "(?: Processed: (\\d+) chunks \\(([\\d.]+)%\\))?(?:, ETA: ([\\d:]+))?(?:, Rate: ([\\d.]+) cps)?");
 
     private final Host host;
     private volatile String state = "stopped";
@@ -169,6 +172,12 @@ public class McServer extends ManagedProcess {
 
     @Override
     protected void onLine(String line) {
+        Matcher lag = LAG.matcher(line);
+        if (lag.find()) host.recordLag(Long.parseLong(lag.group(1)));
+        if (line.toLowerCase(java.util.Locale.US).contains("chunky")) {
+            Matcher ck = CHUNKY.matcher(line);
+            if (ck.find()) host.chunkyLine(ck.group(1), ck.group(2), ck.group(4), ck.group(5), ck.group(6));
+        }
         if (!"running".equals(state) && DONE.matcher(line).find()) {
             state = "running";
             log.panel("Server siap dimainkan.");

@@ -69,6 +69,7 @@ public class Host {
         activate(ids.contains(want) ? want : ids.isEmpty() ? "" : ids.get(0));
         timer.scheduleWithFixedDelay(this::autoBackupTick, 2, 1, java.util.concurrent.TimeUnit.MINUTES);
         timer.scheduleWithFixedDelay(this::watchTick, 30, 30, java.util.concurrent.TimeUnit.SECONDS);
+        timer.scheduleWithFixedDelay(this::perfTick, 10, 10, java.util.concurrent.TimeUnit.SECONDS);
     }
 
     /** Before multi-server, the one server lived in server/ and its backups in backups/: it becomes servers/s1. */
@@ -389,7 +390,7 @@ public class Host {
 
     private void sleepTick() {
         int min = srv.getInt(SLEEP_MIN, 0);
-        if (min <= 0 || !"running".equals(mc.state()) || !task.isEmpty() || !mc.players().isEmpty()) {
+        if (min <= 0 || !"running".equals(mc.state()) || !task.isEmpty() || !mc.players().isEmpty() || pregenRunning()) {
             emptySince = 0;
             return;
         }
@@ -434,6 +435,155 @@ public class Host {
         lastHeat = now;
         notifyEvent(Config.NOTIFY_HEAT, tr("Phone is hot", "HP kepanasan"), String.format(Locale.US,
                 tr("Battery at %.1f°C. Lower the view distance or let it cool down.", "Baterai %.1f°C. Turunkan view distance atau biarkan HP dingin dulu."), t));
+    }
+
+    // ------------------------------------------------------------ performance graph
+
+    private static final int SAMPLES = 360; // one hour at one sample per 10 s
+    /** Ring buffer rows: time ms, RSS MB, CPU % of all cores, battery °C x10, ms behind ("Can't keep up") in the interval. */
+    private final long[][] perf = new long[SAMPLES][5];
+    private int perfCount, perfHead;
+    private long lastCpuTicks = -1, lastCpuAt;
+    private final java.util.concurrent.atomic.AtomicLong lagMs = new java.util.concurrent.atomic.AtomicLong();
+
+    void recordLag(long ms) {
+        lagMs.addAndGet(ms);
+    }
+
+    private void perfTick() {
+        try {
+            if (!mc.alive()) {
+                lastCpuTicks = -1;
+                return;
+            }
+            long now = System.currentTimeMillis(), ticks = mc.cpuTicks(), cpu = -1;
+            if (ticks >= 0 && lastCpuTicks >= 0 && now > lastCpuAt) {
+                // ticks are 1/100 s: percent of one core = dTicks * 1000 / dMs
+                cpu = Math.min(100, (ticks - lastCpuTicks) * 1000 / (now - lastCpuAt) / Runtime.getRuntime().availableProcessors());
+            }
+            lastCpuTicks = ticks;
+            lastCpuAt = now;
+            long temp = -1;
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"temp\"\\s*:\\s*([0-9.]+)").matcher(platform.batteryJson());
+            if (m.find()) temp = Math.round(Double.parseDouble(m.group(1)) * 10);
+            synchronized (perf) {
+                long[] r = perf[perfHead];
+                r[0] = now;
+                r[1] = mc.rssMb();
+                r[2] = cpu;
+                r[3] = temp;
+                r[4] = lagMs.getAndSet(0);
+                perfHead = (perfHead + 1) % SAMPLES;
+                if (perfCount < SAMPLES) perfCount++;
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** The last hour of samples, oldest first, as parallel arrays. */
+    public String perfJson() {
+        StringBuilder[] a = {new StringBuilder(), new StringBuilder(), new StringBuilder(), new StringBuilder(), new StringBuilder()};
+        synchronized (perf) {
+            for (int i = 0; i < perfCount; i++) {
+                long[] r = perf[(perfHead - perfCount + i + SAMPLES) % SAMPLES];
+                for (int k = 0; k < 5; k++) a[k].append(i > 0 ? "," : "").append(r[k]);
+            }
+        }
+        return Json.obj().raw("t", "[" + a[0] + "]").raw("ram", "[" + a[1] + "]").raw("cpu", "[" + a[2] + "]")
+                .raw("temp", "[" + a[3] + "]").raw("lag", "[" + a[4] + "]")
+                .put("ramMax", srv.getInt(Config.RAM_MB, 3072)).put("cores", Runtime.getRuntime().availableProcessors()).toString();
+    }
+
+    // ------------------------------------------------------------ pre-generation (Chunky)
+
+    private volatile String pregenState = "", pregenWorld = "", pregenEta = "", pregenRate = "";
+    private volatile double pregenPct;
+
+    /** Called by McServer for Chunky's progress lines. */
+    void chunkyLine(String state, String world, String pct, String eta, String rate) {
+        pregenState = "stopped".equals(state) ? "paused" : state; // "chunky pause" and a server stop both log "Task stopped"
+        pregenWorld = world;
+        if (pct != null) pregenPct = Double.parseDouble(pct);
+        pregenEta = eta == null ? "" : eta;
+        pregenRate = rate == null ? "" : rate;
+    }
+
+    public boolean pregenRunning() {
+        return "running".equals(pregenState) && mc.alive();
+    }
+
+    private static List<String> chunkyLoaders(String type) {
+        switch (type) {
+            case "paper":
+            case "purpur": return Arrays.asList("paper", "spigot", "bukkit");
+            case "fabric": return Collections.singletonList("fabric");
+            case "forge": return Collections.singletonList("forge");
+            case "neoforge": return Collections.singletonList("neoforge");
+            default: return null;
+        }
+    }
+
+    private boolean chunkyInstalled() {
+        String d = Software.addonDir(type());
+        if (d == null) return false;
+        String[] f = new File(serverDir, d).list((x, n) -> n.toLowerCase(Locale.US).startsWith("chunky") && n.endsWith(".jar"));
+        return f != null && f.length > 0;
+    }
+
+    public String pregenJson() {
+        String state = pregenState;
+        if ("running".equals(state) && !mc.alive()) state = "paused"; // Chunky keeps its progress; "continue" resumes it
+        return Json.obj().put("supported", hasServer() && chunkyLoaders(type()) != null).put("installed", hasServer() && chunkyInstalled())
+                .put("running", "running".equals(mc.state())).put("state", state).put("world", pregenWorld)
+                .put("pct", pregenPct).put("eta", pregenEta).put("rate", pregenRate).toString();
+    }
+
+    /** install | start (with radius) | pause | continue | cancel. */
+    public void pregen(String action, int radius) {
+        if (!hasServer()) throw new IllegalStateException("Buat server dulu");
+        if ("install".equals(action)) {
+            List<String> loaders = chunkyLoaders(type());
+            if (loaders == null) throw new IllegalArgumentException(tr("Chunky doesn't run on ", "Chunky tidak bisa dipakai di ") + Software.label(type()));
+            String mcVer = srv.get(Config.MC_VERSION, "");
+            File dir = new File(serverDir, Software.addonDir(type()));
+            runTask("Install Chunky", () -> {
+                dir.mkdirs();
+                Map<String, Object> v = modrinthVersion("chunky", loaders, mcVer);
+                if (v == null) throw new IOException(tr("Chunky isn't available for ", "Chunky belum ada untuk ") + Software.label(type()) + " " + mcVer);
+                downloadPrimary(v, dir);
+                mcLog.panel(tr("Chunky installed. Restart the server, then start pre-generating.", "Chunky terpasang. Restart server, lalu mulai pre-generate."));
+            });
+            return;
+        }
+        if (!"running".equals(mc.state())) throw new IllegalStateException(tr("Start the server first", "Nyalakan server dulu"));
+        if (!chunkyInstalled()) throw new IllegalStateException(tr("Install Chunky first", "Pasang Chunky dulu"));
+        switch (action) {
+            case "start":
+                if (radius < 100 || radius > 20000) throw new IllegalArgumentException("radius 100..20000");
+                mc.send("chunky spawn");
+                mc.send("chunky radius " + radius);
+                mc.send("chunky start");
+                mc.send("chunky confirm"); // only needed when an old task for this world is still saved
+                pregenState = "running";
+                pregenPct = 0;
+                pregenEta = "";
+                break;
+            case "pause":
+                mc.send("chunky pause");
+                pregenState = "paused";
+                break;
+            case "continue":
+                mc.send("chunky continue");
+                pregenState = "running";
+                break;
+            case "cancel":
+                mc.send("chunky cancel");
+                mc.send("chunky confirm");
+                pregenState = "cancelled";
+                break;
+            default:
+                throw new IllegalArgumentException("action?");
+        }
     }
 
     // ------------------------------------------------------------ Modrinth: Bedrock (Geyser) and modpacks

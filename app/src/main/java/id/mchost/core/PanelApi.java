@@ -86,6 +86,15 @@ public class PanelApi implements MiniHttp.Handler {
             case "/api/servers/delete": requirePost(post); host.deleteServer(req.param("id", "")); files.invalidate(); res.ok(); return;
             case "/api/start": requirePost(post); host.startServer(); res.ok(); return;
             case "/api/stop": requirePost(post); if (host.sleeping()) host.endSleep(); else host.mc.stop(); res.ok(); return;
+            case "/api/perf": res.json(200, host.perfJson()); return;
+            case "/api/pregen":
+                if (post) {
+                    host.pregen(req.param("action", ""), Integer.parseInt(req.param("radius", "1000").trim()));
+                    res.ok();
+                } else {
+                    res.json(200, host.pregenJson());
+                }
+                return;
             case "/api/bedrock": requirePost(post); host.setBedrock("true".equals(req.param("on"))); res.ok(); return;
             case "/api/servers/create-modpack": requirePost(post); host.createFromModpack(req.param("url", ""), req.param("name", ""), parseRam(req.param("ram", "4096"))); res.ok(); return;
             case "/api/restart": requirePost(post); host.mc.restart(); res.ok(); return;

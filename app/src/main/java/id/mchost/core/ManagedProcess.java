@@ -146,6 +146,23 @@ public abstract class ManagedProcess {
         return -1;
     }
 
+    /** CPU time used so far in clock ticks (utime + stime from /proc/<pid>/stat), or -1 if unknown. */
+    public long cpuTicks() {
+        int p;
+        synchronized (this) {
+            if (pid <= 0 && proc != null) pid = findPid(proc, pidHint);
+            p = pid;
+        }
+        if (p <= 0) return -1;
+        try {
+            String s = IO.readText(new File("/proc/" + p + "/stat"));
+            String[] f = s.substring(s.lastIndexOf(')') + 2).trim().split("\\s+"); // f[0] is field 3 (state)
+            return Long.parseLong(f[11]) + Long.parseLong(f[12]);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
     private static int findPid(Process p, String hint) {
         try { // Java 9+ / Android 13+
             Method m = Process.class.getMethod("pid");
