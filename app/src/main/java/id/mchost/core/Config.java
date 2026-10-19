@@ -35,6 +35,7 @@ public class Config {
     public static final String NOTIFY_SERVER = "notify_server";
     public static final String NOTIFY_PLAYERS = "notify_players";
     public static final String NOTIFY_HEAT = "notify_heat";
+    public static final String PORT_FORWARD = "port_forward";
     // per-server keys (servers/<id>/mchost.properties); RAM_MB, JVM_ARGS, MC_VERSION, LOADER, INSTALLER live there too
     public static final String NAME = "name";
     public static final String TYPE = "type";

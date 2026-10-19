@@ -135,6 +135,7 @@ public class PanelApi implements MiniHttp.Handler {
             case "/api/playit/tunnels": playitTunnels(req, res); return;
             case "/api/domain/info": domainInfo(req, res); return;
             case "/api/domain/sync": requirePost(post); domainSync(req, res); return;
+            case "/api/portforward/check": requirePost(post); portForwardCheck(res); return;
             case "/api/logout": requirePost(post); logout(req, res); return;
             default: res.error(404, "Endpoint tidak ada");
         }
@@ -297,6 +298,8 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("mcPort", host.property("server-port", "25565"))
                 .put("maxPlayers", host.property("max-players", "20"))
                 .put("customDomain", host.cfg.get(Config.CUSTOM_DOMAIN, ""))
+                .put("portForward", host.cfg.getBool(Config.PORT_FORWARD))
+                .put("publicIp", host.cfg.getBool(Config.PORT_FORWARD) ? publicIp(false) : "")
                 .raw("battery", host.platform.batteryJson())
                 .raw("playit", Json.obj().put("available", host.playit.available())
                         .put("state", host.playit.alive() ? "running" : host.playit.state())
@@ -344,7 +347,7 @@ public class PanelApi implements MiniHttp.Handler {
             for (String[] b : new String[][]{{"autoRestart", Config.AUTO_RESTART}, {"autoStart", Config.AUTO_START},
                     {"bootStart", Config.BOOT_START}, {"eula", Config.EULA}, {"playitAutostart", Config.PLAYIT_AUTOSTART},
                     {"playitWithServer", Config.PLAYIT_WITH_SERVER}, {"backupFull", Config.BACKUP_FULL}, {"notifyServer", Config.NOTIFY_SERVER},
-                    {"notifyPlayers", Config.NOTIFY_PLAYERS}, {"notifyHeat", Config.NOTIFY_HEAT}}) {
+                    {"notifyPlayers", Config.NOTIFY_PLAYERS}, {"notifyHeat", Config.NOTIFY_HEAT}, {"portForward", Config.PORT_FORWARD}}) {
                 String v = req.param(b[0]);
                 if (v != null) c.set(b[1], String.valueOf("true".equals(v)));
             }
@@ -403,6 +406,7 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("notifyServer", c.getBool(Config.NOTIFY_SERVER))
                 .put("notifyPlayers", c.getBool(Config.NOTIFY_PLAYERS))
                 .put("notifyHeat", c.getBool(Config.NOTIFY_HEAT))
+                .put("portForward", c.getBool(Config.PORT_FORWARD))
                 .put("hasPlayitSecret", !c.get(Config.PLAYIT_SECRET, "").isEmpty())
                 .put("customDomain", c.get(Config.CUSTOM_DOMAIN, ""))
                 .put("hasCfToken", !c.get(Config.CF_TOKEN, "").isEmpty())
@@ -837,6 +841,41 @@ public class PanelApi implements MiniHttp.Handler {
         String msg = Cloudflare.upsert(domain, target, token);
         host.tunnelLog.panel(msg + ": " + Cloudflare.srvName(domain) + " -> " + target.target + ":" + target.port);
         res.json(200, Json.obj().put("ok", true).put("message", msg).raw("record", target.json()).toString());
+    }
+
+    // ------------------------------------------------------------ router port forwarding (optional, instead of playit)
+
+    private volatile String publicIp = "";
+    private volatile long publicIpAt;
+
+    /** The home's public IPv4 (cached 10 min). Status calls refresh it in the background; the check waits for it. */
+    private String publicIp(boolean wait) {
+        if (System.currentTimeMillis() - publicIpAt > 10 * 60_000) {
+            publicIpAt = System.currentTimeMillis();
+            Runnable fetch = () -> {
+                try {
+                    String ip = new String(IO.fetch("https://api.ipify.org", 64), java.nio.charset.StandardCharsets.UTF_8).trim();
+                    if (ip.matches("\\d{1,3}(\\.\\d{1,3}){3}")) publicIp = ip;
+                } catch (IOException e) {
+                    publicIpAt = 0; // retry on the next call
+                }
+            };
+            if (wait) fetch.run();
+            else new Thread(fetch, "public-ip").start();
+        }
+        return publicIp;
+    }
+
+    /** Asks mcsrvstat.us to ping publicIp:port from the internet, i.e. whether the router rule works and there is no CGNAT. */
+    private void portForwardCheck(MiniHttp.Res res) throws IOException {
+        if (!"running".equals(host.mc.state())) throw new IllegalStateException(Host.tr("Start the server first", "Nyalakan server dulu"));
+        publicIpAt = 0;
+        String ip = publicIp(true);
+        if (ip.isEmpty()) throw new IOException(Host.tr("Couldn't get the public IP", "Gagal mengambil IP publik"));
+        String addr = ip + ":" + host.property("server-port", "25565");
+        java.util.Map<String, Object> r = Json.asMap(Json.parse(new String(IO.fetch("https://api.mcsrvstat.us/3/" + addr, 512 * 1024),
+                java.nio.charset.StandardCharsets.UTF_8)));
+        res.json(200, Json.obj().put("ok", true).put("online", Boolean.TRUE.equals(r.get("online"))).put("address", addr).toString());
     }
 
     // ------------------------------------------------------------ static

@@ -742,6 +742,24 @@ nav .fab svg{width:26px;height:26px}
       </details>
     </div>
 
+    <div class="card" id="pfCard">
+      <h2><span class="grow">Port forwarding router</span><span class="pill" id="pfPill">Opsional</span></h2>
+      <div class="sw"><div><div class="t">Pakai port forwarding</div><div class="d">Untuk internet rumah yang punya IP publik. Teman join langsung ke rumahmu tanpa playit, ping lebih kecil.</div></div><input type="checkbox" class="toggle" id="portForward"></div>
+      <div id="pfBox" class="hide">
+        <ol class="steps small">
+          <li>Buka pengaturan router (biasanya 192.168.1.1), cari menu Port Forwarding, Virtual Server, atau NAT.</li>
+          <li>Buat aturan ke IP HP ini dengan port di bawah (TCP, plus UDP kalau Bedrock aktif).</li>
+          <li>Pasang DHCP reservation untuk HP ini supaya IP-nya tidak berubah.</li>
+          <li>Nyalakan server lalu tekan Cek dari internet.</li>
+        </ol>
+        <div class="list" id="pfRows"></div>
+        <div class="row" style="margin-top:10px"><button class="btn primary" id="bPfCheck">Cek dari internet</button></div>
+        <p class="small" id="pfResult" style="margin:10px 0 0"></p>
+        <p class="small muted" style="margin:8px 0 0">Tidak bisa kalau ISP memakai CGNAT (IP WAN di router diawali 10. atau 100.64 sampai 100.127, atau beda dengan IP publik). Kalau begitu pakai playit.gg.</p>
+        <p class="small muted" style="margin:6px 0 0">Dicek lewat mcsrvstat.us, hasilnya bisa tertunda sekitar 1 menit.</p>
+      </div>
+    </div>
+
     <details class="card fold" id="tListCard">
       <summary><span class="grow">Semua tunnel <span class="cnt" id="tCount"></span></span><button class="btn small" id="bTunnelRefresh">Refresh</button></summary>
       <div class="list" id="tunnelList" style="margin-top:12px"></div>
@@ -1033,6 +1051,7 @@ function renderAddresses(){
   for(const t of (mc.length?mc:other)){
     const off=t.disabled_reason?"nonaktif: "+esc(t.disabled_reason):(run?"":"tunnel belum aktif");
     h+=ipRow("JAVA IP","java",t.display_address,off)}
+  if(S.portForward&&S.publicIp)h+=ipRow("PUBLIK","java",S.publicIp+port,"port forwarding router");
   if(S.playit&&S.playit.available&&!S.playit.hasSecret)h+=ipNote("JAVA IP","java","Belum ada alamat internet",'<a href="#" class="go" data-go="tunnel">Atur tunnel</a>');
   if(tunnels&&tunnels.pending)for(const p of tunnels.pending)h+=ipNote("JAVA IP","java","Menyiapkan alamat… "+esc(p.status_msg||""));
   if(S.playit&&S.playit.hasSecret&&tunnels&&!mc.length&&!other.length&&!(tunnels.pending||[]).length)h+=ipNote("JAVA IP","java","Belum ada tunnel Minecraft Java ke 127.0.0.1:"+esc(S.mcPort),'<a class="go" href="https://playit.gg/account/tunnels" target="_blank" rel="noopener">Buat</a>');
@@ -1043,7 +1062,7 @@ function renderAddresses(){
   h+=S.lan.map(ip=>ipRow("LAN","lan",ip+port,"satu WiFi")).join("");
   h+=S.lan.map(ip=>ipRow("PANEL","web","http://"+ip+":"+S.panelPort,"buka dari HP atau laptop lain")).join("");
   $("#addrList").innerHTML=h||ipNote("LAN","lan","Tidak terhubung ke WiFi");
-  renderTunnelList();renderTunnelHero();
+  renderTunnelList();renderTunnelHero();renderPf();
 }
 function renderTunnelList(){const box=$("#tunnelList");if(!box)return;$("#tCount").textContent=tunnels&&tunnels.tunnels?tunnels.tunnels.length:"";
   if(!S.playit||!S.playit.hasSecret){box.innerHTML='<div class="empty">Isi secret key dulu</div>';return}
@@ -1944,6 +1963,17 @@ $("#pgStart").onclick=()=>pgAct("start",{radius:$("#pgRadius").value});
 $("#pgPause").onclick=()=>pgAct("pause");$("#pgCont").onclick=()=>pgAct("continue");
 $("#pgCancel").onclick=async()=>{if(await ask("Batalkan pre-generate? Chunk yang sudah dibuat tetap tersimpan."))pgAct("cancel")};
 setInterval(loadPregen,4000);
+
+// ---- port forwarding router (opsional): IP + port untuk aturan router, alamat publik, cek dari internet
+function renderPf(){const on=!!S.portForward;$("#pfBox").classList.toggle("hide",!on);$("#pfPill").textContent=on?"Aktif":"Opsional";if(!on)return;
+  const me=typeof SV!=="undefined"&&SV&&SV.servers.find(x=>x.active);
+  $("#pfRows").innerHTML=S.lan.map(ip=>addrItem("IP HP (tujuan aturan)",ip)).join("")+addrItem("Port TCP (Java)",S.mcPort)+(me&&me.bedrock?addrItem("Port UDP (Bedrock)","19132"):"")+
+    (S.publicIp?addrItem("Alamat publik (untuk teman)",S.publicIp+(S.mcPort==="25565"?"":":"+S.mcPort),"IP publik rumah, bisa berubah kalau modem restart"):"")}
+$("#portForward").addEventListener("change",e=>{S.portForward=e.target.checked;renderPf()});
+$("#bPfCheck").onclick=async e=>{const b=e.target,r=$("#pfResult");b.disabled=true;r.style.color="";r.textContent="Mengecek dari internet…";
+  try{const d=await api("/api/portforward/check",{form:{}});r.style.color=d.online?"var(--accent)":"var(--bad)";
+    r.textContent=d.online?"Bisa diakses dari internet: "+d.address:"Belum bisa diakses dari internet ("+d.address+"). Cek aturan router, atau ISP memakai CGNAT."}
+  catch(err){r.style.color="var(--bad)";r.textContent=err.message}finally{b.disabled=false}};
 // ---- modpack dari Modrinth (.mrpack): cari, pilih versi, server dibuat lengkap dengan mod-nya
 let mpTimer,mpHits=[],mpVers=[];
 function mpOpen(){if(S.task)return toast("Tunggu proses yang sedang jalan selesai",true);
@@ -1980,11 +2010,11 @@ $("#importZip").onchange=async e=>{const f=e.target.files[0];e.target.value="";i
   try{toast("Upload "+f.name+"…");await api("/api/servers/import?name="+encodeURIComponent(f.name.replace(/[^\w.\-]/g,"_")),{method:"PUT",body:f});
     if(!$("#newModal").classList.contains("hide"))closeWizard();toast("Import dimulai, pantau di Konsol");refresh()}catch(err){toast(err.message,true)}};
 async function loadSettings(){$("#cfgRemote").classList.toggle("hide",!!S.local);$$("#bCfgExport,#cfgCard label").forEach(b=>b.classList.toggle("hide",!S.local));try{const s=await api("/api/settings");
-  for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer","backupFull","notifyServer","notifyPlayers","notifyHeat"])$("#"+k).checked=s[k];
+  for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer","backupFull","notifyServer","notifyPlayers","notifyHeat","portForward"])$("#"+k).checked=s[k];
   if(s.deviceRamMb>0)deviceRam=s.deviceRamMb;$("#customDomain").value=s.customDomain||"";$("#cfAutosync").checked=!!s.cfAutosync}catch(e){toast(e.message,true)}}
 let deviceRam=0;
 const gb=mb=>(mb/1024).toFixed(2).replace(/\.?0+$/,"")+" GB";
-for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer","backupFull","notifyServer","notifyPlayers","notifyHeat"])$("#"+k).onchange=e=>act("/api/settings",{[k]:String(e.target.checked)},"Tersimpan");
+for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer","backupFull","notifyServer","notifyPlayers","notifyHeat","portForward"])$("#"+k).onchange=e=>act("/api/settings",{[k]:String(e.target.checked)},"Tersimpan");
 $("#bSavePin").onclick=()=>{const p=$("#newPin").value.trim();act("/api/settings",{pin:p},"PIN diganti");$("#newPin").value=""};
 $("#bLogout").onclick=async()=>{await api("/api/logout",{post:true}).catch(()=>{});location.reload()};
 $("#bBattery").onclick=()=>bridge&&bridge.requestIgnoreBattery();
