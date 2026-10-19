@@ -1,0 +1,1940 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#141414">
+<title>MC Host Panel</title>
+<style>
+@font-face{font-family:"Space Grotesk";src:url(fonts/space-grotesk.woff2) format("woff2");font-weight:400 700;font-display:swap}
+:root{
+  /* Anvil-MC dark palette */
+  --bg:#141414;--bg2:#1c1c1c;--card:#1c1c1c;--card2:#262626;--line:#2e2e2e;--line2:#3a3a3a;--text:#f4f4f2;--muted:#a0a0a0;
+  --accent:#6be590;--accent2:#43cc6d;--online:#13ec13;--warn:#fb923c;--bad:#ff5f56;--info:#60a5fa;--purple:#a855f7;
+  --tint:rgba(67,204,109,.15);--radius:16px;--mono:ui-monospace,"JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  --font:"Space Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+input[type=range],input[type=checkbox]{accent-color:var(--accent2)}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 var(--font)}
+a{color:var(--info)}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:rgba(20,20,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;padding:10px 16px}
+.logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#6be590,#2fa35a);display:grid;place-items:center;font-weight:800;color:#0b1a10}
+header h1{font-size:16px;margin:0;font-weight:700}
+header .sub{font-size:12px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--bg2);border:1px solid var(--line)}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pill.running::before{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.pill.starting::before,.pill.stopping::before{background:var(--warn)}
+.pill.crashed::before{background:var(--bad)}
+main{max-width:980px;margin:0 auto;padding:16px 16px 96px}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:rgba(28,28,28,.97);border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+nav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:4px 6px;border-radius:10px;min-width:52px;cursor:pointer}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--accent)}
+@media(min-width:860px){
+  header{padding:12px 24px}
+  nav{top:0;bottom:0;left:0;right:auto;z-index:4;width:216px;flex-direction:column;justify-content:flex-start;gap:4px;background:var(--bg2);border-top:0;border-right:1px solid var(--line);padding:80px 12px 16px}
+  nav button{flex-direction:row;font-size:14px;gap:12px;justify-content:flex-start;padding:10px 12px;width:100%;min-width:0}
+  nav button.on{background:var(--card);box-shadow:inset 3px 0 0 var(--accent)}
+  main{margin:0 0 0 216px;max-width:none;padding:24px 32px 48px}
+  main>section,main>.banner{max-width:1100px;margin-left:auto;margin-right:auto}
+  .seg{top:76px}
+  #toast{bottom:28px;left:calc(50% + 108px)}
+}
+@media(min-width:1024px){
+  #tab-home.on{display:grid;grid-template-columns:minmax(360px,1fr) minmax(0,1.25fr);grid-template-areas:"wel wel" "set set" "act log" "oth log";column-gap:14px;align-items:start}
+  #tab-home.on{grid-template-rows:auto auto auto 1fr}
+  #welcomeCard{grid-area:wel}#setupCard{grid-area:set}#activeCard{grid-area:act}#otherBox{grid-area:oth}
+  #logCard{grid-area:log;position:sticky;top:84px;height:calc(100vh - 108px);min-height:420px;display:flex;flex-direction:column}
+  #logCard .console.mini{flex:1;height:auto;min-height:0}
+}
+@media(min-width:1240px){
+  #tab-home .online-box{flex:1;display:flex;flex-direction:column}#tab-home .online-box .onl{flex:1;align-content:flex-start}
+  #tab-home .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #tab-console.on{display:grid;grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:14px;align-items:stretch;height:calc(100vh - 140px);min-height:560px}
+  #tab-console>.card{margin:0;display:flex;flex-direction:column;min-height:0}
+  #tab-console .plist{flex:1;overflow:auto;min-height:0;padding-right:2px}
+  #tab-console .logwrap{flex:1;min-height:0;display:flex;flex-direction:column}
+  #tab-console #log{flex:1;height:auto;min-height:0}
+}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.grow{flex:1}
+.muted{color:var(--muted)}.small{font-size:12.5px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:620px){.grid{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat .k{font-size:12px;color:var(--muted)}.stat .v{font-size:18px;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{white-space:nowrap;border:1px solid var(--line);background:var(--bg2);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--line2)}
+.btn.primary{background:var(--accent2);border-color:var(--accent2);color:#08140c}
+.btn.primary:hover{background:var(--accent)}
+.btn.danger{color:var(--bad)}
+.btn.small{padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.big{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
+.big .btn{justify-content:center;padding:12px}
+input[type=text],input[type=password],input[type=number],select,textarea{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent2)}
+textarea{font-family:var(--mono);font-size:13px;min-height:260px;resize:vertical}
+label.f{display:block;margin-bottom:12px}
+label.f>span{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.sw:last-child{border-bottom:0}
+.sw .t{font-weight:600}.sw .d{font-size:12.5px;color:var(--muted)}
+.toggle{appearance:none;width:44px;height:26px;border-radius:99px;background:#3a3a3a;position:relative;cursor:pointer;flex:none;transition:.15s}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#d8d8d8;transition:.15s}
+.toggle:checked{background:var(--accent2)}.toggle:checked::after{left:21px;background:#fff}
+.console{background:#101010;border:1px solid var(--line);border-radius:12px;font:12.5px/1.5 var(--mono);padding:10px;height:56vh;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.console.mini{height:170px}
+.console .w{color:var(--warn)}.console .e{color:var(--bad)}.console .p{color:var(--info)}.console .c{color:var(--accent)}
+.cmd{display:flex;gap:8px;margin-top:10px}.cmd input{font-family:var(--mono)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{background:var(--bg2);border:1px solid var(--line);border-radius:99px;padding:5px 11px;font-size:12.5px;cursor:pointer}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:9px 11px}
+.item .n{flex:1;min-width:0}.item .n b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.item.off .n b{color:var(--muted);text-decoration:line-through}
+.item img{width:40px;height:40px;border-radius:9px;background:var(--card2);flex:none;object-fit:cover}
+.banner{border-radius:12px;padding:11px 13px;margin-bottom:14px;border:1px solid;font-size:14px}
+.banner.info{border-color:#2d4b66;background:#13212d}.banner.err{border-color:#6a2f2a;background:#2a1513}.banner.ok{border-color:#2e5a33;background:#132317}
+.steps{margin:0;padding-left:20px}.steps li{margin:6px 0}
+.done{color:var(--accent)}
+.empty{color:var(--muted);text-align:center;padding:18px;font-size:14px}
+code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px}
+.copy{cursor:pointer}
+#toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:20;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:min(92vw,460px)}
+#toast div{background:#262626;border:1px solid var(--line);padding:9px 14px;border-radius:10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+#toast div.err{border-color:#6a2f2a;background:#311a17}
+#login{position:fixed;inset:0;z-index:120;display:none;place-items:center;padding:20px;
+  background:radial-gradient(1200px 600px at 50% -10%,rgba(107,229,144,.14),transparent 60%),radial-gradient(800px 500px at 100% 110%,rgba(67,204,109,.10),transparent 60%),var(--bg)}
+.login-card{width:min(400px,100%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px 28px 24px;box-shadow:0 24px 60px rgba(0,0,0,.45);text-align:center}
+.login-card .logo{width:60px;height:60px;border-radius:16px;font-size:28px;margin:0 auto 14px}
+.login-card h1{margin:0;font-size:22px}.login-card>p{margin:6px 0 22px;color:var(--muted)}
+.login-card form{text-align:left}.login-card .pin{font-size:26px;padding:12px}
+.login-card button{width:100%;justify-content:center;padding:12px;margin-top:6px}
+#loginMsg{min-height:20px;margin:-4px 0 8px;text-align:center}
+.login-help{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.shake{animation:shake .35s}@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.pin{font-size:28px;letter-spacing:8px;text-align:center;font-family:var(--mono)}
+.bar{height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--accent2)}
+.intro{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;justify-content:center;overflow:auto;padding:28px 16px 20px}
+.iwrap{width:100%;max-width:440px;display:flex;flex-direction:column;gap:18px}
+.islide{flex:1}.islide .eye{color:var(--accent);font-size:12px;font-weight:700;letter-spacing:.08em}
+.islide h1{font-size:28px;line-height:1.15;margin:10px 0}.islide p{color:var(--muted);margin:0}
+.ipts{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:10px}
+.ipts li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.ipts li:before{content:"✓";color:var(--accent);font-weight:700}
+.ilogos{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}.ilogos img{width:44px;height:44px;border-radius:10px;background:var(--card2);object-fit:contain}
+.ilang{display:grid;gap:10px;margin-top:22px}.ilang .btn{justify-content:flex-start;height:56px;font-size:16px}
+.ilang .btn.on{border-color:var(--accent);color:var(--accent)}
+.inote{font-size:12px;color:var(--muted);margin-top:18px!important}
+.idots{display:flex;gap:6px;justify-content:center}.idots i{width:7px;height:7px;border-radius:9px;background:var(--line2);transition:width .2s}.idots i.on{background:var(--accent);width:20px}
+.ibtns{display:flex;gap:10px}.ibtns .btn{flex:1;height:48px;justify-content:center}
+#tour{position:fixed;inset:0;z-index:95}
+.tspot{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.7);outline:2px solid var(--accent);transition:all .25s;pointer-events:none}
+.tbub{position:fixed;left:16px;right:16px;max-width:380px;margin:0 auto;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:14px 16px;box-shadow:0 12px 32px rgba(0,0,0,.45);transition:top .25s}
+.tbub .tn{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.06em}.tbub b{display:block;font-size:17px;margin:4px 0 6px}
+.tbub p{margin:0 0 12px;color:var(--muted);font-size:14px;line-height:1.5}.tbub .row{display:flex;gap:8px;align-items:center}
+#otherBox{margin-bottom:14px}
+.pnames{flex:1;min-width:0;color:var(--muted);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mbar{display:flex;gap:8px;align-items:stretch}.mbar .btn{flex:none;gap:6px}
+.modal.ask{align-items:center;z-index:110}
+.askbox{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:18px;width:min(380px,calc(100% - 32px));box-shadow:0 16px 40px rgba(0,0,0,.5)}
+#askMsg{white-space:pre-line;margin:0 0 16px;line-height:1.5;word-break:break-word}.askbox input{width:100%;margin:-4px 0 16px}
+.askbox .row{display:flex;gap:8px;justify-content:flex-end}.askbox .btn.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+.dd{position:relative;display:block}.storebar .dd{flex:none}
+.dd>button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:40px;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:8px 12px;color:var(--text);font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.dd>button:after{content:"";width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);opacity:.6;transition:transform .15s}
+.dd.open>button:after{transform:translateY(2px) rotate(-135deg)}.dd>button:disabled{opacity:.5}
+.dd-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:100%;z-index:40;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:5px;box-shadow:0 12px 28px rgba(0,0,0,.45);max-height:290px;overflow:auto}
+.dd-menu button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--text);padding:9px 12px;border-radius:8px;font:inherit;font-size:14px;white-space:nowrap;cursor:pointer}
+.dd-menu button:hover{background:var(--bg2)}.dd-menu button.on{background:var(--accent2);color:#08140c;font-weight:600}
+@media(max-width:759px){.modal>.sheet:before{content:"";display:block;width:40px;height:4px;border-radius:4px;background:var(--line2);margin:-6px auto 10px}}
+.pill.sleeping::before{background:var(--info)}.sdot.sleeping{background:var(--info);box-shadow:0 0 8px var(--info)}
+.ipill.bed{background:rgba(45,212,191,.14);color:#2dd4bf}
+.mic{width:38px;height:38px;border-radius:9px;background:var(--card2);flex:none;display:grid;place-items:center;overflow:hidden;font-weight:700;color:var(--muted)}
+.mic img{width:100%;height:100%;object-fit:cover;display:block}.mrow .n a{color:inherit;text-decoration:none}
+.mprow{width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit}.mprow .n span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mpic{width:48px;height:48px;border-radius:11px;object-fit:cover;background:var(--card2);flex:none}
+.hide{display:none!important}
+.players{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.players span{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px}
+#srvRows{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#srvRows .item{padding:7px 10px}#srvRows .wide{grid-column:1/-1}
+#srvRows .n b{white-space:normal;word-break:break-all;font-family:var(--mono);font-size:13.5px}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;margin-left:6px;border:1px solid var(--line);background:var(--bg2);vertical-align:1px}
+.badge.on{color:var(--accent);border-color:#2e5a33}.badge.op{color:var(--warn);border-color:#5a4a2a}.badge.ban{color:var(--bad);border-color:#6a2f2a}.badge.wl{color:var(--info);border-color:#2d4b66}
+.pl{flex-wrap:wrap}.pl .acts{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.pl select{width:auto;padding:5px 8px;font-size:13px}
+.modal{position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.modal.hide{display:none}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:18px 18px 0 0;width:min(720px,100%);max-height:88vh;overflow:auto;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}
+@media(min-width:760px){.modal{align-items:center}.sheet{border-radius:18px}}
+.sheet-head{display:flex;align-items:center;gap:10px;position:sticky;top:-16px;background:var(--card);padding:4px 0 10px;margin-top:-4px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}.tabs button{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:8px;font-weight:600;color:var(--muted);cursor:pointer}
+.tabs button.on{color:var(--accent);border-color:var(--accent2)}
+.steps li{margin:10px 0;line-height:1.5}
+.kv{display:flex;justify-content:space-between;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:5px 10px;margin:5px 0;font-size:13px}.kv span{color:var(--muted)}
+.seg{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin-bottom:14px;position:sticky;top:58px;z-index:4}
+.seg button{flex:1;border:0;background:none;color:var(--muted);font-weight:700;padding:9px 6px;border-radius:9px;cursor:pointer}
+.seg button.on{background:var(--accent2);color:#08140c;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.seg .cnt{font-size:11px;background:var(--line);border-radius:99px;padding:1px 7px;margin-left:4px;color:var(--text)}
+.searchbox{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:0 11px;flex:1;min-width:0}
+.searchbox:focus-within{border-color:var(--accent2)}.searchbox svg{color:var(--muted);flex:none}
+.searchbox input{border:0;background:none;padding:10px 0;width:100%;outline:none}
+.storebar{display:flex;gap:8px;margin-bottom:10px}.storebar select{width:auto;flex:none}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;margin:0 -16px 10px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.chips.scroll::-webkit-scrollbar{display:none}.chips .chip{white-space:nowrap;flex:none}
+.chip.on{background:var(--accent2);border-color:var(--accent2);color:#08140c;font-weight:600}
+.feature{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#1f3326,var(--card))}
+.store{display:grid;grid-template-columns:1fr;gap:10px}@media(min-width:640px){.store{grid-template-columns:1fr 1fr}}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.mcard .top{display:flex;gap:11px;min-width:0}
+.mcard .ic{position:relative;width:52px;height:52px;border-radius:12px;background:var(--card2);flex:none;display:grid;place-items:center;font-weight:800;font-size:22px;color:var(--accent);overflow:hidden}
+.mcard .ic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mcard .t{min-width:0;flex:1}.mcard .t a{color:var(--text);font-weight:700;text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mcard .by{font-size:12px;color:var(--muted)}
+.mcard .d{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mcard .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted)}
+.tag{border:1px solid var(--line);border-radius:99px;padding:1px 8px;font-size:11.5px}.tag.warn{color:var(--warn);border-color:#5a4a2a}.tag.ok{color:var(--accent);border-color:#2e5a33}
+.mcard .btn{justify-content:center}
+.mrow{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 10px 10px 12px}
+.mrow .n{flex:1;min-width:0}.mrow .n b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-all;font-weight:600;font-size:14px;line-height:1.35}
+.mrow .n span{font-size:12px;color:var(--muted)}
+.mrow.off .n b{color:var(--muted)}
+.ibtn{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.ibtn.danger{color:var(--bad)}.ibtn:hover{border-color:var(--line2)}.ibtn:disabled{opacity:.35;cursor:default}.ibtn:disabled:hover{border-color:var(--line)}
+a.btn{color:var(--text);text-decoration:none}
+.menu.up{top:auto;bottom:calc(100% - 4px)}
+.pcard .ptabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:12px}
+.ptabs button{border:0;background:none;color:var(--muted);font-weight:700;font-size:13px;padding:8px 2px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.ptabs button.on{background:var(--card);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.ptabs .cnt{font-size:11px;background:var(--line);border-radius:99px;padding:0 6px;margin-left:3px}
+.padd{display:flex;gap:8px;margin-bottom:12px}.padd input{flex:1;min-width:0}
+.plist{display:flex;flex-direction:column;gap:6px}
+.prow{display:flex;align-items:center;gap:11px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 10px;position:relative}
+.prow .av{width:36px;height:36px;border-radius:8px;background:var(--card2);flex:none;display:grid;place-items:center;font-weight:800;color:var(--accent);overflow:hidden;position:relative;image-rendering:pixelated}
+.prow .av img{position:absolute;inset:0;width:100%;height:100%}
+.prow .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .nm small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);margin-right:6px;vertical-align:1px}
+.menu{position:absolute;right:8px;top:calc(100% - 4px);z-index:8;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.5);padding:6px;min-width:190px}
+.menu button{display:flex;width:100%;align-items:center;gap:8px;background:none;border:0;color:var(--text);padding:9px 10px;border-radius:8px;text-align:left;cursor:pointer;font-size:14px}
+.menu button:hover{background:var(--bg2)}.menu a{display:block;text-decoration:none}.menu button:disabled{opacity:.4;cursor:default;background:none}.menu button.bad{color:var(--bad)}.menu hr{border:0;border-top:1px solid var(--line);margin:4px 2px}
+.menu .lbl{font-size:11px;color:var(--muted);padding:6px 10px 2px;text-transform:uppercase;letter-spacing:.04em}
+.online-box{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.onl{display:flex;flex-wrap:wrap;gap:8px}
+.pchip{display:inline-flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:5px 10px 5px 5px;font-weight:600;font-size:14px}
+.av.sm{width:26px;height:26px;border-radius:6px;font-size:13px;background:var(--card2);display:grid;place-items:center;color:var(--accent);position:relative;overflow:hidden;image-rendering:pixelated;flex:none}
+.av.sm img{position:absolute;inset:0;width:100%;height:100%}
+details summary{cursor:pointer;color:var(--muted);font-size:13px;margin:6px 0}
+.wsum{display:flex;align-items:center;gap:12px}.wsum .n{flex:1;min-width:0}.wsum b{display:block;font-size:18px}
+.wico{width:46px;height:46px;border-radius:12px;background:var(--tint);color:var(--accent);display:grid;place-items:center;flex:none}
+.dims{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.dim{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:9px 11px;border-top:3px solid var(--c)}
+.dim .k{font-size:12px;color:var(--muted)}.dim .v{font-weight:700;font-size:15px;margin-top:2px;white-space:nowrap}
+.wact{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.wact .btn{flex:1;justify-content:center;min-width:150px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.brow{gap:10px}.bico,.fico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--tint);color:var(--accent)}
+.brow .n b{font-size:14px;-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block}
+@media(max-width:420px){.bico{display:none}.brow{padding-left:12px}}.brow .tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap}
+.tag.info{color:var(--info);border-color:#2d4b66}
+.dzone{border-color:#4a2a26}.dzone h2{color:var(--bad)}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+@media(min-width:700px){.quick{grid-template-columns:repeat(6,1fr)}}
+.qk{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 11px;cursor:pointer;text-align:left;color:var(--text);border-top:3px solid var(--c,var(--line))}
+.qk:hover{border-color:var(--line2)}.qk .k{font-weight:700;font-size:14px}.qk .v{font-size:12px;color:var(--muted);margin-top:2px}
+.qk:disabled{opacity:.45;cursor:default}
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-bottom:10px;font-size:14px}
+.crumbs button{background:none;border:0;color:var(--info);padding:4px 6px;border-radius:6px;cursor:pointer;font-weight:600}
+.crumbs button:last-child{color:var(--text);cursor:default}.crumbs .sep{color:var(--muted)}
+.ftool{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.ftool .ibtn{margin-left:auto}
+.ftool .btn svg{width:16px;height:16px}.ftool .btn.small{padding:6px 10px;gap:5px}
+.frow{cursor:pointer;position:relative}.frow:hover{border-color:var(--line2)}
+.fico.dir{background:#2b2a1c;color:#e8c55a}.fico.file{background:var(--card);color:var(--muted)}.fico.txt{background:#1c2a36;color:var(--info)}
+.frow .n b{-webkit-line-clamp:1}
+.edsheet{width:min(980px,100%);display:flex;flex-direction:column;height:88vh}
+#edText{flex:1;min-height:0;width:100%;font-size:13px;line-height:1.5;tab-size:2;white-space:pre;overflow:auto}
+@media(min-width:1240px){.wgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}}
+details.fold>summary{list-style:none;display:flex;align-items:center;gap:8px;margin:0;color:var(--text);font-weight:700;font-size:15px}
+details.fold>summary::-webkit-details-marker,details.sub>summary::-webkit-details-marker{display:none}
+details.fold>summary::before,details.sub>summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;flex:none;margin-right:2px}
+details.fold[open]>summary::before,details.sub[open]>summary::before{transform:rotate(45deg)}
+details.fold>summary .grow{flex:1;display:flex;align-items:center;gap:4px}
+#tSettings .sw:has(+#secretForm.hide){border-bottom:0}
+details.fold .cnt,.cnt{font-size:11px;background:var(--line);border-radius:99px;padding:1px 7px;margin-left:4px;color:var(--text);font-weight:700}
+details.sub{border-top:1px solid var(--line);margin-top:14px;padding-top:4px}
+details.sub>summary{list-style:none;display:flex;align-items:center;gap:8px;color:var(--text);font-weight:600;font-size:14px;margin:8px 0}
+.taddr{display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:14px}
+.taddr .n{flex:1;min-width:0}.taddr .addr{display:block;font-size:20px;font-weight:800;word-break:break-all;line-height:1.25;margin:2px 0}
+.tact{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}.tact .btn{min-width:140px;justify-content:center}
+.msteps{margin:0 0 14px;padding-left:20px;font-size:14px}.msteps li{margin:5px 0}
+@media(min-width:1240px){.tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}.tgrid .card{margin-bottom:14px}}
+/* ---------- Anvil-style chrome: header buttons, centre + button, sidebar extras */
+.hbtn{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--muted);cursor:pointer;flex:none;padding:0}
+.hbtn svg{width:20px;height:20px}.hbtn:hover{color:var(--text)}
+nav .side-only,nav .fab-side{display:none}
+nav .fab{width:54px;height:54px;min-width:0;flex:none;border-radius:18px;background:var(--accent2);color:#08140c;display:grid;place-items:center;margin-top:-22px;box-shadow:0 8px 24px rgba(67,204,109,.35);padding:0}
+nav .fab svg{width:26px;height:26px}
+@media(min-width:860px){
+  .hbtn{display:none}
+  nav .side-only{display:flex}
+  nav .fab{display:none}
+  nav .fab-side{display:flex;align-items:center;gap:10px;justify-content:center;background:var(--accent2);color:#08140c;border:0;border-radius:12px;padding:11px 12px;font-weight:700;font-size:14px;margin-bottom:10px;width:100%;cursor:pointer}
+  nav .fab-side svg{width:20px;height:20px}
+}
+/* ---------- server cards */
+.scard{padding:18px}
+.srow{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.sdot{width:10px;height:10px;border-radius:50%;background:#94a3b8;flex:none}
+.sdot.running{background:var(--online);box-shadow:0 0 10px var(--online)}.sdot.starting,.sdot.stopping{background:#ffbd2e}.sdot.crashed{background:var(--bad)}
+.sstate{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sid{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.sico{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:22px;flex:none;background:var(--c,var(--card2));color:#101010}
+.sid .n{min-width:0}.sid b{display:block;font-size:21px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sid span{color:var(--muted);font-size:14px}
+.ipbox{background:var(--card2);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:12px}
+.iprow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line)}.iprow:first-child{border-top:0}
+.iprow .v{flex:1;min-width:0;font-size:14px;font-weight:600;word-break:break-all}.iprow .v small{display:block;color:var(--muted);font-size:12px;font-weight:400}
+.iprow .v.dim{color:var(--muted);font-weight:400}
+.ipill{font-size:10px;font-weight:700;letter-spacing:.05em;padding:3px 7px;border-radius:6px;flex:none;white-space:nowrap}
+.ipill.java{color:#fb923c;background:rgba(251,146,60,.14)}.ipill.dom{color:var(--accent);background:var(--tint)}
+.ipill.lan{color:#60a5fa;background:rgba(96,165,250,.14)}.ipill.web{color:#c084fc;background:rgba(168,85,247,.14)}
+.iprow .ibtn{width:34px;height:34px}.iprow a.go{color:var(--accent);font-weight:600;font-size:13px;text-decoration:none;white-space:nowrap}
+.pbar{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:10px 12px;margin-bottom:12px}
+.heads{display:flex;min-height:30px;align-items:center}.heads .av{width:30px;height:30px;border-radius:8px;margin-left:-8px;border:2px solid var(--card2)}.heads .av:first-child{margin-left:0}
+.heads .more{width:30px;height:30px;border-radius:8px;margin-left:-8px;background:var(--line);display:grid;place-items:center;font-size:12px;font-weight:700;border:2px solid var(--card2)}
+.heads .none{color:var(--muted);font-size:13px}
+.pbar .n{display:flex;flex-direction:column;margin-left:auto;text-align:right}.pbar .n b{font-size:14px}.pbar .n a{font-size:12.5px;color:var(--accent);text-decoration:none}
+.usage{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.usage>div{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:9px 11px;min-width:0}
+.usage span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.usage b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.sbtns{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}.sbtns .btn{justify-content:center;padding:12px}
+.sicons{display:flex;gap:8px;margin-top:10px}.sicons .ibtn{flex:1;width:auto;height:42px}.sicons svg{width:20px;height:20px}
+.sect{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:20px 2px 10px;display:flex;align-items:center;gap:6px;font-weight:700}
+.ocard{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;text-align:left;color:var(--text);width:100%;cursor:pointer}
+.ocard:hover{border-color:var(--line2)}.ocard .sico{width:44px;height:44px;font-size:18px;border-radius:10px}
+.ocard .n{flex:1;min-width:0}.ocard b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ocard .n span{font-size:13px;color:var(--muted)}
+.ocard .go{color:var(--accent);font-weight:700;font-size:13px;white-space:nowrap}.ocard[aria-disabled=true] .go{color:var(--muted)}
+.welcome{text-align:center;padding:30px 20px}.welcome h2{justify-content:center;font-size:20px}.welcome p{max-width:440px;margin:0 auto 18px}
+.wico2{width:64px;height:64px;border-radius:18px;background:var(--tint);color:var(--accent);display:grid;place-items:center;margin:0 auto 12px}.wico2 svg{width:30px;height:30px}
+/* ---------- create-server wizard */
+.wiz{width:min(620px,100%)}
+.step{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--accent)}
+.wbar{height:4px;background:var(--card2);border-radius:99px;overflow:hidden;margin:6px 0}.wbar i{display:block;height:100%;width:25%;background:var(--accent2);transition:width .2s}
+.choice{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card2);border:1.5px solid var(--line);border-radius:16px;padding:12px;margin-bottom:8px;color:var(--text);cursor:pointer}
+.choice.on{border-color:var(--accent2);background:linear-gradient(var(--tint),var(--tint)),var(--card2)}
+.choice .sico{width:44px;height:44px;font-size:18px;border-radius:10px}
+.choice .n{flex:1;min-width:0}.choice b{font-size:15px}.choice .d{font-size:12.5px;color:var(--muted);margin-top:2px}
+.radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--line2);flex:none}.choice.on .radio{border:6px solid var(--accent2)}
+.vlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:46vh;overflow:auto;padding:2px}
+.vchip{background:var(--card2);border:1.5px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;font-weight:600;cursor:pointer;color:var(--text)}
+.vchip.on{border-color:var(--accent2);color:var(--accent)}
+.presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 14px}
+.presets button{background:var(--card2);border:1.5px solid var(--line);border-radius:12px;padding:10px 6px;color:var(--text);cursor:pointer;font-weight:700}
+.presets button small{display:block;color:var(--muted);font-weight:400;font-size:12px}.presets button.on{border-color:var(--accent2)}
+.sumrow{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}.sumrow span{color:var(--muted)}.sumrow b{text-align:right}
+.wfoot{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom));background:var(--card);padding:12px 0 4px;margin-top:14px}.wfoot .btn{width:100%;justify-content:center;padding:13px}
+.eula{display:flex;gap:10px;align-items:flex-start;margin:16px 0 0;font-size:14px}.eula input{margin-top:3px}
+.cnt:empty{display:none}
+.sgear{width:34px;height:34px;margin-left:4px}.sgear svg{width:18px;height:18px}
+.sico:has(img){background:var(--card2);overflow:hidden}.sico img{width:100%;height:100%;object-fit:contain;display:block}
+/* ---------- Anvil-style console */
+.chead{display:flex;align-items:center;gap:8px;margin:-4px 0 10px}.chead .ibtn{width:34px;height:34px}
+.live{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.live i{width:8px;height:8px;border-radius:50%;background:#94a3b8}.live i.on{background:var(--online);box-shadow:0 0 8px var(--online)}
+.findbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.lvls{margin:0 -16px 8px}.lvls .chip b{font-weight:700;opacity:.75;margin-left:2px}
+.logwrap{position:relative}
+.console>div{display:flex;gap:8px;align-items:baseline;padding:1px 0}
+.console .lt{flex:none;color:var(--muted);font-size:11.5px}
+.console .lb{flex:none;font-size:10px;font-weight:700;letter-spacing:.03em;padding:0 5px;border-radius:4px;background:var(--card2);color:var(--muted)}
+.console .lm{flex:1;min-width:0;word-break:break-word}
+.console [data-lv=warn]{color:#ffbd2e}.console [data-lv=warn] .lb{background:rgba(255,189,46,.15);color:#ffbd2e}
+.console [data-lv=error]{color:var(--bad)}.console [data-lv=error] .lb{background:rgba(255,95,86,.15);color:var(--bad)}
+.console [data-lv=panel]{color:var(--info)}.console [data-lv=panel] .lb{background:rgba(96,165,250,.15);color:var(--info)}
+.console [data-lv=cmd]{color:var(--accent)}
+#log[data-f=info]>div:not([data-lv=info]),#log[data-f=warn]>div:not([data-lv=warn]),#log[data-f=error]>div:not([data-lv=error]),
+#log[data-f=panel]>div:not([data-lv=panel]),#log[data-f=cmd]>div:not([data-lv=cmd]),#log.q>div:not(.hit){display:none}
+#log.q>.hit .lm,#log.q>.hit:not(:has(.lm)){background:rgba(107,229,144,.12)}
+.lempty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}.lempty a{pointer-events:auto;color:var(--accent)}
+.jump{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:6px;background:var(--accent2);color:#08140c;border:0;border-radius:99px;padding:7px 12px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4)}
+.jump svg{width:15px;height:15px}
+.cchips,.chips.scroll.cchips{margin:10px -16px 0}.cchips .chip{font-family:var(--mono);font-size:12px}
+@media(min-width:860px){.cchips.scroll{flex-wrap:wrap;overflow:visible;margin:10px 0 0;padding:0}}
+.cmd{position:relative}.cmd .ibtn{flex:none;width:40px;height:auto}
+.menu.hist{top:auto;bottom:calc(100% + 6px);left:0;right:auto;max-height:260px;overflow:auto;min-width:240px}
+.menu.hist button{font-family:var(--mono);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">M</div>
+  <div style="flex:1;min-width:0">
+    <h1>MC Host</h1>
+    <div class="sub" id="hdrSub">Server Minecraft di HP</div>
+  </div>
+  <span class="pill" id="hdrPill">memuat</span>
+  <button class="hbtn" data-go="tunnel" aria-label="Tunnel &amp; domain" title="Tunnel &amp; domain"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18a8 8 0 0 1 16 0M8 18a4 4 0 0 1 8 0"/><circle cx="12" cy="18" r="1"/></svg></button>
+  <button class="hbtn" data-go="server" aria-label="Pengaturan" title="Pengaturan"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+</header>
+
+<nav id="nav">
+  <button class="fab-side" id="bNewSide" type="button"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Buat server</span></button>
+  <button data-tab="home" class="on"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg><span>Server</span></button>
+  <button data-tab="console"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg><span>Konsol</span></button>
+  <button class="fab" id="bNew" type="button" aria-label="Buat server"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button data-tab="mods"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg><span id="navAddon">Add-on</span></button>
+  <button data-tab="world"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Dunia</span></button>
+  <button data-tab="tunnel" class="side-only"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18a8 8 0 0 1 16 0M8 18a4 4 0 0 1 8 0"/><circle cx="12" cy="18" r="1"/></svg><span>Tunnel</span></button>
+  <button data-tab="server" class="side-only"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Pengaturan</span></button>
+</nav>
+
+<main>
+<div id="taskBanner" class="banner info hide"></div>
+<div id="errBanner" class="banner err hide"></div>
+
+<!-- ============================== SERVERS (home) -->
+<section id="tab-home" class="on">
+  <div class="card welcome hide" id="welcomeCard">
+    <div class="wico2"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg></div>
+    <h2>Selamat datang di MC Host</h2>
+    <p class="muted">Bikin server Minecraft pertamamu. Pilih Paper untuk plugin, Fabric, Forge, atau NeoForge untuk mod, atau Vanilla yang polos.</p>
+    <button class="btn primary" data-new>Buat server pertama</button>
+  </div>
+
+  <div class="card" id="setupCard">
+    <h2>Persiapan awal</h2>
+    <ol class="steps">
+      <li id="stRuntime">Runtime disiapkan otomatis</li>
+      <li id="stFabric">Buat server dengan tombol <b>+</b></li>
+      <li id="stEula">Setujui EULA Minecraft saat membuat server</li>
+      <li id="stStart">Tekan <b>Start</b>, start pertama butuh waktu lebih lama</li>
+    </ol>
+  </div>
+
+  <div class="card scard" id="activeCard">
+    <div class="srow"><span class="sdot" id="sDot"></span><b class="sstate" id="statePill">-</b><span class="small muted" id="sUp"></span><span class="grow"></span><span class="tag" id="sJava"></span><button class="ibtn sgear" id="bSrvSettings" title="Pengaturan server" aria-label="Pengaturan server"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+    <div class="sid"><div class="sico" id="sIco">?</div><div class="n"><b id="sName">-</b><span id="sInfo">-</span></div></div>
+    <div class="ipbox" id="addrList"></div>
+    <div class="pbar">
+      <div class="pnames" id="playerList"></div>
+      <div class="n"><b id="sPlayers">0</b><a href="#" data-go="console">Kelola pemain</a></div>
+    </div>
+    <div class="usage">
+      <div><span>RAM</span><b id="sRam">-</b><div class="bar"><i id="sRamBar" style="width:0"></i></div></div>
+      <div><span>Uptime</span><b id="sUptime">-</b></div>
+      <div><span>Baterai HP</span><b id="sBatt">-</b></div>
+    </div>
+    <div class="sbtns">
+      <button class="btn primary" id="bStart"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg> Start</button>
+      <button class="btn" id="bStop">Stop</button>
+      <button class="btn" id="bRestart">Restart</button>
+    </div>
+  </div>
+
+  <div id="otherBox" class="hide">
+    <h3 class="sect">Server lain <span class="cnt" id="otherCount"></span></h3>
+    <div class="list" id="otherList"></div>
+  </div>
+
+  <div class="card" id="logCard">
+    <h2><span class="grow">Log terbaru</span><button class="btn small" data-go="console">Buka konsol</button></h2>
+    <div class="console mini" id="miniLog"></div>
+  </div>
+</section>
+
+<!-- ============================== CONSOLE -->
+<section id="tab-console">
+  <div class="card pcard">
+    <h2><span class="grow">Pemain</span>
+      <label class="small muted row" style="gap:8px">Whitelist <input type="checkbox" class="toggle" id="wlToggle"></label>
+    </h2>
+    <div class="ptabs" id="plTabs" role="tablist">
+      <button data-pt="online" class="on">Online <span class="cnt" id="cOnline">0</span></button>
+      <button data-pt="whitelist">Whitelist <span class="cnt" id="cWl">0</span></button>
+      <button data-pt="ops">OP <span class="cnt" id="cOps">0</span></button>
+      <button data-pt="banned">Banned <span class="cnt" id="cBan">0</span></button>
+    </div>
+    <div id="plNote" class="small muted" style="margin:0 0 10px"></div>
+    <form class="padd hide" id="plAddForm">
+      <input type="text" id="plName" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20">
+      <button class="btn primary" id="plAddBtn">Tambah</button>
+    </form>
+    <div class="plist" id="plList"><div class="empty">Memuat…</div></div>
+  </div>
+  <div class="card ccard">
+    <div class="chead"><span class="live"><i id="liveDot"></i>LIVE OUTPUT</span><span class="grow"></span>
+      <button class="ibtn" id="bLogFind" title="Cari di log" aria-label="Cari di log"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <button class="ibtn" id="bLogCopy" title="Salin semua log" aria-label="Salin semua log"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
+      <button class="btn small danger" id="bKill" title="Matikan paksa">Kill</button></div>
+    <div class="findbar hide" id="findBar"><div class="searchbox"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="logQ" placeholder="Cari di log" autocomplete="off" spellcheck="false"></div><span class="small muted" id="logQn"></span></div>
+    <div class="chips scroll lvls" id="lvlPills"><span class="chip on" data-lvl="">Semua <b class="cnt"></b></span><span class="chip" data-lvl="info">INFO <b class="cnt"></b></span><span class="chip" data-lvl="warn">WARN <b class="cnt"></b></span><span class="chip" data-lvl="error">ERROR <b class="cnt"></b></span><span class="chip" data-lvl="panel">Panel <b class="cnt"></b></span><span class="chip" data-lvl="cmd">Perintah <b class="cnt"></b></span></div>
+    <div class="logwrap"><div class="console" id="log"></div><div class="empty lempty hide" id="logEmpty"></div><button class="jump hide" id="bJump" type="button"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Ke terbaru</button></div>
+    <div class="chips scroll cchips" id="chips">
+      <span class="chip" data-cmd="list">list</span>
+      <span class="chip" data-cmd="save-all">save-all</span>
+      <span class="chip" data-cmd="whitelist on">whitelist on</span>
+      <span class="chip" data-cmd="whitelist list">whitelist list</span>
+      <span class="chip" data-fill="whitelist add ">whitelist add …</span>
+      <span class="chip" data-fill="op ">op …</span>
+      <span class="chip" data-fill="kick ">kick …</span>
+      <span class="chip" data-cmd="time set day">siang</span>
+      <span class="chip" data-cmd="weather clear">cerah</span>
+      <span class="chip" data-fill="say ">say …</span>
+      <span class="chip" data-diff="peaceful">Peaceful</span>
+      <span class="chip" data-diff="easy">Easy</span>
+      <span class="chip" data-diff="normal">Normal</span>
+      <span class="chip" data-diff="hard">Hard</span>
+      <span class="chip" data-fill="chunky radius 1000">chunky radius</span>
+      <span class="chip" data-cmd="chunky start">chunky start</span>
+    </div>
+    <form class="cmd" id="cmdForm">
+      <button type="button" class="ibtn" id="bHist" title="Riwayat perintah" aria-label="Riwayat perintah"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
+      <input type="text" id="cmdInput" placeholder="ketik command, contoh: op NamaKamu" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="btn primary">Kirim</button>
+      <div class="menu hist hide" id="histMenu"></div>
+    </form>
+  </div>
+</section>
+
+<!-- ============================== MODS -->
+<section id="tab-mods">
+  <div class="seg" id="modSeg">
+    <button data-mv="manage" class="on">Kelola mod <span class="cnt" id="modBadge"></span></button>
+    <button data-mv="store">Store Modrinth</button>
+  </div>
+  <div id="modRestart" class="banner info row hide" style="justify-content:space-between">
+    <span>Perubahan mod berlaku setelah server restart.</span><button class="btn small primary" id="bModRestart">Restart</button>
+  </div>
+
+  <div id="mv-manage">
+    <div class="card">
+      <div class="mbar"><div class="searchbox"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="modFilter" placeholder="Cari mod terpasang" autocomplete="off" autocapitalize="off" spellcheck="false"></div><label class="btn primary" title="Upload .jar"><input type="file" id="modUpload" accept=".jar" multiple hidden><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>Upload</label></div>
+      <div class="chips" id="modShow" style="margin:10px 0 4px">
+        <span class="chip on" data-show="all">Semua</span><span class="chip" data-show="on">Aktif</span><span class="chip" data-show="off">Nonaktif</span>
+      </div>
+      <div class="row" style="justify-content:space-between;margin:8px 0 10px">
+        <span class="small muted" id="modCount"></span>
+        
+      </div>
+      <div id="modUpdBar" class="banner info row hide" style="justify-content:space-between;margin:0 0 10px"><span id="modUpdText"></span><button class="btn small primary" id="bModUpdAll" type="button">Update semua</button></div>
+      <div class="list" id="modList"><div class="empty">Memuat…</div></div>
+      <p class="small muted" style="margin:12px 0 0">Mod konten (item, mob, dimensi) wajib dipasang juga di client teman dengan versi yang sama. Mod optimasi cukup di server.</p>
+    </div>
+  </div>
+
+  <div id="mv-store" class="hide">
+    <div class="storebar">
+      <div class="searchbox"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="searchInput" placeholder="Cari di Modrinth" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"></div>
+      <select id="storeSort" aria-label="Urutkan"><option value="downloads">Populer</option><option value="relevance">Relevan</option><option value="follows">Disukai</option><option value="updated">Baru update</option><option value="newest">Terbaru</option></select>
+    </div>
+    <div class="chips" id="storeType" style="margin:0 0 10px"><span class="chip on" data-type="mod">Mod</span><span class="chip" data-type="datapack">Datapack</span></div>
+    <div class="chips scroll" id="storeCats">
+      <span class="chip on" data-cat="">Semua</span><span class="chip" data-cat="optimization">Optimasi</span><span class="chip" data-cat="utility">Utilitas</span>
+      <span class="chip" data-cat="adventure">Petualangan</span><span class="chip" data-cat="decoration">Dekorasi</span><span class="chip" data-cat="storage">Penyimpanan</span>
+      <span class="chip" data-cat="technology">Teknologi</span><span class="chip" data-cat="magic">Sihir</span><span class="chip" data-cat="worldgen">Worldgen</span>
+      <span class="chip" data-cat="mobs">Mob</span><span class="chip" data-cat="equipment">Peralatan</span><span class="chip" data-cat="food">Makanan</span>
+      <span class="chip" data-cat="management">Admin</span><span class="chip" data-cat="library">Library</span>
+    </div>
+    <div class="card feature" id="perfCard">
+      <div style="flex:1;min-width:0"><b>Paket optimasi HP</b><div class="small muted">Fabric API, Lithium, FerriteCore, Krypton, ModernFix, Chunky. Cukup di server.</div></div>
+      <button class="btn small primary" id="bPerfPack">Pasang semua</button>
+    </div>
+    <div class="small muted" id="searchHint" style="margin:0 2px 10px">Hanya mod Fabric untuk versi server kamu yang bisa jalan di server.</div>
+    <div class="store" id="searchResults"></div>
+    <div id="storeMore" class="small muted" style="text-align:center;padding:18px 0 6px;min-height:40px"></div>
+  </div>
+</section>
+
+<!-- ============================== WORLD -->
+<section id="tab-world">
+  <div class="seg" id="worldSeg">
+    <button data-wv="backup" class="on">Backup</button>
+    <button data-wv="files">File world</button>
+    <button data-wv="props">Pengaturan</button>
+  </div>
+
+  <div id="wv-backup">
+   <div class="wgrid">
+    <div class="wcol">
+    <div class="card">
+      <div class="wsum"><div class="wico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div>
+        <div class="n"><b id="wName">world</b><span class="small muted" id="wMeta">Memuat…</span></div></div>
+      <div class="dims" id="wDims"></div>
+      <div id="bProgress" class="hide" style="margin-top:12px">
+        <div class="row" style="justify-content:space-between"><span class="small" id="bProgText"></span><span class="small muted" id="bProgPct"></span></div>
+        <div class="bar"><i id="bProgBar" style="width:0"></i></div>
+      </div>
+      <div class="wact">
+        <button class="btn primary" id="bBackup">Backup sekarang</button>
+        <label class="btn"><input type="file" id="worldUpload" accept=".zip" hidden>Upload world .zip</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="grow">Backup otomatis</span><input type="checkbox" class="toggle" id="abOn" aria-label="Backup otomatis"></h2>
+      <p class="small muted" id="abInfo" style="margin:-4px 0 10px"></p>
+      <div class="grid2" id="abOpts">
+        <label class="f"><span>Setiap</span><select id="abHours"><option value="1">1 jam</option><option value="2">2 jam</option><option value="3">3 jam</option><option value="6">6 jam</option><option value="12">12 jam</option><option value="24">24 jam</option></select></label>
+        <label class="f"><span>Simpan</span><select id="abKeep"><option value="3">3 terakhir</option><option value="5">5 terakhir</option><option value="10">10 terakhir</option><option value="20">20 terakhir</option></select></label>
+      </div>
+      <p class="small muted" style="margin:0">Jalan selama server menyala. Backup otomatis yang lama dihapus sendiri, backup manual dan upload tidak ikut dihapus.</p>
+    </div>
+    </div>
+
+    <div class="wcol">
+    <div class="card">
+      <h2><span class="grow">Daftar backup <span class="cnt" id="bCount"></span></span></h2>
+      <div class="list" id="backupList"><div class="empty">Memuat…</div></div>
+      <p class="small muted" style="margin:12px 0 0">World dari PC: zip folder world (yang berisi level.dat), Upload, lalu Restore. Restore butuh server mati.</p>
+    </div>
+
+    <div class="card dzone">
+      <h2>Zona bahaya</h2>
+      <div class="sw"><div><div class="t">Reset Nether</div><div class="d">Dibuat ulang saat ada yang masuk portal</div></div><button class="btn small danger" data-resetdim="nether">Reset</button></div>
+      <div class="sw"><div><div class="t">Reset End</div><div class="d">Dibuat ulang saat ada yang masuk portal End</div></div><button class="btn small danger" data-resetdim="end">Reset</button></div>
+      <div class="sw"><div><div class="t">Hapus world</div><div class="d">Semua dimensi dihapus, world baru dibuat saat Start</div></div><button class="btn small danger" id="bResetWorld">Hapus</button></div>
+      <p class="small muted" style="margin:8px 0 0" id="dzNote">Butuh server mati.</p>
+    </div>
+    </div>
+   </div>
+  </div>
+
+  <div id="wv-files" class="hide">
+    <div class="quick" id="fQuick"></div>
+    <div class="card">
+      <div class="crumbs" id="fCrumbs"></div>
+      <div class="ftool">
+        <label class="btn small"><input type="file" id="fUpload" multiple hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></svg>Upload</label>
+        <button class="btn small" id="fMkdir"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Folder</button>
+        <a class="btn small" id="fZip" href="#" title="Unduh folder ini sebagai .zip"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>.zip</a>
+        <button class="ibtn" id="fRefresh" aria-label="Muat ulang" title="Muat ulang"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8"/><path d="M20 3v5h-5"/></svg></button>
+      </div>
+      <div id="fWarn" class="banner info hide" style="margin:0 0 10px">Server sedang jalan: isi world cuma bisa dilihat dan diunduh. Matikan server untuk mengubah atau menghapus.</div>
+      <div class="list" id="fList"><div class="empty">Memuat…</div></div>
+    </div>
+  </div>
+
+  <div id="wv-props" class="hide">
+  <div class="card">
+    <h2><span class="grow">server.properties</span><button class="btn small primary" id="bSaveProps">Simpan</button></h2>
+    <div id="propForm"></div>
+    <details><summary>Edit mentah (semua opsi)</summary><textarea id="propRaw" spellcheck="false"></textarea></details>
+    <p class="small muted" style="margin:6px 0 0">Restart server setelah menyimpan.</p>
+  </div>
+  </div>
+</section>
+
+<!-- ============================== TUNNEL -->
+<section id="tab-tunnel">
+  <div id="tunnelMissing" class="banner err hide">Build APK ini tidak membawa playitd (step build di GitHub Actions gagal). Main lewat LAN tetap jalan normal.</div>
+  <div class="tgrid">
+   <div class="tcol">
+    <div class="card thero">
+      <h2><span class="grow">Tunnel playit.gg</span><button class="btn small" data-help="playit" id="tHelpBtn">Bantuan</button><span class="pill" id="tunnelPill">-</span></h2>
+
+      <div id="tSetup">
+        <p class="small muted" style="margin:0 0 10px">Hubungkan akun playit.gg (gratis) supaya teman di luar WiFi bisa join. Cukup sekali, sekitar 3 menit.</p>
+        <ol class="msteps">
+          <li>Buat akun dan agent tipe <b>Docker</b> di <a href="https://playit.gg/account/agents" target="_blank" rel="noopener">playit.gg</a></li>
+          <li>Tempel <b>secret key</b> agent di bawah</li>
+          <li>Buat tunnel <b>Minecraft Java</b> ke <code>127.0.0.1:<span class="mcport">25565</span></code></li>
+        </ol>
+        <label class="f"><span>Secret key agent</span>
+          <input type="password" id="playitSecret" placeholder="tempel SECRET_KEY dari playit.gg" autocomplete="off"></label>
+        <div class="row"><button class="btn primary" id="bSaveSecret">Simpan &amp; hubungkan</button><button class="btn" data-help="playit">Lihat panduan</button></div>
+      </div>
+
+      <div id="tLive" class="hide">
+        <div class="taddr" id="tAddr"></div>
+        <div id="tNotice"></div>
+        <div class="tact">
+          <button class="btn" id="bTunnelToggle">Start tunnel</button>
+          <span class="small muted" id="tHint"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card hide" id="tSettings">
+      <h2>Pengaturan tunnel</h2>
+      <div class="sw"><div><div class="t">Mulai bersamaan dengan server</div><div class="d">Nyala saat server Start, mati saat server Stop. Restart tidak memutus tunnel.</div></div><input type="checkbox" class="toggle" id="playitWithServer"></div>
+      <div class="sw"><div><div class="t">Nyalakan saat aplikasi dibuka</div><div class="d">Tunnel langsung hidup walau server belum di-Start</div></div><input type="checkbox" class="toggle" id="playitAutostart"></div>
+      <div class="sw"><div><div class="t">Secret key</div><div class="d">Tersimpan di HP ini</div></div><button class="btn small" id="bEditSecret">Ganti key</button></div>
+      <div id="secretForm" class="hide" style="padding-top:4px">
+        <label class="f"><span>Secret key baru</span><input type="password" id="playitSecretNew" placeholder="tempel SECRET_KEY baru" autocomplete="off"></label>
+        <div class="row"><button class="btn primary" id="bSaveSecret2">Simpan</button><button class="btn" id="bCancelSecret">Batal</button><button class="btn danger" id="bClearSecret">Putuskan playit</button></div>
+      </div>
+    </div>
+   </div>
+
+   <div class="tcol">
+    <div class="card" id="dCard">
+      <h2><span class="grow">Domain Cloudflare</span><button class="btn small" data-help="cf">Bantuan</button><span class="pill" id="dnsPill">Opsional</span></h2>
+      <div id="dView" class="hide">
+        <div class="taddr"><div class="n"><span class="small muted">Teman join pakai</span><b class="addr" id="dName"></b></div><button class="btn small" id="bEditDomain">Ubah</button></div>
+        <p class="small" id="dnsStatus" style="margin:10px 0"></p>
+        <div class="row"><button class="btn small" id="bCheckDns">Cek DNS</button><button class="btn small primary hide" id="bSyncDns">Perbarui record sekarang</button></div>
+      </div>
+      <div id="dEdit">
+        <p class="small muted" style="margin:0 0 10px" id="dIntro">Opsional. Teman join pakai <code>mc.domainkamu.com</code>, bukan alamat playit. Domain harus sudah aktif di Cloudflare.</p>
+        <label class="f"><span>Domain untuk join</span>
+          <input type="text" id="customDomain" placeholder="mc.domainkamu.com" autocapitalize="off" spellcheck="false"></label>
+        <label class="f hide" id="dTunnelWrap"><span>Tunnel playit tujuan</span><select id="domainTunnel"></select></label>
+        <div class="row"><button class="btn primary" id="bSaveDomain">Simpan</button><button class="btn hide" id="bCancelDomain">Batal</button><button class="btn danger hide" id="bClearDomain">Hapus domain</button></div>
+      </div>
+      <details class="sub hide" id="srvBox"><summary>Isi record manual di Cloudflare</summary>
+        <p class="small muted" style="margin:8px 0">Cloudflare &gt; domain kamu &gt; <b>DNS &gt; Records &gt; Add record</b>, isi persis seperti ini:</p>
+        <div class="list" id="srvRows"></div>
+        <p class="small muted" style="margin:8px 0 0">Form lama dengan kolom Service/Protocol: Service <code>_minecraft</code>, Protocol <code>TCP</code>, Name diisi subdomain saja. Jangan ada record A/CNAME dengan nama sama yang awan oranye.</p>
+      </details>
+      <details class="sub hide" id="cfBox"><summary>Atur otomatis pakai API token <span id="cfTokenState"></span></summary>
+        <ol class="steps small">
+          <li>Cloudflare &gt; ikon profil &gt; <b>My Profile &gt; API Tokens &gt; Create Token</b>.</li>
+          <li>Template <b>Edit zone DNS</b>, tambah izin <b>Zone · Zone · Read</b>, Zone Resources pilih domain kamu.</li>
+          <li><b>Continue to summary &gt; Create Token</b>, salin token, tempel di bawah.</li>
+        </ol>
+        <label class="f"><span>API token</span><input type="password" id="cfToken" autocomplete="off" placeholder="token Cloudflare (Edit zone DNS)"></label>
+        <div class="row"><button class="btn primary" id="bSaveCf">Simpan token</button><button class="btn danger hide" id="bClearCf">Hapus token</button></div>
+        <div class="sw" style="margin-top:8px"><div><div class="t">Update otomatis</div><div class="d">Kalau alamat atau port playit berubah, record SRV ikut diperbarui</div></div><input type="checkbox" class="toggle" id="cfAutosync"></div>
+        <p class="small muted" style="margin:6px 0 0">Token hanya disimpan di HP ini dan cuma dipakai ke api.cloudflare.com.</p>
+      </details>
+    </div>
+
+    <details class="card fold" id="tListCard">
+      <summary><span class="grow">Semua tunnel <span class="cnt" id="tCount"></span></span><button class="btn small" id="bTunnelRefresh">Refresh</button></summary>
+      <div class="list" id="tunnelList" style="margin-top:12px"></div>
+    </details>
+    <details class="card fold">
+      <summary><span class="grow">Log tunnel</span></summary>
+      <div class="console mini" id="tunnelLog" style="margin-top:12px"></div>
+    </details>
+   </div>
+  </div>
+</section>
+
+<!-- ============================== SERVER -->
+<section id="tab-server">
+  <div class="card">
+    <h2>Pengaturan aplikasi</h2>
+    <p class="small muted" style="margin:-6px 0 6px">Berlaku untuk semua server. Nama, versi, dan RAM diatur per server lewat ikon gerigi di kartu server.</p>
+    <div class="sw"><div><div class="t">Bahasa</div></div><select id="langSel" aria-label="Bahasa" style="width:auto"><option value="en">English</option><option value="id">Indonesia</option><option value="zh">中文</option><option value="ru">Русский</option></select></div>
+    <div class="sw"><div><div class="t">Tutorial</div><div class="d">Lihat lagi pengenalan dan tur fitur</div></div><button class="btn small" id="bReplay" type="button">Ulangi</button></div>
+    <div class="sw"><div><div class="t">Setuju EULA Minecraft</div><div class="d">Wajib. Baca di <a href="https://aka.ms/MinecraftEULA" target="_blank" rel="noopener">aka.ms/MinecraftEULA</a></div></div><input type="checkbox" class="toggle" id="eula"></div>
+    <div class="sw"><div><div class="t">Auto restart saat crash</div><div class="d">Berhenti jika crash 4x dalam 10 menit</div></div><input type="checkbox" class="toggle" id="autoRestart"></div>
+    <div class="sw"><div><div class="t">Start server saat aplikasi dibuka</div><div class="d">Server yang sedang dipilih langsung menyala</div></div><input type="checkbox" class="toggle" id="autoStart"></div>
+    <div class="sw"><div><div class="t">Jalan saat HP dinyalakan</div><div class="d">Panel aktif otomatis setelah reboot</div></div><input type="checkbox" class="toggle" id="bootStart"></div>
+  </div>
+
+  <div class="card" id="cfgCard">
+    <h2>Backup config</h2>
+    <p class="small muted" style="margin:-6px 0 12px">Simpan pengaturan aplikasi: bahasa, PIN, secret playit, domain dan token Cloudflare. Berguna saat install ulang atau pindah HP. Filenya berisi secret, jangan dibagikan.</p>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <a class="btn primary" id="bCfgExport" href="/api/config/export">Unduh config</a>
+      <label class="btn">Restore config<input type="file" id="cfgImport" accept=".properties,.txt" hidden></label>
+    </div>
+    <p class="small muted hide" id="cfgRemote" style="margin:10px 0 0">Backup dan restore config cuma bisa dari aplikasi di HP server.</p>
+  </div>
+
+  <div class="card">
+    <h2>Notifikasi</h2>
+    <div class="sw"><div><div class="t">Status server</div><div class="d">Server siap, crash, tidur, dan bangun</div></div><input type="checkbox" class="toggle" id="notifyServer"></div>
+    <div class="sw"><div><div class="t">Pemain masuk dan keluar</div></div><input type="checkbox" class="toggle" id="notifyPlayers"></div>
+    <div class="sw"><div><div class="t">HP kepanasan</div><div class="d">Baterai di atas 45°C</div></div><input type="checkbox" class="toggle" id="notifyHeat"></div>
+  </div>
+
+  <div class="card" id="fullCard">
+    <h2>Backup server lengkap</h2>
+    <div class="sw"><div><div class="t">Sertakan mod, plugin, dan config</div><div class="d">Backup tidak cuma world tapi seluruh server. File lebih besar, bisa dipulihkan utuh atau dijadikan server baru.</div></div><input type="checkbox" class="toggle" id="backupFull"></div>
+    <div class="row" style="margin-top:12px"><button class="btn" data-import type="button">Import server (.zip)</button></div>
+    <p class="small muted" style="margin:8px 0 0">Bisa dari backup lengkap, atau zip folder server dari "Unduh folder ini sebagai .zip" di File world.</p>
+  </div>
+
+  <div class="card">
+    <h2>Akses panel</h2>
+    <div id="pinBox" class="hide">
+      <p class="small muted" style="margin-top:0">PIN login untuk buka panel dari HP lain atau laptop di router yang sama:</p>
+      <div class="row"><span class="code pin" id="pinShow">------</span></div>
+      <label class="f" style="margin-top:12px"><span>Ganti PIN (4 sampai 12 angka)</span><input type="text" inputmode="numeric" id="newPin"></label>
+      <button class="btn" id="bSavePin">Ganti PIN</button>
+    </div>
+    <div id="remoteBox" class="hide"><button class="btn" id="bLogout">Logout dari perangkat ini</button></div>
+    <div id="androidBox" class="hide" style="margin-top:14px">
+      <p class="small muted">Biar server tidak dimatikan Android saat layar mati:</p>
+      <div class="row"><button class="btn" id="bBattery">Matikan optimasi baterai</button><button class="btn" id="bAppInfo">Info aplikasi (autostart)</button></div>
+    </div>
+  </div>
+  <p class="small muted" style="text-align:center">MC Host · open source (GPLv3) · <a href="/licenses.txt" target="_blank">Lisensi</a></p>
+</section>
+</main>
+
+<div id="newModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="wizTitle">
+ <div class="sheet wiz">
+  <div class="sheet-head">
+   <button class="ibtn" id="wizBack" aria-label="Kembali"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+   <div style="flex:1;min-width:0"><div class="step" id="wizStep">LANGKAH 1 DARI 4</div><h2 id="wizTitle" style="margin:0">Pilih software</h2></div>
+   <button class="btn small" id="wizClose" data-close>Tutup</button>
+  </div>
+  <div class="wbar"><i id="wizBar"></i></div>
+  <p class="small muted" id="wizSub" style="margin:4px 0 14px"></p>
+  <div id="wizBody"></div>
+  <div class="wfoot"><button class="btn primary" id="wizNext">Lanjut</button></div>
+ </div>
+</div>
+<div id="srvModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="srvTitle">
+ <div class="sheet">
+  <div class="sheet-head"><div style="flex:1;min-width:0"><h2 id="srvTitle" style="margin:0">Pengaturan server</h2><div class="small muted" id="srvSoft"></div></div><button class="btn small" id="srvClose" data-close>Tutup</button></div>
+  <label class="f"><span>Nama server</span><input type="text" id="srvName" maxlength="40" autocomplete="off"></label>
+  <label class="f"><span>RAM untuk server: <b id="srvRamLabel">-</b> <span class="ramdev"></span></span>
+    <input type="range" id="srvRam" min="512" max="8192" step="128" style="width:100%"></label>
+  <div class="row" style="margin:-4px 0 6px"><input type="number" id="srvRamNum" min="256" step="64" style="max-width:150px"> <span class="small muted">MB, bebas diisi</span></div>
+  <p class="small muted" id="srvRamWarn" style="margin:0 0 12px"></p>
+  <label class="f"><span>JVM args tambahan (opsional)</span><input type="text" id="srvJvm" placeholder="-XX:+UseStringDeduplication" spellcheck="false" autocapitalize="off"></label>
+  <div class="grid2">
+   <label class="f"><span>Tidur kalau sepi</span><select id="srvSleep"><option value="0">Mati</option><option value="10">10 menit</option><option value="15">15 menit</option><option value="30">30 menit</option><option value="60">60 menit</option></select></label>
+   <label class="f"><span>Restart harian</span><input type="time" id="srvDaily"></label>
+  </div>
+  <p class="small muted" style="margin:-4px 0 12px">Tidur: server berhenti kalau tidak ada pemain, lalu bangun sendiri saat ada yang join. Restart harian: kosongkan untuk mematikan.</p>
+  <button class="btn primary" id="srvSave">Simpan</button>
+  <div id="srvInstallBox">
+   <h3 class="sect" style="margin-top:22px">Ganti versi</h3>
+   <div class="row" style="align-items:flex-end;flex-wrap:nowrap"><label class="f" style="flex:1;margin:0"><span>Versi Minecraft</span><select id="srvVer"><option>memuat…</option></select></label><button class="btn" id="srvInstall">Install</button></div>
+   <p class="small muted" style="margin:8px 0 0">World tetap aman. Mod atau plugin lama mungkin tidak cocok dengan versi baru.</p>
+  </div>
+  <div id="srvBedrockBox">
+   <h3 class="sect" style="margin-top:22px">Bedrock</h3>
+   <div class="sw"><div><div class="t">Pemain Bedrock bisa join</div><div class="d">Pasang Geyser + Floodgate dari Modrinth, sesuai versi server. Pemain HP/konsol join di port 19132.</div></div><input type="checkbox" class="toggle" id="srvBedrock"></div>
+  </div>
+  <div class="card dzone" style="margin:22px 0 0">
+   <h2>Hapus server</h2>
+   <p class="small muted" style="margin:-4px 0 10px">Folder server, world, mod/plugin, dan semua backup server ini ikut terhapus. Tidak bisa dibatalkan.</p>
+   <button class="btn danger" id="srvDelete">Hapus server ini</button>
+  </div>
+ </div>
+</div>
+<div id="helpModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+ <div class="sheet">
+  <div class="sheet-head"><h2 id="helpTitle" style="margin:0;flex:1">Panduan tunnel &amp; domain</h2><button class="btn small" id="bHelpClose" data-close>Tutup</button></div>
+  <div class="tabs" id="helpTabs"><button class="on" data-h="playit">1. playit.gg</button><button data-h="cf">2. Cloudflare (opsional)</button></div>
+
+  <div class="hpane" id="h-playit">
+   <p class="small muted">Gratis. Bikin alamat internet supaya teman di luar WiFi bisa join. Cukup sekali.</p>
+   <ol class="steps">
+    <li><b>Buat akun.</b> Buka <a href="https://playit.gg/login" target="_blank" rel="noopener">playit.gg</a>, pilih <b>Create account</b>, daftar pakai email, lalu verifikasi email dari inbox.</li>
+    <li><b>Tambah agent.</b> Di dashboard buka <b>Agents</b> &gt; <b>Add Agent</b>, pilih tipe <b>Docker</b>. Beri nama, misal <code>hp-server</code>.</li>
+    <li><b>Salin secret key.</b> Playit menampilkan perintah docker berisi <code>SECRET_KEY=...</code>. Salin <b>isi setelah tanda sama dengan</b> saja.</li>
+    <li><b>Tempel di app.</b> Tab <b>Tunnel</b> &gt; kolom <b>Secret key agent</b> &gt; <b>Simpan key</b> &gt; <b>Start tunnel</b>. Tunggu sampai status <b>Aktif</b> dan agent di dashboard jadi online.</li>
+    <li><b>Buat tunnel.</b> Dashboard playit &gt; <b>Tunnels</b> &gt; <b>Add Tunnel</b>:
+      <div class="kv"><span>Tunnel type</span><b>Minecraft Java</b></div>
+      <div class="kv"><span>Agent</span><b>agent yang tadi (hp-server)</b></div>
+      <div class="kv"><span>Local address</span><b>127.0.0.1</b></div>
+      <div class="kv"><span>Local port</span><b id="hPort">25565</b></div>
+      <div class="kv"><span>Proxy protocol</span><b>None / off</b></div>
+      Lalu <b>Create</b>. Pilih tipe Minecraft Java, bukan TCP biasa, karena TCP dibatasi di paket gratis.</li>
+    <li><b>Selesai.</b> Dalam setengah menit alamatnya (misal <code>xxx.joinmc.link</code>) muncul di <b>Beranda</b>. Tekan <b>Salin</b> lalu kirim ke teman.</li>
+    <li><b>Biar aman.</b> Tab <b>Konsol</b> &gt; kartu Pemain: nyalakan <b>Whitelist</b>, lalu tambahkan nama teman.</li>
+   </ol>
+  </div>
+
+  <div class="hpane hide" id="h-cf">
+   <p class="small muted">Opsional. Supaya teman join pakai domain sendiri, misal <code>mc.domainkamu.com</code>, bukan alamat playit. Butuh domain yang sudah ada.</p>
+   <ol class="steps">
+    <li><b>Masukkan domain ke Cloudflare.</b> Login <a href="https://dash.cloudflare.com" target="_blank" rel="noopener">dash.cloudflare.com</a> &gt; <b>Add a domain</b> (Onboard a domain), ketik domain, pilih paket <b>Free</b>.</li>
+    <li><b>Ganti nameserver.</b> Cloudflare memberi 2 nameserver. Masuk ke tempat beli domain (registrar), ganti nameserver domain ke dua alamat itu. Tunggu sampai Cloudflare menyatakan domain <b>Active</b> (bisa beberapa menit sampai 24 jam). Lewati langkah ini kalau domain sudah aktif di Cloudflare.</li>
+    <li><b>Buat API token.</b> Ikon profil kanan atas &gt; <b>My Profile</b> &gt; <b>API Tokens</b> &gt; <b>Create Token</b> &gt; template <b>Edit zone DNS</b> &gt; <b>Use template</b>.
+      <div class="kv"><span>Permissions</span><b>Zone · DNS · Edit</b></div>
+      <div class="kv"><span>+ Add more</span><b>Zone · Zone · Read</b></div>
+      <div class="kv"><span>Zone Resources</span><b>Include · Specific zone · domain kamu</b></div>
+      <b>Continue to summary</b> &gt; <b>Create Token</b> &gt; <b>Copy</b>. Token cuma tampil sekali, jangan dikirim ke chat atau orang lain.</li>
+    <li><b>Isi domain di app.</b> Tab <b>Tunnel</b> &gt; kartu <b>Domain Cloudflare</b>: isi <b>Domain untuk join</b> (misal <code>mc.domainkamu.com</code>), pilih tunnel playit, <b>Simpan</b>.</li>
+    <li><b>Pasang token.</b> Buka <b>Atur otomatis pakai API token Cloudflare</b>, tempel token, <b>Simpan token</b>, lalu <b>Perbarui record sekarang</b>. Biarkan <b>Update otomatis</b> nyala.</li>
+    <li><b>Cek.</b> Tunggu 1 sampai 5 menit, tekan <b>Cek DNS</b>. Kalau status <b>DNS benar</b>, teman cukup join ke domain kamu tanpa port.</li>
+   </ol>
+   <details><summary>Tanpa token (isi manual)</summary>
+    <p class="small">Isi domain lalu Simpan. Di Cloudflare: domain kamu &gt; <b>DNS</b> &gt; <b>Records</b> &gt; <b>Add record</b>, Type <b>SRV</b>, lalu salin Name, Priority, Weight, Port, dan Target dari kartu Domain Cloudflare. TTL Auto, Save. Kalau port playit berubah, record harus diupdate manual.</p>
+   </details>
+   <p class="small muted">Jangan buat record A/CNAME dengan nama yang sama (misal <code>mc</code>) yang awan oranye, nanti domain nyasar.</p>
+  </div>
+ </div>
+</div>
+<div id="editModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="edName">
+ <div class="sheet edsheet">
+  <div class="sheet-head"><div style="flex:1;min-width:0"><b id="edName" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></b><div class="small muted" id="edPath" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div></div>
+   <button class="btn small" id="edClose" data-close>Tutup</button><button class="btn small primary" id="edSave">Simpan</button></div>
+  <textarea id="edText" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+  <p class="small muted" id="edNote" style="margin:8px 0 0">Restart server supaya perubahan config dipakai.</p>
+ </div>
+</div>
+<div id="login"><div class="login-card">
+  <div class="logo">M</div>
+  <h1>MC Host</h1>
+  <p>Masuk ke panel server Minecraft</p>
+  <form id="loginForm" autocomplete="on">
+    <label class="f"><span>PIN panel</span>
+      <input type="password" inputmode="numeric" maxlength="12" class="pin" id="loginPin" autocomplete="current-password" placeholder="••••••" required></label>
+    <div id="loginMsg" class="small" role="alert" aria-live="polite"></div>
+    <button class="btn primary" id="loginBtn">Masuk</button>
+  </form>
+  <div class="login-help">PIN ada di aplikasi MC Host di HP server, tab <b>Server</b> &gt; <b>Akses panel</b>. Salah 3x, login dikunci sementara.</div>
+</div></div>
+<div id="toast"></div>
+
+<div id="intro" class="intro hide" role="dialog" aria-modal="true" aria-label="Tutorial">
+  <div class="iwrap"><div class="islide" id="iSlide"></div><div class="idots" id="iDots"></div>
+    <div class="ibtns"><button class="btn" id="iSkip" type="button">Lewati</button><button class="btn primary" id="iNext" type="button">Lanjut</button></div></div>
+</div>
+<div id="tour" class="hide" role="dialog" aria-modal="true" aria-label="Tutorial"><div class="tspot" id="tSpot"></div>
+  <div class="tbub" id="tBub"><div class="tn" id="tN"></div><b id="tT"></b><p id="tB"></p>
+    <div class="row"><button class="btn small" id="tSkip" type="button">Lewati tur</button><span class="grow"></span><button class="btn small primary" id="tNext" type="button">Lanjut</button></div></div>
+</div>
+<div id="askModal" class="modal ask hide" role="alertdialog" aria-modal="true" aria-labelledby="askMsg">
+  <div class="askbox"><p id="askMsg"></p><input type="text" id="askIn" class="hide" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="row"><button class="btn" id="askNo" type="button">Batal</button><button class="btn primary" id="askOk" type="button">Oke</button></div></div>
+</div>
+<div id="mpModal" class="modal hide" role="dialog" aria-modal="true" aria-labelledby="mpTitle">
+ <div class="sheet">
+  <div class="sheet-head"><h2 id="mpTitle" style="margin:0;flex:1">Modpack dari Modrinth</h2><button class="btn small" id="mpClose" data-close>Tutup</button></div>
+  <div id="mpSearch"><div class="searchbox"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input type="search" id="mpQ" placeholder="Cari modpack, misal Cobblemon" autocomplete="off"></div>
+   <div class="list" id="mpList" style="margin-top:12px"></div></div>
+  <div id="mpPick" class="hide">
+   <div class="row" style="gap:12px;align-items:center;margin:4px 0 14px"><img id="mpIcon" class="mpic" alt=""><div style="min-width:0"><b id="mpName"></b><div class="small muted" id="mpMeta"></div></div></div>
+   <label class="f"><span>Versi modpack</span><select id="mpVer"><option value="">Memuat…</option></select></label>
+   <label class="f"><span>Nama server</span><input type="text" id="mpSrvName" maxlength="40" autocomplete="off"></label>
+   <label class="f"><span>RAM (MB)</span><input type="number" id="mpRam" min="1024" step="256" value="4096"></label>
+   <p class="small muted">Mod khusus client dilewati. Teman juga harus memasang modpack yang sama di Minecraft mereka.</p>
+   <div class="row" style="gap:8px"><button class="btn" id="mpBack" type="button">Kembali</button><button class="btn primary" id="mpCreate" type="button">Buat server</button></div>
+  </div>
+ </div>
+</div>
+<input type="file" id="importZip" accept=".zip" hidden>
+<script src="lang-en.js"></script>
+<script src="lang-zh.js"></script>
+<script src="lang-ru.js"></script>
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const STATE_ID={stopped:"Mati",starting:"Menyala…",running:"Jalan",stopping:"Mematikan…",crashed:"Crash",sleeping:"Tidur"};
+const bridge=window.AndroidHost||null;
+// i18n: teks sumber bahasa Indonesia, English (default) dari window.EN (lang-en.js). MutationObserver
+// menerjemahkan teks statis, hasil render JS, toast, dan pesan dari server; ganti bahasa = reload.
+let LANG="en";try{LANG=localStorage.getItem("lang")||"en"}catch(e){}
+document.documentElement.lang=LANG;
+const EN=window[{en:"EN",zh:"ZH",ru:"RU"}[LANG]]||{},ENP=[],ENS=Object.keys(EN).filter(k=>!k.includes("{0}")&&k.includes(" ")&&k.length>5).sort((a,b)=>b.length-a.length);
+for(const k of Object.keys(EN))if(k.includes("{0}")){const ids=[];
+  const rx=k.replace(/[.*+?^$()|[\]\\]/g,"\\$&").replace(/\{(\d)\}/g,(_,d)=>{ids.push(+d);return"(.+?)"});ENP.push([new RegExp("^"+rx+"$"),ids,EN[k]])}
+function tr(s){if(LANG==="id"||!s)return s;const k=String(s).trim();if(!k||k.length>400||!/[a-z]/i.test(k))return s;
+  let v=EN[k];
+  if(v==null)for(const [rx,ids,val] of ENP){const m=rx.exec(k);if(m){v=val.replace(/\{(\d)\}/g,(_,d)=>tr(m[ids.indexOf(+d)+1]));break}}
+  // ponytail: ganti potongan multi-kata (pesan gabungan dari JS/Java); kamus kalimat utuh kalau hasilnya janggal
+  if(v==null){let o=k;for(const f of ENS)if(o.includes(f))o=o.split(f).join(EN[f]);if(o!==k)v=o}
+  return v==null?s:String(s).replace(k,()=>v)}
+const I18N_SKIP=".console,script,style,textarea,[data-noi18n]",I18N_ATTR=["placeholder","title","aria-label"];
+function trAttr(el,a){const v=el.getAttribute(a);if(v){const t=tr(v);if(t!==v)el.setAttribute(a,t)}}
+function trNode(n){const p=n.parentElement;if(!p||p.closest(I18N_SKIP))return;const v=tr(n.data);if(v!==n.data)n.data=v}
+function trEl(el){if(el.closest(I18N_SKIP))return;I18N_ATTR.forEach(a=>trAttr(el,a));
+  const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);let n;
+  while((n=w.nextNode()))n.nodeType===3?trNode(n):I18N_ATTR.forEach(a=>trAttr(n,a))}
+if(LANG!=="id"){
+  trEl(document.body);
+  new MutationObserver(ms=>{for(const m of ms){
+    if(m.type==="characterData")trNode(m.target);
+    else if(m.type==="attributes"){if(!m.target.closest(I18N_SKIP))trAttr(m.target,m.attributeName)}
+    else for(const n of m.addedNodes)n.nodeType===3?trNode(n):n.nodeType===1&&trEl(n)}})
+    .observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:I18N_ATTR})}
+// simpan pilihan lokal lalu reload; kalau storage tidak bisa dipakai, tidak reload (hindari loop)
+function setLang(l){try{localStorage.setItem("lang",l);if(localStorage.getItem("lang")===l&&l!==LANG)location.reload()}catch(e){}}
+let S={}, tab="home", logSince=0, tunnelSince=0, installedMods=[], installedPacks=[], loggingIn=false;
+
+function toast(msg,err){const d=document.createElement("div");if(err)d.className="err";d.textContent=msg;$("#toast").appendChild(d);setTimeout(()=>d.remove(),err?5200:2800)}
+
+async function api(path,o={}){
+  const opt={method:o.method||"GET",headers:{"X-Panel":"1"}};
+  if(o.form){opt.method="POST";opt.headers["Content-Type"]="application/x-www-form-urlencoded";opt.body=new URLSearchParams(o.form)}
+  else if(o.body!==undefined){opt.method=o.method||"POST";opt.headers["Content-Type"]=o.type||"application/octet-stream";opt.body=o.body}
+  else if(o.post){opt.method="POST"}
+  const r=await fetch(path,opt);
+  if(r.status===401){showLogin();throw new Error("Perlu login")}
+  const ct=r.headers.get("content-type")||"";
+  const data=ct.includes("json")?await r.json():await r.text();
+  if(!r.ok)throw new Error((data&&data.error)||data||("HTTP "+r.status));
+  return data;
+}
+async function act(path,form,okMsg){try{await api(path,form?{form}:{post:true});if(okMsg)toast(okMsg);refresh()}catch(e){toast(e.message,true)}}
+const proxy=u=>api("/api/proxy?u="+encodeURIComponent(u));
+
+// ---------------------------------------------------------- nav
+function go(t){
+  if(S.serverId===""&&(t==="mods"||t==="world"||t==="console")){toast("Buat server dulu",true);t="home"}
+  tab=t;$$("nav button[data-tab]").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));$$("main section").forEach(s=>s.classList.toggle("on",s.id==="tab-"+t));
+  window.scrollTo(0,0);
+  if(t==="home")loadServers();if(t==="mods")loadMods();if(t==="world")setWorldView(worldView);if(t==="server")loadSettings();if(t==="tunnel"){loadSettings();loadTunnels(false);loadDomain(true)}
+  if(t==="console"){loadPlayers(true);setTimeout(()=>{const l=$("#log");l.scrollTop=l.scrollHeight},30)}}
+$$("nav button[data-tab]").forEach(b=>b.onclick=()=>go(b.dataset.tab));
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){e.preventDefault();go(g.dataset.go)}});
+
+// ---------------------------------------------------------- addresses (LAN + playit + domain)
+let tunnels=null, tunnelsAt=0, tunnelsBusy=false;
+function addrItem(k,v,note){return '<div class="item"><div class="n"><span class="small muted">'+k+'</span><b>'+esc(v)+'</b>'+(note?'<span class="small muted">'+note+'</span>':'')+'</div><button class="btn small copy" data-copy="'+esc(v)+'">Salin</button></div>'}
+function mcTunnels(){if(!tunnels||!tunnels.tunnels)return[];
+  const toMc=t=>((t.agent_config&&t.agent_config.fields)||[]).some(f=>/port/i.test(f.name)&&String(f.value)===String(S.mcPort));
+  return tunnels.tunnels.filter(t=>/minecraft-java/i.test(t.tunnel_type||"")||/minecraft java/i.test(t.tunnel_type_display||"")||(!t.tunnel_type&&toMc(t)))}
+const ICO_COPY='<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+function ipRow(pill,cls,v,note){return '<div class="iprow"><span class="ipill '+cls+'">'+pill+'</span><div class="v">'+esc(v)+(note?'<small>'+note+'</small>':'')+'</div><button class="ibtn copy" data-copy="'+esc(v)+'" title="Salin" aria-label="Salin '+esc(v)+'">'+ICO_COPY+'</button></div>'}
+function ipNote(pill,cls,text,link){return '<div class="iprow"><span class="ipill '+cls+'">'+pill+'</span><div class="v dim">'+text+'</div>'+(link||'')+'</div>'}
+function renderAddresses(){
+  const port=S.mcPort==="25565"?"":":"+S.mcPort;
+  const run=S.playit&&S.playit.state==="running";
+  let h="";
+  if(S.customDomain){const dn=dnsInfo&&dnsInfo.domain===S.customDomain?(dnsInfo.match?"DNS sudah benar":dnsInfo.current?"DNS belum mengarah ke tunnel":"record SRV belum ada"):"";
+    h+=ipRow("DOMAIN","dom",S.customDomain,[run?"":"tunnel belum aktif",dn].filter(Boolean).join(" · "))}
+  const mc=mcTunnels(), other=(tunnels&&tunnels.tunnels||[]).filter(t=>!mc.includes(t)&&!/udp/i.test(t.port_type||""));
+  for(const t of (mc.length?mc:other)){
+    const off=t.disabled_reason?"nonaktif: "+esc(t.disabled_reason):(run?"":"tunnel belum aktif");
+    h+=ipRow("JAVA IP","java",t.display_address,off)}
+  if(S.playit&&S.playit.available&&!S.playit.hasSecret)h+=ipNote("JAVA IP","java","Belum ada alamat internet",'<a href="#" class="go" data-go="tunnel">Atur tunnel</a>');
+  if(tunnels&&tunnels.pending)for(const p of tunnels.pending)h+=ipNote("JAVA IP","java","Menyiapkan alamat… "+esc(p.status_msg||""));
+  if(S.playit&&S.playit.hasSecret&&tunnels&&!mc.length&&!other.length&&!(tunnels.pending||[]).length)h+=ipNote("JAVA IP","java","Belum ada tunnel Minecraft Java ke 127.0.0.1:"+esc(S.mcPort),'<a class="go" href="https://playit.gg/account/tunnels" target="_blank" rel="noopener">Buat</a>');
+  const me=typeof SV!=="undefined"&&SV&&SV.servers.find(x=>x.active);
+  if(me&&me.bedrock){
+    for(const t of (tunnels&&tunnels.tunnels||[]).filter(t=>/bedrock/i.test((t.tunnel_type||"")+" "+(t.tunnel_type_display||""))))h+=ipRow("BEDROCK","bed",t.display_address,"Bedrock: isi port di kolom Port");
+    h+=S.lan.map(ip=>ipRow("BEDROCK","bed",ip,"port 19132 · satu WiFi")).join("")}
+  h+=S.lan.map(ip=>ipRow("LAN","lan",ip+port,"satu WiFi")).join("");
+  h+=S.lan.map(ip=>ipRow("PANEL","web","http://"+ip+":"+S.panelPort,"buka dari HP atau laptop lain")).join("");
+  $("#addrList").innerHTML=h||ipNote("LAN","lan","Tidak terhubung ke WiFi");
+  renderTunnelList();renderTunnelHero();
+}
+function renderTunnelList(){const box=$("#tunnelList");if(!box)return;$("#tCount").textContent=tunnels&&tunnels.tunnels?tunnels.tunnels.length:"";
+  if(!S.playit||!S.playit.hasSecret){box.innerHTML='<div class="empty">Isi secret key dulu</div>';return}
+  if(!tunnels){box.innerHTML='<div class="empty">Memuat daftar tunnel…</div>';return}
+  let h=(tunnels.tunnels||[]).map(t=>addrItem(esc(t.tunnel_type_display||t.tunnel_type||"tunnel")+(t.name?" · "+esc(t.name):""),t.display_address,t.disabled_reason?"nonaktif: "+esc(t.disabled_reason):"")).join("");
+  h+=(tunnels.pending||[]).map(p=>'<div class="item"><div class="n"><span class="small muted">'+esc(p.tunnel_type_display||"")+'</span><b class="muted">'+esc(p.name||"menyiapkan")+'</b><span class="small muted">'+esc(p.status_msg||"")+'</span></div></div>').join("");
+  h+=(tunnels.notices||[]).map(n=>'<div class="banner '+(n.priority==="Low"?"info":"err")+'" style="margin:0">'+esc(n.message)+(n.resolve_link?' <a href="'+esc(n.resolve_link)+'" target="_blank" rel="noopener">Atasi</a>':'')+'</div>').join("");
+  box.innerHTML=h||'<div class="empty">Belum ada tunnel. Buat tunnel Minecraft Java di dashboard playit.gg.</div>'}
+async function loadTunnels(force){
+  if(tunnelsBusy||!S.playit||!S.playit.hasSecret)return;
+  if(!force&&tunnels&&Date.now()-tunnelsAt<30000)return;
+  tunnelsBusy=true;
+  try{const r=await api("/api/playit/tunnels"+(force?"?force=1":""));
+    if(r.status==="success"){tunnels=r.data;tunnelsAt=Date.now()}
+    else if(r.status==="no-secret"){tunnels=null}
+    else{tunnels={tunnels:[],pending:[],notices:[{priority:"High",message:"playit: "+(r.data&&(r.data.message||r.data.type)||JSON.stringify(r.data||r.status))}]};tunnelsAt=Date.now()}
+  }catch(e){tunnels={tunnels:[],pending:[],notices:[{priority:"High",message:e.message}]};tunnelsAt=Date.now()}
+  tunnelsBusy=false;renderAddresses();fillDomainTunnels();renderDomainForm();if(S.customDomain)loadDomain(false);
+}
+
+// ---------------------------------------------------------- tunnel hero
+let editSecret=false, editDomain=false;
+function primaryAddr(){
+  const mc=mcTunnels(),other=((tunnels&&tunnels.tunnels)||[]).filter(t=>!mc.includes(t)&&!/udp/i.test(t.port_type||""));
+  const t=mc[0]||other[0];
+  const domOk=S.customDomain&&dnsInfo&&dnsInfo.domain===S.customDomain&&dnsInfo.match;
+  if(domOk)return{addr:S.customDomain,label:"Teman join pakai (domain kamu)",alt:t?t.display_address:""};
+  if(t)return{addr:t.display_address,label:"Teman join pakai",alt:""};
+  return null}
+function renderTunnelHero(){if(!S.playit)return;const pl=S.playit,run=pl.state==="running";
+  const pill=$("#tunnelPill");pill.className="pill "+(!pl.hasSecret?"starting":run?"running":pl.state==="crashed"?"crashed":"");pill.textContent=!pl.hasSecret?"Belum diatur":run?"Aktif":pl.state==="crashed"?"Berhenti":"Mati";
+  $("#tHelpBtn").classList.toggle("hide",!pl.hasSecret);$("#tListCard").classList.toggle("hide",!pl.hasSecret);
+  $$(".mcport").forEach(x=>x.textContent=S.mcPort||"25565");
+  $("#tSetup").classList.toggle("hide",pl.hasSecret);$("#tLive").classList.toggle("hide",!pl.hasSecret);
+  $("#tSettings").classList.toggle("hide",!pl.hasSecret);$("#secretForm").classList.toggle("hide",!editSecret);
+  $("#bEditSecret").textContent=editSecret?"Tutup":"Ganti key";
+  if(!pl.hasSecret)return;
+  const p=primaryAddr(),box=$("#tAddr");
+  if(p)box.innerHTML='<div class="n"><span class="small muted">'+p.label+'</span><b class="addr">'+esc(p.addr)+'</b>'+(p.alt?'<span class="small muted">atau '+esc(p.alt)+'</span>':'')+'</div><button class="btn small primary copy" data-copy="'+esc(p.addr)+'">Salin</button>';
+  else if(tunnels&&(tunnels.pending||[]).length)box.innerHTML='<div class="n"><span class="small muted">playit</span><b class="addr muted">Menyiapkan alamat…</b><span class="small muted">'+esc(tunnels.pending[0].status_msg||"")+'</span></div>';
+  else if(tunnels)box.innerHTML='<div class="n"><b>Belum ada tunnel</b><span class="small muted">Buat tunnel <b>Minecraft Java</b> ke 127.0.0.1:'+esc(S.mcPort||"25565")+' di dashboard playit</span></div><a class="btn small primary" href="https://playit.gg/account/tunnels" target="_blank" rel="noopener">Buat</a>';
+  else box.innerHTML='<div class="n"><span class="small muted">Memuat alamat dari playit…</span></div>';
+  const bad=tunnels&&(tunnels.notices||[]).find(n=>n.priority!=="Low");
+  $("#tNotice").innerHTML=bad?'<div class="banner err" style="margin:10px 0 0">'+esc(bad.message)+(bad.resolve_link?' <a href="'+esc(bad.resolve_link)+'" target="_blank" rel="noopener">Atasi</a>':'')+'</div>':'';
+  const btn=$("#bTunnelToggle");btn.disabled=!pl.available;btn.textContent=run?"Stop tunnel":"Start tunnel";btn.classList.toggle("primary",!run);
+  $("#tHint").textContent=run?"Tunnel aktif, teman dari luar rumah bisa join.":($("#playitWithServer").checked&&S.state!=="running"?"Tunnel nyala otomatis saat server Start.":"Tunnel mati, teman dari luar rumah belum bisa join.");
+}
+function renderDomainForm(){const has=!!S.customDomain,editing=!has||editDomain;
+  $("#dView").classList.toggle("hide",editing);$("#dEdit").classList.toggle("hide",!editing);
+  $("#bCancelDomain").classList.toggle("hide",!has);$("#bClearDomain").classList.toggle("hide",!has);
+  $("#dIntro").classList.toggle("hide",has);
+  $("#dName").textContent=S.customDomain||"";
+  $("#dTunnelWrap").classList.toggle("hide",tunnelChoices().length<2);
+  if(!has){const pill=$("#dnsPill");pill.className="pill";pill.textContent="Opsional";$("#srvBox").classList.add("hide");$("#cfBox").classList.add("hide")}
+  else $("#cfBox").classList.remove("hide");
+}
+$("#bEditDomain").onclick=()=>{editDomain=true;$("#customDomain").value=S.customDomain||"";renderDomainForm();$("#customDomain").focus()};
+$("#bCancelDomain").onclick=()=>{editDomain=false;renderDomainForm()};
+$("#bClearDomain").onclick=async()=>{if(!await ask("Hapus domain "+S.customDomain+" dari panel? Record di Cloudflare tidak dihapus."))return;
+  try{await api("/api/settings",{form:{customDomain:""}});editDomain=false;dnsInfo=null;$("#customDomain").value="";toast("Domain dihapus");await refresh()}catch(e){toast(e.message,true)}};
+$("#bSaveDomain").onclick=async()=>{const v=$("#customDomain").value.trim();if(!v)return toast("Isi domain dulu",true);
+  try{await api("/api/settings",{form:{customDomain:v}});editDomain=false;toast("Domain disimpan");await refresh();loadDomain(true)}catch(e){toast(e.message,true)}};
+
+// ---------------------------------------------------------- domain cloudflare
+let dnsInfo=null, dnsAt=0, dnsBusy=false, lastAutoSync=0;
+function tunnelChoices(){const m=mcTunnels();return m.length?m:((tunnels&&tunnels.tunnels)||[])}
+function fillDomainTunnels(){const sel=$("#domainTunnel"),cur=sel.value,list=tunnelChoices();
+  const html=list.length?list.map(t=>'<option value="'+esc(t.display_address)+'">'+esc(t.display_address)+' ('+esc(t.tunnel_type_display||"tunnel")+')</option>').join(""):'<option value="">belum ada tunnel playit</option>';
+  if(sel.dataset.h!==html){sel.innerHTML=html;sel.dataset.h=html;if(cur&&[...sel.options].some(o=>o.value===cur))sel.value=cur}}
+async function loadDomain(force){
+  if(dnsBusy)return;if(!force&&Date.now()-dnsAt<60000)return;
+  fillDomainTunnels();dnsBusy=true;
+  try{dnsInfo=await api("/api/domain/info?addr="+encodeURIComponent($("#domainTunnel").value||""));dnsAt=Date.now()}catch(e){dnsInfo={error:e.message}}
+  dnsBusy=false;renderDomain();
+  const d=dnsInfo;if(d&&d.hasToken&&d.autosync&&d.domain&&d.expected&&!d.match&&Date.now()-lastAutoSync>300000){lastAutoSync=Date.now();syncDns(true)}
+}
+function renderDomain(){const d=dnsInfo||{};const pill=$("#dnsPill"),st=$("#dnsStatus");
+  $("#cfTokenState").innerHTML=d.hasToken?'<span class="cnt" style="background:#2e5a33">aktif</span>':"";
+  $("#bClearCf").classList.toggle("hide",!d.hasToken);$("#bSaveCf").textContent=d.hasToken?"Ganti token":"Simpan token";
+  renderDomainForm();
+  if(!d.domain){renderAddresses();return}
+  const e=d.expected,c=d.current;
+  pill.className="pill "+(d.match?"running":c?"crashed":"starting");pill.textContent=d.match?"DNS benar":c?"Beda tujuan":"Belum ada";
+  st.innerHTML=d.error?'<span style="color:var(--bad)">'+esc(d.error)+'</span>':d.match?'✅ Sudah mengarah ke tunnel. Teman cukup join ke <b>'+esc(d.domain)+'</b> tanpa port.':
+    c?'⚠️ DNS sekarang ke <code>'+esc(c.target)+':'+c.port+'</code>, seharusnya <code>'+(e?esc(e.target)+':'+e.port:"?")+'</code>.'+(d.hasToken?"":" Perbarui record di Cloudflare."):
+    '⏳ Record SRV belum terlihat di DNS publik.'+(d.hasToken?" Tekan Perbarui record.":" Buat record manual di bawah atau pakai API token.")+' Perubahan bisa telat 1 sampai 5 menit.';
+  $("#bSyncDns").classList.toggle("hide",!d.hasToken||!e);$("#bSyncDns").classList.toggle("primary",!d.match);$("#bSyncDns").textContent=d.match?"Perbarui record":"Perbarui record sekarang";
+  const box=$("#srvBox");
+  if(e){box.classList.remove("hide");if(!d.match&&!d.hasToken&&!box.dataset.touched)box.open=true;if(d.match&&!box.dataset.touched)box.open=false;
+    const rows=[["Type","SRV"],["Priority","0"],["Weight","5"],["Name",d.srvName],["Target",e.target],["Port",String(e.port)],["TTL","Auto"],["Proxy","DNS only"]];
+    $("#srvRows").innerHTML=rows.map(([k,v])=>'<div class="item'+(k==="Name"||k==="Target"||k==="Port"?" wide":"")+'"><div class="n"><span class="small muted">'+k+'</span><b>'+esc(v)+'</b></div>'+(k!=="Name"&&k!=="Target"&&k!=="Port"?"":'<button class="btn small copy" data-copy="'+esc(v)+'">Salin</button>')+'</div>').join("")}
+  else box.classList.add("hide");
+  renderAddresses();
+}
+$("#srvBox").addEventListener("toggle",e=>{e.target.dataset.touched=1});
+async function syncDns(auto){const addr=$("#domainTunnel").value;
+  try{const r=await api("/api/domain/sync",{form:{addr}});toast((auto?"Otomatis: ":"")+r.message);setTimeout(()=>loadDomain(true),4000)}catch(e){toast(e.message,true)}}
+$("#domainTunnel").onchange=()=>loadDomain(true);
+$("#bCheckDns").onclick=()=>loadDomain(true);
+$("#bSaveCf").onclick=()=>{const v=$("#cfToken").value.trim();if(!v)return toast("Token kosong",true);act("/api/settings",{cfToken:v},"Token disimpan").then(()=>loadDomain(true));$("#cfToken").value=""};
+$("#bClearCf").onclick=async()=>{if(await ask("Hapus token Cloudflare dari HP ini?"))act("/api/settings",{clearCfToken:"true"},"Token dihapus").then(()=>loadDomain(true))};
+$("#bSyncDns").onclick=()=>syncDns(false);
+$("#cfAutosync").onchange=e=>act("/api/settings",{cfAutosync:String(e.target.checked)},"Tersimpan");
+
+// ---------------------------------------------------------- players (aternos style)
+let PL=null, plAt=0, plTab="online", plMenu=null;
+const ICO_X='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>', ICO_DOTS='<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+const PT={online:{add:null,empty:"Belum ada pemain online.",note:p=>p.running?"Pemain yang sedang main. Tekan ⋮ untuk aksi.":"Server mati."},
+  whitelist:{add:"wl-add",del:"wl-remove",ph:"Nama pemain untuk whitelist",empty:"Whitelist kosong.",note:p=>p.whitelistOn?"Whitelist aktif: cuma nama di daftar ini yang bisa masuk.":"Whitelist mati: siapa pun bisa masuk. Nyalakan sakelar di atas."},
+  ops:{add:"op",del:"deop",ph:"Nama pemain untuk dijadikan OP",empty:"Belum ada OP.",note:()=>"OP bisa memakai semua command server. Kasih ke orang yang dipercaya saja."},
+  banned:{add:"ban",del:"pardon",ph:"Nama pemain untuk di-ban",empty:"Tidak ada pemain yang di-ban.",note:()=>"Pemain di daftar ini tidak bisa masuk. Tekan ✕ untuk unban."}};
+async function loadPlayers(force){if(!force&&Date.now()-plAt<4000)return;plAt=Date.now();
+  try{PL=await api("/api/players");renderPlayers()}catch(e){}}
+const has=(arr,n)=>(arr||[]).some(x=>x.toLowerCase()===n.toLowerCase());
+const avatar=n=>'<div class="av">'+esc(n.charAt(0).toUpperCase())+'<img loading="lazy" alt="" src="https://mc-heads.net/avatar/'+encodeURIComponent(n)+'/72" onerror="this.remove()"></div>';
+function renderPlayers(){const p=PL;if(!p)return;
+  $("#wlToggle").checked=p.whitelistOn;
+  $("#cOnline").textContent=p.online.length;$("#cWl").textContent=p.whitelist.length;$("#cOps").textContent=p.ops.length;$("#cBan").textContent=p.banned.length;
+  $$("#plTabs button").forEach(b=>b.classList.toggle("on",b.dataset.pt===plTab));
+  const cfg=PT[plTab];$("#plNote").textContent=cfg.note(p)+(p.running?"":" Aksi bisa dipakai setelah server jalan.");
+  const f=$("#plAddForm");f.classList.toggle("hide",!cfg.add);if(cfg.add){$("#plName").placeholder=cfg.ph;$("#plAddBtn").disabled=!p.running}
+  const names=plTab==="online"?p.online:p[plTab];
+  $("#plList").innerHTML=names.length?names.map(n=>{const N=esc(n);
+    if(plTab==="online"){const tags=[has(p.ops,n)?"OP":"",has(p.whitelist,n)?"whitelist":""].filter(Boolean).join(" · ");
+      return '<div class="prow">'+avatar(n)+'<div class="nm"><span class="dot"></span>'+N+(tags?'<small>'+tags+'</small>':'')+'</div><button class="ibtn" aria-label="Aksi untuk '+N+'" data-pmenu="'+N+'">'+ICO_DOTS+'</button></div>'}
+    return '<div class="prow">'+avatar(n)+'<div class="nm">'+N+(has(p.online,n)?'<small><span class="dot"></span>online</small>':'')+'</div><button class="ibtn danger" aria-label="Hapus '+N+'" title="Hapus" data-pdel="'+N+'"'+(p.running?'':' disabled')+'>'+ICO_X+'</button></div>'}).join("")
+    :'<div class="empty">'+cfg.empty+'</div>';
+}
+function closeMenu(){if(plMenu){plMenu.remove();plMenu=null}}
+function openMenu(btn,n){closeMenu();const p=PL,op=has(p.ops,n),wl=has(p.whitelist,n),N=esc(n);
+  const m=document.createElement("div");m.className="menu";
+  m.innerHTML='<div class="lbl">Gamemode</div>'+["survival","creative","adventure","spectator"].map(g=>'<button data-pa="'+g+'" data-pn="'+N+'">'+g.charAt(0).toUpperCase()+g.slice(1)+'</button>').join("")+
+    '<hr><button data-pa="heal" data-pn="'+N+'">❤ Heal</button><button data-pa="feed" data-pn="'+N+'">🍗 Kenyangkan</button>'+
+    '<button data-pa="'+(op?"deop":"op")+'" data-pn="'+N+'">'+(op?"Cabut OP":"Jadikan OP")+'</button>'+
+    '<button data-pa="'+(wl?"wl-remove":"wl-add")+'" data-pn="'+N+'">'+(wl?"Keluarkan dari whitelist":"Masukkan whitelist")+'</button>'+
+    '<hr><button class="bad" data-pa="kick" data-pn="'+N+'">Kick</button><button class="bad" data-pa="ban" data-pn="'+N+'">Ban</button>';
+  btn.closest(".prow").appendChild(m);plMenu=m;placeMenu(m,btn)}
+document.addEventListener("click",e=>{if(plMenu&&!e.target.closest(".menu")&&!e.target.closest("[data-pmenu]"))closeMenu()});
+const ACT_MSG={op:"jadi OP",deop:"bukan OP lagi","wl-add":"masuk whitelist","wl-remove":"keluar whitelist",kick:"di-kick",ban:"di-ban",pardon:"di-unban",heal:"di-heal",feed:"dikenyangkan",survival:"jadi Survival",creative:"jadi Creative",adventure:"jadi Adventure",spectator:"jadi Spectator"};
+async function playerAct(action,name){
+  if(action==="ban"&&!await ask("Ban "+name+"?"))return false;
+  if(action==="op"&&!await ask("Jadikan "+name+" OP? OP bisa pakai semua command server."))return false;
+  try{await api("/api/players/action",{form:{action,name}});toast(name?name+" "+(ACT_MSG[action]||action):"Oke");setTimeout(()=>loadPlayers(true),700);pollLog();return true}catch(e){toast(e.message,true);return false}}
+$("#plTabs").onclick=e=>{const b=e.target.closest("[data-pt]");if(!b)return;plTab=b.dataset.pt;closeMenu();renderPlayers()};
+$("#plList").onclick=async e=>{const m=e.target.closest("[data-pmenu]");if(m){e.stopPropagation();if(plMenu&&plMenu.parentNode===m.closest(".prow"))closeMenu();else openMenu(m,m.dataset.pmenu);return}
+  const a=e.target.closest("[data-pa]");if(a){closeMenu();playerAct(a.dataset.pa,a.dataset.pn);return}
+  const d=e.target.closest("[data-pdel]");if(d&&!d.disabled){const n=d.dataset.pdel;if(plTab==="ops"||await ask(({whitelist:"Keluarkan "+n+" dari whitelist?",banned:"Unban "+n+"?"})[plTab]||"Hapus?"))playerAct(PT[plTab].del,n)}};
+$("#plAddForm").onsubmit=async e=>{e.preventDefault();const n=$("#plName").value.trim();if(!n)return;if(!/^[A-Za-z0-9_.]{2,20}$/.test(n))return toast("Nama pemain cuma huruf, angka, _ dan titik (2 sampai 20)",true);
+  if(await playerAct(PT[plTab].add,n))$("#plName").value=""};
+$("#wlToggle").onchange=e=>{playerAct(e.target.checked?"whitelist-on":"whitelist-off","")};
+
+// ---------------------------------------------------------- help
+function openHelp(which){$("#hPort").textContent=S.mcPort||"25565";$("#helpModal").classList.remove("hide");showHelp(which||"playit")}
+function showHelp(w){$$("#helpTabs button").forEach(b=>b.classList.toggle("on",b.dataset.h===w));$("#h-playit").classList.toggle("hide",w!=="playit");$("#h-cf").classList.toggle("hide",w!=="cf")}
+document.addEventListener("click",e=>{const h=e.target.closest("[data-help]");if(h)openHelp(h.dataset.help)});
+$("#bHelpClose").onclick=()=>$("#helpModal").classList.add("hide");
+$("#helpModal").onclick=e=>{if(e.target.id==="helpModal")$("#helpModal").classList.add("hide")};
+$("#helpTabs").onclick=e=>{const b=e.target.closest("[data-h]");if(b)showHelp(b.dataset.h)};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#helpModal").classList.add("hide");if(!$("#editModal").classList.contains("hide"))closeEditor()}});
+
+// ---------------------------------------------------------- login
+let lockTimer;
+const fmtSec=t=>t>=60?Math.floor(t/60)+":"+String(t%60).padStart(2,"0")+" menit":t+" detik";
+function loginMsg(html,bad){$("#loginMsg").innerHTML=html?'<span style="color:'+(bad?"var(--bad)":"var(--muted)")+'">'+html+'</span>':""}
+function setLock(sec){clearInterval(lockTimer);const btn=$("#loginBtn"),inp=$("#loginPin");
+  if(!(sec>0)){btn.disabled=false;inp.disabled=false;return}
+  btn.disabled=true;inp.disabled=true;let t=sec;
+  const tick=()=>{if(t<=0){clearInterval(lockTimer);btn.disabled=false;inp.disabled=false;loginMsg("Silakan coba lagi.");inp.focus();return}
+    loginMsg("Terlalu banyak PIN salah. Coba lagi dalam <b>"+fmtSec(t)+"</b>.",true);t--};
+  tick();lockTimer=setInterval(tick,1000)}
+async function showLogin(){if(loggingIn)return;loggingIn=true;$("#login").style.display="grid";loginMsg("");
+  try{const r=await (await fetch("/api/login")).json();if(r.retryAfter>0)setLock(r.retryAfter);else{setLock(0);if(r.triesLeft<3)loginMsg("Sisa "+r.triesLeft+" percobaan.",true)}}catch(e){}
+  setTimeout(()=>{if(!$("#loginPin").disabled)$("#loginPin").focus()},60)}
+$("#loginForm").onsubmit=async e=>{e.preventDefault();const inp=$("#loginPin");if(!inp.value)return;$("#loginBtn").disabled=true;
+  try{const r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({pin:inp.value})});
+    const d=await r.json().catch(()=>({}));
+    if(r.ok){$("#login").style.display="none";loggingIn=false;inp.value="";loginMsg("");refresh();go(tab);return}
+    inp.value="";inp.classList.remove("shake");void inp.offsetWidth;inp.classList.add("shake");
+    if(d.retryAfter>0)setLock(d.retryAfter);else{setLock(0);loginMsg(esc(d.error||"PIN salah"),true);inp.focus()}
+  }catch(err){setLock(0);loginMsg("Tidak bisa menghubungi panel: "+esc(err.message),true)}};
+
+// ---------------------------------------------------------- status
+function fmtDur(s){if(!s)return"-";const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);
+  return d?d+" hari "+h+" jam":h?h+" jam "+m+" mnt":m?m+" mnt "+(s%60)+" dtk":s+" dtk"}
+function fmtSize(b){return b>1048576?(b/1048576).toFixed(1)+" MB":Math.max(1,Math.round(b/1024))+" KB"}
+const TYPE={paper:{n:"Paper",c:"#60a5fa",tag:"Plugin",d:"Performa tinggi, paling cocok untuk survival dan plugin"},
+  purpur:{n:"Purpur",c:"#c084fc",tag:"Plugin",d:"Paper dengan pengaturan gameplay ekstra, plugin sama"},
+  fabric:{n:"Fabric",c:"#e2c08d",tag:"Mod",d:"Mod loader ringan, pasang mod sendiri dari Modrinth"},
+  forge:{n:"Forge",c:"#fb923c",tag:"Mod",d:"Mod loader klasik, untuk mod Forge dan kebanyakan modpack 1.20.1"},
+  neoforge:{n:"NeoForge",c:"#f87171",tag:"Mod",d:"Penerus Forge, untuk mod NeoForge dan modpack baru"},
+  vanilla:{n:"Vanilla",c:"#4ade80",tag:"Tanpa mod",d:"Minecraft murni dari Mojang, tanpa mod atau plugin"}};
+for(const k in TYPE)TYPE[k].logo="img/"+k+(k==="forge"||k==="purpur"?".svg":".webp");
+const tinfo=t=>TYPE[t]||TYPE.vanilla;
+const logo=t=>'<img src="'+tinfo(t).logo+'" alt="'+tinfo(t).n+'" onerror="this.parentNode.textContent=this.alt.charAt(0)">';
+const ADDON={paper:"plugin",purpur:"plugin",fabric:"mod",forge:"mod",neoforge:"mod",vanilla:""};
+const initial=n=>esc((n||"?").trim().charAt(0).toUpperCase()||"?");
+let lastServer=null;
+async function refresh(){
+  try{S=await api("/api/status")}catch(e){return}
+  if(S.lang&&S.lang!==LANG)return setLang(S.lang);
+  tutorialCheck();
+  if(window._lt&&!S.task)loadServers();window._lt=S.task;
+  const st=S.state, label=S.task?"Sibuk":STATE_ID[st]||st, has=!!S.serverId, ti=tinfo(S.type);
+  if(S.deviceRamMb>0)deviceRam=S.deviceRamMb;
+  const hp=$("#hdrPill");hp.className="pill "+(S.task?"starting":st);hp.textContent=label;
+  $("#statePill").textContent=label;$("#sDot").className="sdot "+(S.task?"starting":st);
+  $("#sUp").textContent=st==="running"&&S.uptime?"· "+fmtDur(S.uptime):"";
+  const sw=ti.n+" "+S.mcVersion;$("#hdrSub").textContent=has?(S.serverName===sw?sw:S.serverName+" · "+sw):"Belum ada server";
+  $("#welcomeCard").classList.toggle("hide",has);$("#activeCard").classList.toggle("hide",!has);$("#logCard").classList.toggle("hide",!has);
+  if(has){const ic=$("#sIco");ic.innerHTML=logo(S.type);ic.style.setProperty("--c",ti.c);$("#sName").textContent=S.serverName;
+    const me=SV&&SV.servers.find(x=>x.active),addon=ADDON[S.type];
+    $("#sInfo").textContent=ti.n+" "+S.mcVersion+(S.installed?"":" · belum terpasang")+(addon&&me?" · "+me.addons+" "+addon:"");
+    $("#sJava").textContent=S.java?"Java "+S.java:"";$("#sJava").classList.toggle("hide",!S.java);
+    $("#navAddon").textContent=S.type==="vanilla"?"Datapack":addon==="plugin"?"Plugin":"Mod"}
+  const tb=$("#taskBanner");tb.classList.toggle("hide",!S.task);tb.textContent=S.task?"⏳ "+S.task+"…":"";
+  const eb=$("#errBanner");eb.classList.toggle("hide",!S.taskError);eb.textContent=S.taskError||"";
+  const alive=st==="running"||st==="starting"||st==="stopping";
+  $("#bStart").disabled=alive||!!S.task||!S.runtimeReady||!S.installed;$("#bStop").disabled=!alive&&st!=="sleeping";$("#bRestart").disabled=st!=="running";
+  $("#sPlayers").textContent=S.players.length+" / "+S.maxPlayers+" pemain";
+  const P=S.players;
+  $("#playerList").textContent=P.length?P.slice(0,3).join(", ")+(P.length>3?" +"+(P.length-3):""):st==="running"?"Belum ada yang online":"Server mati";
+  if(S.rssMb>0){$("#sRam").textContent=(S.rssMb/1024).toFixed(1)+" / "+(S.ramMb/1024).toFixed(1)+" GB";$("#sRamBar").style.width=Math.min(100,S.rssMb/S.ramMb*100)+"%"}
+  else{$("#sRam").textContent="- / "+(S.ramMb/1024).toFixed(1)+" GB";$("#sRamBar").style.width="0"}
+  $("#sUptime").textContent=fmtDur(S.uptime);
+  const b=S.battery;
+  if(b){$("#sBatt").innerHTML=b.level+"%"+(b.charging?" ⚡":"")+' <span class="small" style="color:'+(b.temp>=43?"var(--bad)":b.temp>=39?"var(--warn)":"var(--muted)")+'">'+b.temp.toFixed(1)+"°C</span>"}else $("#sBatt").textContent="-";
+  // setup checklist
+  const steps=[["#stRuntime",S.runtimeReady],["#stFabric",has&&S.installed],["#stEula",S.eula],["#stStart",st==="running"]];
+  steps.forEach(([id,ok])=>$(id).classList.toggle("done",ok));
+  $("#setupCard").classList.toggle("hide",!has||(S.runtimeReady&&S.installed&&S.eula&&(st==="running"||S.uptime>0||localStorage.getItem("setupDone")==="1")));
+  if(st==="running")try{localStorage.setItem("setupDone","1")}catch(e){}
+  $("#liveDot").className=st==="running"?"on":"";
+  renderAddresses();
+  $("#pinBox").classList.toggle("hide",!S.local);$("#remoteBox").classList.toggle("hide",S.local);
+  if(S.local)$("#pinShow").textContent=S.pin;
+  $("#androidBox").classList.toggle("hide",!bridge);
+  $("#tunnelMissing").classList.toggle("hide",S.playit.available);
+  renderTunnelHero();renderDomainForm();renderBackupProgress();
+  if(lastServer!==S.serverId){const first=lastServer===null;lastServer=S.serverId;onServerChanged(first)}
+  if(tab==="home")renderServers();
+}
+/** The active server changed (or first load): everything cached for the old one is stale. */
+function onServerChanged(first){
+  installedMods=[];installedPacks=[];WI=null;BK=null;fPath="";PL=null;
+  const kind=ADDON[S.type]||"";store.type=kind?"mod":"datapack";store.hits=[];store.total=0;store.loaded=false;store.cat="";
+  const m=$('#storeType [data-type="mod"]');m.textContent=kind==="plugin"?"Plugin":"Mod";m.classList.toggle("hide",!kind);
+  $$("#storeType .chip").forEach(x=>x.classList.toggle("on",x.dataset.type===store.type));
+  $$("#storeCats .chip").forEach(x=>x.classList.toggle("on",x.dataset.cat===""));
+  $("#perfCard").classList.toggle("hide",S.type!=="fabric");
+  $('#modSeg [data-mv="manage"]').firstChild.textContent=kind==="plugin"?"Kelola plugin ":kind?"Kelola mod ":"Datapack ";
+  $("#modFilter").placeholder=kind==="plugin"?"Cari plugin terpasang":"Cari mod terpasang";
+  if(!first){loadServers();if(tab==="mods")loadMods();if(tab==="world")setWorldView(worldView);if(tab==="console")loadPlayers(true)}
+}
+
+// ---------------------------------------------------------- servers (Anvil style list)
+let SV=null;
+async function loadServers(){try{SV=await api("/api/servers");if(SV.deviceRamMb>0)deviceRam=SV.deviceRamMb;renderServers()}catch(e){}}
+function renderServers(){if(!SV)return;
+  const others=SV.servers.filter(x=>!x.active),busy=["running","starting","stopping"].includes(S.state)||!!S.task;
+  $("#otherBox").classList.toggle("hide",!others.length);$("#otherCount").textContent=others.length||"";
+  const html=others.map(x=>{const ti=tinfo(x.type);
+    return '<button class="ocard" data-sel="'+esc(x.id)+'"'+(busy?' aria-disabled="true"':'')+'><div class="sico" style="--c:'+ti.c+'">'+logo(x.type)+'</div>'+
+      '<div class="n"><b>'+esc(x.name)+'</b><span>'+ti.n+' '+esc(x.mcVersion)+(x.addons&&ADDON[x.type]?' · '+x.addons+' '+ADDON[x.type]:'')+(x.installed?'':' · belum terpasang')+'</span></div>'+
+      '<span class="go">'+(busy?'Matikan dulu':'Pakai')+'</span></button>'}).join("");
+  const box=$("#otherList");if(box.dataset.h!==html){box.innerHTML=html;box.dataset.h=html}}
+$("#otherList").onclick=async e=>{const b=e.target.closest("[data-sel]");if(!b)return;
+  if(b.getAttribute("aria-disabled")==="true")return toast("Matikan "+S.serverName+" dulu, cuma satu server yang bisa jalan",true);
+  const to=((SV&&SV.servers.find(x=>x.id===b.dataset.sel))||{}).name||b.dataset.sel;
+  if(!await ask("Pakai server "+to+"? Server "+S.serverName+" berhenti dipakai, datanya tetap aman."))return;
+  try{await api("/api/servers/select",{form:{id:b.dataset.sel}});await refresh();window.scrollTo(0,0);toast("Sekarang memakai "+S.serverName)}catch(err){toast(err.message,true)}};
+
+// ---------------------------------------------------------- versions per software
+const VCACHE={};
+const vnum=v=>v.split(/[.\-]/).map(x=>parseInt(x,10)||0);
+const vcmp=(a,b)=>{const x=vnum(a),y=vnum(b);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(y[i]||0)-(x[i]||0);if(d)return d}return 0};
+// bundled Java 17/21/25 covers Minecraft 1.17 and newer
+const supported=v=>{const p=vnum(v);return /^[0-9.]+$/.test(v)&&(p[0]>=26||(p[0]===1&&p[1]>=17))};
+function neoMc(v){const p=v.split(/[.\-]/),a=parseInt(p[0],10);if(p.length<3||isNaN(a))return"";return a>=26?a+"."+p[1]+(p[2]==="0"?"":"."+p[2]):"1."+a+(p[1]==="0"?"":"."+p[1])}
+async function loadVers(type){if(VCACHE[type])return VCACHE[type];let list=[];
+  if(type==="vanilla"){const m=await proxy("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json");list=m.versions.filter(v=>v.type==="release").map(v=>v.id)}
+  else if(type==="paper"){const m=await proxy("https://fill.papermc.io/v3/projects/paper");list=Object.values(m.versions).flat()}
+  else if(type==="purpur"){const m=await proxy("https://api.purpurmc.org/v2/purpur");list=m.versions}
+  else if(type==="fabric"){const m=await proxy("https://meta.fabricmc.net/v2/versions/game");list=m.filter(v=>v.stable).map(v=>v.version)}
+  else if(type==="forge"){const m=await proxy("https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json");list=Object.keys(m.promos).map(k=>k.replace(/-(latest|recommended)$/,""))}
+  else if(type==="neoforge"){const x=String(await proxy("https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml"));list=[...x.matchAll(/<version>([^<]+)<\/version>/g)].map(m=>neoMc(m[1]))}
+  return VCACHE[type]=[...new Set(list)].filter(supported).sort(vcmp)}
+
+// ---------------------------------------------------------- create server wizard
+const W={step:0,type:"",ver:"",name:"",ram:3072,eula:false};
+const WSTEPS=[["Pilih software","Software menentukan server pakai plugin, mod, atau polos."],["Pilih versi","Teman harus main pakai versi Minecraft yang sama."],["Nama & RAM","Kasih nama biar gampang dibedakan, lalu atur memori server."],["Siap dibuat","Cek lagi sebelum dibuat. Semua bisa diubah nanti."]];
+const SEARCH_SVG='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+const ramTop=()=>Math.max(1024,Math.min(8192,Math.round((deviceRam||8192)*0.6/256)*256));
+const ramRec=()=>deviceRam?Math.max(1024,Math.min(4096,Math.round(deviceRam*0.4/256)*256)):3072;
+function openWizard(){
+  if(["running","starting","stopping"].includes(S.state)||S.task)return toast("Matikan "+(S.serverName||"server")+" dulu sebelum membuat server baru",true);
+  Object.assign(W,{step:0,type:"",ver:"",name:"",ram:ramRec(),eula:!!S.eula});$("#newModal").classList.remove("hide");renderWiz()}
+document.addEventListener("click",e=>{if(e.target.closest("#bNew,#bNewSide,[data-new]"))openWizard()});
+function renderWiz(){const [t,sub]=WSTEPS[W.step],b=$("#wizBody"),next=$("#wizNext");
+  $("#wizStep").textContent="LANGKAH "+(W.step+1)+" DARI 4";$("#wizTitle").textContent=t;$("#wizSub").textContent=sub;$("#wizBar").style.width=((W.step+1)*25)+"%";
+  $("#wizBack").style.visibility=W.step?"visible":"hidden";next.textContent=W.step<3?"Lanjut":"Buat server";
+  if(W.step===0){b.innerHTML=Object.keys(TYPE).map(k=>{const ti=TYPE[k];
+      return '<button class="choice'+(W.type===k?' on':'')+'" data-wt="'+k+'"><span class="radio"></span><div class="sico" style="--c:'+ti.c+'">'+logo(k)+'</div><div class="n"><b>'+ti.n+'</b> <span class="tag '+(ti.tag==="Plugin"?"info":ti.tag==="Mod"?"warn":"ok")+'">'+ti.tag+'</span><div class="d">'+ti.d+'</div></div></button>'}).join("")+'<div class="row" style="gap:8px;margin-top:4px;flex-wrap:wrap"><button class="btn small" data-modpack type="button">Modpack dari Modrinth</button><button class="btn small" data-import type="button">Import server (.zip)</button></div>';
+    next.disabled=!W.type}
+  if(W.step===1){b.innerHTML='<div class="searchbox" style="margin-bottom:10px">'+SEARCH_SVG+'<input type="search" id="wVerQ" placeholder="Cari versi, misal 1.21" autocomplete="off" inputmode="decimal"></div><div class="vlist" id="wVers"><div class="empty">Memuat versi '+tinfo(W.type).n+'…</div></div>';
+    $("#wVerQ").oninput=renderVers;next.disabled=!W.ver;
+    loadVers(W.type).then(renderVers).catch(e=>{$("#wVers").innerHTML='<div class="empty">Gagal ambil daftar versi: '+esc(e.message)+'</div>'})}
+  if(W.step===2){const sug=ADDON[W.type]==="mod"?["Modpack Seru","Survival Modded","Teknologi"]:ADDON[W.type]==="plugin"?["SMP Teman","Survival Bareng","Minigame"]:["Survival Bareng","Dunia Kreatif","Hardcore"];
+    b.innerHTML='<label class="f"><span>Nama server</span><input type="text" id="wName" maxlength="40" placeholder="misal Survival Bareng" autocomplete="off" value="'+esc(W.name)+'"></label>'+
+      '<div class="chips" style="margin:-4px 0 16px">'+sug.map(x=>'<span class="chip" data-sug="'+esc(x)+'">'+esc(x)+'</span>').join("")+'</div>'+
+      '<div class="small muted">RAM untuk server'+(deviceRam?' (HP: '+gb(deviceRam)+')':'')+'</div>'+
+      '<div class="presets" id="wPre">'+[["Hemat",2048],["Disarankan",ramRec()],["Tinggi",ramTop()]].map(([k,v])=>'<button data-ram="'+v+'">'+k+'<small>'+gb(v)+'</small></button>').join("")+'</div>'+
+      '<label class="f"><span>RAM: <b id="wRamLabel"></b></span><input type="range" id="wRam" min="512" max="'+(deviceRam||8192)+'" step="128" style="width:100%"></label>'+
+      '<p class="small muted" id="wRamWarn" style="margin:0"></p>';
+    $("#wName").oninput=e=>{W.name=e.target.value;next.disabled=!W.name.trim()};$("#wRam").oninput=e=>setWRam(+e.target.value);
+    setWRam(W.ram);next.disabled=!W.name.trim();setTimeout(()=>$("#wName").focus(),50)}
+  if(W.step===3){const ti=tinfo(W.type);
+    b.innerHTML=[["Software",ti.n+" ("+ti.tag+")"],["Versi Minecraft",W.ver],["Nama",W.name.trim()],["RAM",gb(W.ram)],["Java","otomatis sesuai versi"],["Tunnel","playit.gg yang sudah diatur (port 25565)"]]
+      .map(([k,v])=>'<div class="sumrow"><span>'+k+'</span><b>'+esc(v)+'</b></div>').join("")+
+      (S.eula?'<p class="small muted" style="margin:14px 0 0">EULA Minecraft sudah disetujui.</p>':'<label class="eula"><input type="checkbox" class="toggle" id="wEula"'+(W.eula?' checked':'')+'><span>Saya setuju dengan <a href="https://aka.ms/MinecraftEULA" target="_blank" rel="noopener">EULA Minecraft</a></span></label>')+
+      '<p class="small muted" style="margin:12px 0 0">Software di-download sekarang. '+(W.type==="forge"||W.type==="neoforge"?"Installer "+ti.n+" butuh beberapa menit. ":"")+'Pantau progresnya di Konsol.</p>';
+    const ce=$("#wEula");if(ce)ce.onchange=e=>{W.eula=e.target.checked;next.disabled=!W.eula};next.disabled=!(S.eula||W.eula)}
+}
+function renderVers(){const q=(($("#wVerQ")||{}).value||"").trim(),all=VCACHE[W.type]||[],L=all.filter(v=>v.startsWith(q));
+  if(!W.ver&&all.length)W.ver=all[0];
+  $("#wVers").innerHTML=L.length?L.map(v=>'<button class="vchip'+(v===W.ver?' on':'')+'" data-ver="'+esc(v)+'">'+esc(v)+'</button>').join(""):'<div class="empty">Tidak ada versi yang cocok</div>';
+  $("#wizNext").disabled=!W.ver}
+function setWRam(v){W.ram=Math.round(v/128)*128;$("#wRam").value=W.ram;$("#wRamLabel").textContent=gb(W.ram);
+  $$("#wPre button").forEach(x=>x.classList.toggle("on",+x.dataset.ram===W.ram));
+  const w=$("#wRamWarn"),risky=deviceRam&&W.ram>deviceRam*0.6;w.style.color=risky?"var(--warn)":"";
+  w.textContent=risky?"Lebih dari 60% RAM HP. Android bisa mematikan server saat memori penuh.":ADDON[W.type]==="mod"?"Modpack besar butuh 4 sampai 6 GB.":"3 sampai 4 GB cukup untuk teman-teman main bareng."}
+$("#wizBody").onclick=e=>{const c=e.target.closest("[data-wt]");if(c){if(W.type!==c.dataset.wt){W.type=c.dataset.wt;W.ver=""}renderWiz();return}
+  const v=e.target.closest("[data-ver]");if(v){W.ver=v.dataset.ver;$$("#wVers .vchip").forEach(x=>x.classList.toggle("on",x===v));$("#wizNext").disabled=false;return}
+  const g=e.target.closest("[data-sug]");if(g){W.name=g.dataset.sug;$("#wName").value=W.name;$("#wizNext").disabled=false;return}
+  const r=e.target.closest("[data-ram]");if(r)setWRam(+r.dataset.ram)};
+$("#wizBack").onclick=()=>{if(W.step>0){W.step--;renderWiz()}};
+const closeWizard=()=>$("#newModal").classList.add("hide");
+$("#wizClose").onclick=closeWizard;$("#newModal").onclick=e=>{if(e.target.id==="newModal")closeWizard()};
+$("#wizNext").onclick=async()=>{if(W.step<3){W.step++;renderWiz();return}
+  const b=$("#wizNext");b.disabled=true;b.textContent="Membuat…";
+  try{if(!S.eula)await api("/api/settings",{form:{eula:"true"}});
+    await api("/api/servers/create",{form:{name:W.name.trim(),type:W.type,mc:W.ver,ram:String(W.ram)}});
+    closeWizard();toast("Server dibuat. Install "+tinfo(W.type).n+" "+W.ver+" dimulai");await refresh();go("home")}
+  catch(e){toast(e.message,true);b.disabled=false;b.textContent="Buat server"}};
+
+// ---------------------------------------------------------- per-server settings sheet
+let SS=null;
+async function openSrvSheet(){if(!SV)await loadServers();const x=SV&&SV.servers.find(y=>y.active);if(!x)return;SS=x;const ti=tinfo(x.type);
+  $("#srvTitle").textContent=x.name;$("#srvSoft").textContent=ti.n+" "+x.mcVersion+(x.loader?" ("+x.loader+")":"")+(x.java?" · Java "+x.java:"");
+  $("#srvName").value=x.name;$("#srvJvm").value=x.jvmArgs||"";
+  const max=deviceRam||8192;$("#srvRam").max=max;$("#srvRamNum").max=max;$$(".ramdev").forEach(e=>e.textContent=deviceRam?"(HP: "+gb(deviceRam)+")":"");setSrvRam(x.ramMb);
+  const sel=$("#srvVer");sel.innerHTML="<option>memuat…</option>";
+  loadVers(x.type).then(L=>{sel.innerHTML=L.map(v=>'<option'+(v===x.mcVersion?" selected":"")+'>'+esc(v)+'</option>').join("")}).catch(e=>{sel.innerHTML='<option value="">gagal ambil versi: '+esc(e.message)+'</option>'});
+  $("#srvSleep").value=String(x.sleepMin||0);$("#srvDaily").value=x.dailyRestart||"";$("#srvBedrock").checked=!!x.bedrock;
+  $("#srvBedrockBox").classList.toggle("hide",!["paper","purpur","fabric","neoforge"].includes(x.type));
+  $("#srvModal").classList.remove("hide")}
+function setSrvRam(v){v=Math.round(Number(v)||0);$("#srvRam").value=v;$("#srvRamNum").value=v;$("#srvRamLabel").textContent=gb(v);
+  const w=$("#srvRamWarn"),risky=deviceRam&&v>deviceRam*0.6;w.style.color=risky?"var(--warn)":"";
+  w.textContent=risky?"Lebih dari 60% RAM HP. Bisa jalan, tapi Android mungkin membunuh server saat memori penuh.":"HP 8 GB: 3 sampai 4 GB paling aman, modpack besar 4 sampai 6 GB."}
+$("#srvRam").oninput=e=>setSrvRam(e.target.value);$("#srvRamNum").onchange=e=>setSrvRam(e.target.value);
+$("#bSrvSettings").onclick=openSrvSheet;
+const closeSrv=()=>$("#srvModal").classList.add("hide");
+$("#srvClose").onclick=closeSrv;$("#srvModal").onclick=e=>{if(e.target.id==="srvModal")closeSrv()};
+$("#srvSave").onclick=async()=>{try{await api("/api/servers/update",{form:{id:SS.id,name:$("#srvName").value,ram:$("#srvRamNum").value,jvmArgs:$("#srvJvm").value,sleepMin:$("#srvSleep").value,dailyRestart:$("#srvDaily").value}});
+  toast("Tersimpan, RAM dan JVM args berlaku saat start berikutnya");closeSrv();await loadServers();refresh()}catch(e){toast(e.message,true)}};
+$("#srvBedrock").onchange=async e=>{const on=e.target.checked;
+  try{await api("/api/bedrock",{form:{on:String(on)}});toast(on?"Memasang Bedrock, pantau di Konsol":"Bedrock dihapus");closeSrv();refresh();loadServers()}catch(err){e.target.checked=!on;toast(err.message,true)}};
+$("#srvInstall").onclick=async()=>{const v=$("#srvVer").value;if(!v)return;
+  if(!await ask(v===SS.mcVersion?"Install ulang "+tinfo(SS.type).n+" "+v+"?":"Ganti "+SS.name+" dari "+SS.mcVersion+" ke "+v+"? Mod atau plugin lama mungkin tidak cocok."))return;
+  try{await api("/api/install",{form:{mc:v}});toast("Install dimulai, pantau di Konsol");closeSrv();refresh()}catch(e){toast(e.message,true)}};
+$("#srvDelete").onclick=async()=>{const n=await askText("Ketik nama server untuk menghapus:\n"+SS.name);if(n===null)return;
+  if(n.trim()!==SS.name.trim())return toast("Nama tidak sama, batal",true);
+  try{await api("/api/servers/delete",{form:{id:SS.id}});toast(SS.name+" dihapus");closeSrv();await refresh();loadServers()}catch(e){toast(e.message,true)}};
+document.addEventListener("click",e=>{const c=e.target.closest("[data-copy]");if(!c)return;const v=c.dataset.copy;
+  (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast("Disalin: "+v)).catch(()=>{const t=document.createElement("textarea");t.value=v;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();toast("Disalin: "+v)})});
+
+$("#bStart").onclick=()=>act("/api/start",null,"Server dinyalakan");
+$("#bStop").onclick=()=>act("/api/stop",null,"Mematikan server");
+$("#bRestart").onclick=()=>act("/api/restart",null,"Restart dimulai");
+$("#bKill").onclick=async()=>{if(await ask("Matikan paksa? World yang belum tersimpan bisa hilang."))act("/api/kill",null,"Dimatikan paksa")};
+
+// ---------------------------------------------------------- log
+function cls(l){if(l.includes("[Panel]"))return"p";if(l.startsWith("> "))return"c";if(/\/(ERROR|FATAL)\]|Exception|Error:/.test(l))return"e";if(/\/WARN\]/.test(l))return"w";return""}
+// Anvil-style rows: [time] [thread/LEVEL]: message -> time, level badge, message; others stay plain
+const LOGRX=/^\[(\d\d:\d\d:\d\d)\] \[([^\]]+)\]:? ?(.*)$/;
+let LV={},lvF="",logQ="";
+function lvOf(l,tag){if(l.startsWith("> "))return"cmd";if(tag==="Panel")return"panel";
+  const m=/\/(INFO|WARN|ERROR|FATAL|DEBUG)$/.exec(tag||"");if(m)return m[1]==="FATAL"?"error":m[1]==="DEBUG"?"info":m[1].toLowerCase();
+  const c=cls(l);return c==="e"?"error":c==="w"?"warn":c==="p"?"panel":"info"}
+function logRow(l){const d=document.createElement("div"),m=LOGRX.exec(l),lv=lvOf(l,m&&m[2]);d.dataset.lv=lv;d._raw=l;
+  if(m){const t=document.createElement("span"),b=document.createElement("span"),x=document.createElement("span");
+    t.className="lt";t.textContent=m[1];b.className="lb";b.textContent=lv==="panel"?"PANEL":lv.toUpperCase();x.className="lm";x.textContent=lv==="panel"?tr(m[3]):m[3];d.append(t,b,x)}
+  else d.textContent=l;
+  return d}
+function renderLines(el,lines,keepScroll){
+  const atBottom=el.scrollTop+el.clientHeight>=el.scrollHeight-30,isLog=el.id==="log";
+  const frag=document.createDocumentFragment();
+  for(const l of lines){const d=logRow(l);if(isLog){LV[d.dataset.lv]=(LV[d.dataset.lv]||0)+1;if(logQ&&l.toLowerCase().includes(logQ))d.classList.add("hit")}frag.appendChild(d)}
+  el.appendChild(frag);while(el.childElementCount>1500){const f=el.firstChild;if(isLog)LV[f.dataset.lv]--;f.remove()}
+  if(!keepScroll||atBottom)el.scrollTop=el.scrollHeight;
+  if(isLog)renderLogMeta();
+}
+function renderLogMeta(){const el=$("#log");let all=0;for(const k in LV)all+=LV[k]||0;
+  $$("#lvlPills [data-lvl]").forEach(p=>{const k=p.dataset.lvl,n=k?(LV[k]||0):all;p.querySelector("b").textContent=n||""});
+  const vis=logQ?el.querySelectorAll(lvF?'.hit[data-lv="'+lvF+'"]':".hit").length:lvF?(LV[lvF]||0):all;
+  $("#logQn").textContent=logQ?vis+" cocok":"";
+  const e=$("#logEmpty");e.classList.toggle("hide",vis>0);
+  e.innerHTML=all?'Tidak ada yang cocok. <a href="#" data-clrf>Hapus filter</a>':"Belum ada log. Start server untuk melihat output.";
+  jumpVis()}
+function applyLogFilter(){const el=$("#log");el.dataset.f=lvF;el.classList.toggle("q",!!logQ);
+  for(const d of el.children)d.classList.toggle("hit",!!logQ&&d._raw.toLowerCase().includes(logQ));
+  renderLogMeta();el.scrollTop=el.scrollHeight}
+function jumpVis(){const el=$("#log");$("#bJump").classList.toggle("hide",el.scrollTop+el.clientHeight>=el.scrollHeight-30)}
+$("#log").addEventListener("scroll",jumpVis,{passive:true});
+$("#bJump").onclick=()=>{const el=$("#log");el.scrollTop=el.scrollHeight};
+$("#lvlPills").onclick=e=>{const c=e.target.closest("[data-lvl]");if(!c)return;lvF=c.dataset.lvl;$$("#lvlPills .chip").forEach(x=>x.classList.toggle("on",x===c));applyLogFilter()};
+$("#bLogFind").onclick=()=>{const f=$("#findBar"),open=f.classList.toggle("hide");if(!open)$("#logQ").focus();else if(logQ){logQ="";$("#logQ").value="";applyLogFilter()}};
+let logQT;$("#logQ").oninput=e=>{clearTimeout(logQT);logQT=setTimeout(()=>{logQ=e.target.value.trim().toLowerCase();applyLogFilter()},200)};
+$("#logEmpty").onclick=e=>{if(!e.target.closest("[data-clrf]"))return;e.preventDefault();lvF="";logQ="";$("#logQ").value="";
+  $$("#lvlPills .chip").forEach(x=>x.classList.toggle("on",x.dataset.lvl===""));applyLogFilter()};
+$("#bLogCopy").onclick=()=>{const t=[...$("#log").children].map(d=>d._raw).join("\n");if(!t)return toast("Log masih kosong",true);
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast("Log disalin ("+$("#log").childElementCount+" baris)"))
+  .catch(()=>{const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove();toast("Log disalin")})};
+$("#bHist").onclick=e=>{e.stopPropagation();const m=$("#histMenu");if(!m.classList.contains("hide")){m.classList.add("hide");return}
+  m.innerHTML='<div class="lbl">Riwayat perintah</div>'+(hist.length?hist.slice(0,20).map(h=>'<button type="button" data-hist="'+esc(h)+'">'+esc(h)+'</button>').join(""):'<div class="small muted" style="padding:6px 10px">Belum ada perintah</div>');
+  m.classList.remove("hide")};
+$("#histMenu").onclick=e=>{const b=e.target.closest("[data-hist]");if(!b)return;$("#cmdInput").value=b.dataset.hist;$("#histMenu").classList.add("hide");$("#cmdInput").focus()};
+document.addEventListener("click",e=>{if(!e.target.closest("#histMenu,#bHist"))$("#histMenu").classList.add("hide")});
+async function pollLog(){
+  try{const r=await api("/api/log?since="+logSince);
+    if(r.next<logSince){$("#log").innerHTML="";$("#miniLog").innerHTML="";LV={}}
+    if(r.lines.length){renderLines($("#log"),r.lines,true);
+      const mini=$("#miniLog");renderLines(mini,r.lines,false);while(mini.childElementCount>60)mini.firstChild.remove()}
+    logSince=r.next}catch(e){}
+}
+async function pollTunnel(){try{const r=await api("/api/log?src=tunnel&since="+tunnelSince);if(r.lines.length)renderLines($("#tunnelLog"),r.lines,false);tunnelSince=r.next}catch(e){}}
+$("#cmdForm").onsubmit=async e=>{e.preventDefault();const v=$("#cmdInput").value.trim();if(!v)return;
+  try{await api("/api/command",{form:{cmd:v}});$("#cmdInput").value="";hist.unshift(v);hi=-1;pollLog()}catch(err){toast(err.message,true)}};
+let hist=[],hi=-1;
+$("#cmdInput").addEventListener("keydown",e=>{if(e.key==="ArrowUp"&&hist.length){hi=Math.min(hi+1,hist.length-1);e.target.value=hist[hi];e.preventDefault()}
+  if(e.key==="ArrowDown"){hi=Math.max(hi-1,-1);e.target.value=hi<0?"":hist[hi];e.preventDefault()}});
+$("#chips").onclick=e=>{const c=e.target.closest(".chip");if(!c)return;
+  if(c.dataset.diff)return setDifficulty(c.dataset.diff,c.textContent);
+  if(c.dataset.cmd){api("/api/command",{form:{cmd:c.dataset.cmd}}).then(pollLog).catch(err=>toast(err.message,true))}
+  else{const i=$("#cmdInput");i.value=c.dataset.fill;i.focus()}};
+
+// ---------------------------------------------------------- mods
+const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,"");
+const TRASH='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>';
+let modView="manage", modShow="all";
+function setModView(v){modView=v;$$("#modSeg button").forEach(b=>b.classList.toggle("on",b.dataset.mv===v));
+  $("#mv-manage").classList.toggle("hide",v!=="manage");$("#mv-store").classList.toggle("hide",v!=="store");
+  if(v==="store"&&!store.loaded)storeSearch(true)}
+$("#modSeg").onclick=e=>{const b=e.target.closest("[data-mv]");if(b)setModView(b.dataset.mv)};
+async function loadMods(){
+  try{const r=await api("/api/mods");installedMods=r.mods;installedPacks=r.datapacks||[];window._modNeedsRestart=r.needsRestart;renderMods();lookupMods()}catch(e){toast(e.message,true)}
+}
+const prettyMod=n=>n.replace(/\.disabled$/,"").replace(/\.jar$/,"");
+function renderMods(){
+  const q=norm($("#modFilter").value||""),all=installedMods;
+  const list=all.filter(m=>(!q||norm(m.name).includes(q))&&(modShow==="all"||(modShow==="on")===m.enabled));
+  const on=all.filter(m=>m.enabled).length,kind=addonKind();
+  $("#modBadge").textContent=all.length||"";
+  $("#modCount").textContent=all.length?(list.length===all.length?all.length+" "+kind+" · "+on+" aktif":list.length+" dari "+all.length+" "+kind):"";
+  $("#modUpload").closest("label").classList.toggle("hide",!kind);
+  if(!kind){$("#modCount").textContent="";$("#modList").innerHTML='<div class="empty">Server Vanilla tidak memakai mod atau plugin. Datapack bisa dipasang dari Store.</div>';return}
+  const ups=all.filter(m=>(MI[m.sha1]||{}).update);$("#modUpdBar").classList.toggle("hide",!ups.length);$("#modUpdText").textContent=ups.length+" update tersedia";
+  $("#modList").innerHTML=list.length?list.map(m=>{const i=MI[m.sha1]||{},t=i.title||prettyMod(m.name);
+    return '<div class="mrow'+(m.enabled?"":" off")+'"><div class="mic">'+(i.icon?'<img loading="lazy" alt="" src="'+esc(i.icon)+'">':'<span>'+esc(t.charAt(0).toUpperCase())+'</span>')+'</div>'+
+    '<div class="n"><b title="'+esc(m.name)+'">'+(i.slug?'<a href="https://modrinth.com/'+esc(i.pt||"mod")+'/'+esc(i.slug)+'" target="_blank" rel="noopener">'+esc(t)+'</a>':esc(t))+'</b><span>'+(i.ver?esc(i.ver)+" · ":"")+fmtSize(m.size||0)+(m.enabled?"":" · nonaktif")+'</span></div>'+
+    (i.update?'<button class="btn small primary" type="button" data-upd="'+esc(m.name)+'" title="'+esc(i.update.ver)+'">Update</button>':'')+
+    '<input type="checkbox" class="toggle" aria-label="Aktifkan '+esc(prettyMod(m.name))+'" data-toggle="'+esc(m.name)+'"'+(m.enabled?" checked":"")+'>'+
+    '<button class="ibtn danger" aria-label="Hapus" title="Hapus" data-del="'+esc(m.name)+'">'+TRASH+'</button></div>'}).join("")
+    :'<div class="empty">'+(all.length?"Tidak ada "+kind+" yang cocok":"Belum ada "+kind+". Buka Store Modrinth untuk pasang.")+'</div>';
+  $("#modRestart").classList.toggle("hide",!window._modNeedsRestart||!window._modChanged);
+  if(store.hits.length)renderStore();
+}
+$("#modFilter").oninput=renderMods;
+// ---- Modrinth: name, icon and version of installed jars (by SHA-1), plus available updates for this server version
+let MI={},lookingUp=false;
+const MR="https://api.modrinth.com/v2/",mrPost=(path,body)=>api("/api/proxy?u="+encodeURIComponent(MR+path),{method:"POST",body:JSON.stringify(body),type:"application/json"});
+async function lookupMods(){if(lookingUp||!addonKind())return;lookingUp=true;
+  try{const hs=installedMods.map(m=>m.sha1).filter(h=>h&&!MI[h]);
+    if(hs.length){const r=await mrPost("version_files",{hashes:hs,algorithm:"sha1"});
+      const ids=[...new Set(Object.values(r).map(v=>v.project_id))],P={};
+      if(ids.length)(await proxy(MR+"projects?ids="+encodeURIComponent(JSON.stringify(ids)))).forEach(p=>P[p.id]=p);
+      for(const h of hs){const v=r[h],p=v&&P[v.project_id]||{};MI[h]=v?{title:p.title||"",icon:p.icon_url||"",slug:p.slug||"",pt:p.project_type||"mod",ver:v.version_number,vid:v.id}:{}}}
+    const known=installedMods.filter(m=>m.enabled&&MI[m.sha1]&&MI[m.sha1].vid);
+    if(known.length&&S.mcVersion){const u=await mrPost("version_files/update",{hashes:known.map(m=>m.sha1),algorithm:"sha1",loaders:LOADERS[S.type]||[],game_versions:[S.mcVersion]});
+      for(const m of known){const v=u[m.sha1],i=MI[m.sha1];i.update=null;
+        if(v&&v.id!==i.vid){const f=(v.files||[]).find(x=>x.primary)||(v.files||[])[0];if(f&&/\.jar$/.test(f.filename))i.update={url:f.url,filename:f.filename,ver:v.version_number}}}}
+  }catch(e){}finally{lookingUp=false}
+  renderMods()}
+async function updateMod(name){const m=installedMods.find(x=>x.name===name),i=m&&MI[m.sha1];if(!i||!i.update)return;
+  await api("/api/mods/install",{form:{url:i.update.url,filename:i.update.filename}});
+  if(i.update.filename!==m.name)await api("/api/mods/delete",{form:{name:m.name}});
+  window._modChanged=1}
+$("#bModUpdAll").onclick=async e=>{const b=e.target;b.disabled=true;const ups=installedMods.filter(m=>(MI[m.sha1]||{}).update);let ok=0;
+  for(const m of ups){try{await updateMod(m.name);ok++}catch(err){toast(prettyMod(m.name)+": "+err.message,true)}}
+  b.disabled=false;toast(ok+" mod di-update");loadMods()};
+$("#modShow").onclick=e=>{const c=e.target.closest("[data-show]");if(!c)return;modShow=c.dataset.show;$$("#modShow .chip").forEach(x=>x.classList.toggle("on",x===c));renderMods()};
+$("#modList").onclick=async e=>{const u=e.target.closest("[data-upd]");
+  if(u){u.disabled=true;try{await updateMod(u.dataset.upd);toast(prettyMod(u.dataset.upd)+" di-update")}catch(err){toast(err.message,true)}loadMods();return}
+  const d=e.target.closest("[data-del]");if(d&&await ask("Hapus "+prettyMod(d.dataset.del)+"?")){try{await api("/api/mods/delete",{form:{name:d.dataset.del}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}}};
+$("#modList").onchange=async e=>{const t=e.target.closest("[data-toggle]");if(!t)return;try{await api("/api/mods/toggle",{form:{name:t.dataset.toggle}});window._modChanged=1;loadMods()}catch(err){toast(err.message,true)}};
+$("#modUpload").onchange=async e=>{for(const f of e.target.files){try{toast("Upload "+f.name+"…");await api("/api/mods/upload?name="+encodeURIComponent(f.name),{method:"PUT",body:f});window._modChanged=1}catch(err){toast(f.name+": "+err.message,true)}}e.target.value="";loadMods()};
+$("#bModRestart").onclick=()=>act("/api/restart",null,"Restart dimulai").then(()=>{window._modChanged=0;renderMods()});
+
+const mcVersion=()=>S.mcVersion||"1.21.1";
+// Modrinth loader names each software accepts (Purpur runs Paper/Spigot/Bukkit plugins too)
+const LOADERS={fabric:["fabric"],forge:["forge"],neoforge:["neoforge"],paper:["paper","spigot","bukkit"],purpur:["purpur","paper","spigot","bukkit"],vanilla:[]};
+const addonKind=()=>ADDON[S.type]||"";
+async function modrinthVersion(idOrSlug,loaders=LOADERS[S.type]||["fabric"]){
+  const u="https://api.modrinth.com/v2/project/"+encodeURIComponent(idOrSlug)+"/version?loaders="+encodeURIComponent(JSON.stringify(loaders))+"&game_versions="+encodeURIComponent(JSON.stringify([mcVersion()]));
+  const vs=await proxy(u);if(!vs.length)throw new Error("tidak ada versi untuk "+(loaders[0]==="datapack"?"datapack":tinfo(S.type).n)+" "+mcVersion());
+  return vs.find(v=>v.version_type==="release")||vs[0];
+}
+// many Modrinth projects ship as both a Fabric jar and a datapack (Terralith, Veinminer...), so either copy counts
+const isInstalled=slug=>installedMods.some(m=>norm(m.name).includes(norm(slug)))||installedPacks.some(n=>norm(n).includes(norm(slug)));
+async function installPack(id){
+  const v=await modrinthVersion(id,["datapack"]),file=v.files.find(f=>f.primary)||v.files[0];
+  await api("/api/mods/install",{form:{url:file.url,filename:file.filename,kind:"datapack"}});
+  installedPacks.push(file.filename);
+  if(S.state==="running")toast("Datapack terpasang. Ketik reload di Konsol supaya aktif");
+}
+async function installProject(idOrSlug,seen=new Set()){
+  if(seen.has(idOrSlug))return;seen.add(idOrSlug);
+  const proj=await proxy("https://api.modrinth.com/v2/project/"+encodeURIComponent(idOrSlug));
+  seen.add(proj.id);seen.add(proj.slug);
+  if(isInstalled(proj.slug)){toast(proj.title+" sudah terpasang");return}
+  const v=await modrinthVersion(proj.id);
+  const file=v.files.find(f=>f.primary)||v.files[0];
+  toast("Memasang "+proj.title+"…");
+  await api("/api/mods/install",{form:{url:file.url,filename:file.filename}});
+  installedMods.push({name:file.filename,enabled:true,size:file.size});window._modChanged=1;
+  for(const d of v.dependencies||[]){if(d.dependency_type==="required"&&d.project_id){try{await installProject(d.project_id,seen)}catch(err){toast("Dependency: "+err.message,true)}}}
+}
+$("#bPerfPack").onclick=async e=>{const b=e.target;b.disabled=true;b.textContent="Memasang…";const seen=new Set();
+  for(const s of ["fabric-api","lithium","ferrite-core","krypton","modernfix","chunky"]){try{await installProject(s,seen)}catch(err){toast(s+": "+err.message,true)}}
+  b.disabled=false;b.textContent="Pasang semua";loadMods();toast("Paket optimasi selesai")};
+
+// store
+const store={type:"mod",q:"",cat:"",sort:"downloads",offset:0,total:0,hits:[],loaded:false,busy:false,seq:0};
+const kindLabel=()=>store.type==="datapack"?"datapack":addonKind()+" "+tinfo(S.type).n;
+const compact=n=>Intl.NumberFormat(LANG,{notation:"compact",maximumFractionDigits:1}).format(n);
+async function storeSearch(reset){
+  if(store.busy&&!reset)return;
+  if(reset){store.offset=0;store.hits=[];store.total=0;$("#searchResults").innerHTML='<div class="empty">Memuat…</div>';$("#storeMore").textContent=""}
+  else if(store.hits.length>=store.total)return;
+  const my=++store.seq;store.busy=true;if(!reset)$("#storeMore").textContent="Memuat lainnya…";
+  // facets: outer array = AND, inner array = OR (same shape Anvil-MC builds per project type)
+  const f=store.type==="datapack"?[["project_type:datapack"],["versions:"+mcVersion()]]
+    :addonKind()==="plugin"?[["project_type:plugin"],LOADERS[S.type].map(l=>"categories:"+l),["versions:"+mcVersion()]]
+    :[["project_type:mod"],["categories:"+S.type],["versions:"+mcVersion()],["server_side:required","server_side:optional"]];
+  if(store.cat)f.push(["categories:"+store.cat]);
+  const sort=store.q?store.sort:(store.sort==="relevance"?"downloads":store.sort);
+  try{const r=await proxy("https://api.modrinth.com/v2/search?limit=20&offset="+store.offset+"&index="+sort+"&query="+encodeURIComponent(store.q)+"&facets="+encodeURIComponent(JSON.stringify(f)));
+    if(my!==store.seq)return;
+    store.hits=store.hits.concat(r.hits);store.total=r.total_hits;store.offset+=r.hits.length;store.loaded=true;renderStore();
+  }catch(err){if(my===store.seq)$("#searchResults").innerHTML='<div class="empty">'+esc(err.message)+'</div>'}
+  finally{if(my===store.seq){store.busy=false;setTimeout(storeMaybeMore,50)}}
+}
+// infinite scroll: load the next page when the bottom of the list comes into view
+function storeNearBottom(){const el=$("#storeMore");if(!el||$("#mv-store").classList.contains("hide")||tab!=="mods")return false;
+  return el.getBoundingClientRect().top<window.innerHeight+600}
+function storeMaybeMore(){if(store.loaded&&!store.busy&&store.hits.length<store.total&&storeNearBottom())storeSearch(false)}
+window.addEventListener("scroll",storeMaybeMore,{passive:true});window.addEventListener("resize",storeMaybeMore);
+function renderStore(){
+  $("#searchHint").textContent=store.total?compact(store.total)+" "+kindLabel()+" "+mcVersion()+" yang bisa jalan di server":"Hanya "+kindLabel()+" untuk versi server kamu yang bisa jalan di server.";
+  $("#searchResults").innerHTML=store.hits.length?store.hits.map(h=>{const inst=isInstalled(h.slug);
+    const side=store.type==="mod"&&addonKind()==="mod"?(h.client_side==="required"?'<span class="tag warn">Client juga wajib</span>':'<span class="tag ok">Cukup di server</span>'):'';
+    return '<div class="mcard"><div class="top"><div class="ic"><span>'+esc((h.title||"?").charAt(0).toUpperCase())+'</span>'+(h.icon_url?'<img loading="lazy" src="'+esc(h.icon_url)+'" alt="" onerror="this.remove()">':'')+'</div>'+
+      '<div class="t"><a href="https://modrinth.com/'+(store.type==="datapack"?"datapack":addonKind())+'/'+encodeURIComponent(h.slug)+'" target="_blank" rel="noopener">'+esc(h.title)+'</a><div class="by">oleh '+esc(h.author||"?")+'</div><div class="d">'+esc(h.description||"")+'</div></div></div>'+
+      '<div class="meta"><span>⬇ '+compact(h.downloads)+'</span>'+side+'</div>'+
+      '<button class="btn small'+(inst?"":" primary")+'" data-install="'+esc(h.project_id)+'"'+(inst?" disabled":"")+'>'+(inst?"Terpasang":"Pasang")+'</button></div>'}).join("")
+    :'<div class="empty">Tidak ada '+kindLabel()+' untuk '+esc(mcVersion())+'</div>';
+  $("#storeMore").textContent=!store.hits.length?"":store.hits.length>=store.total?"Semua "+store.total+" "+kindLabel()+" sudah ditampilkan":"";
+}
+let storeTimer;
+$("#searchInput").oninput=e=>{clearTimeout(storeTimer);storeTimer=setTimeout(()=>{store.q=e.target.value.trim();if(store.q&&store.sort==="downloads"){store.sort="relevance";$("#storeSort").value="relevance"}storeSearch(true)},450)};
+$("#searchInput").onkeydown=e=>{if(e.key==="Enter"){clearTimeout(storeTimer);store.q=e.target.value.trim();storeSearch(true);e.target.blur()}};
+$("#storeSort").onchange=e=>{store.sort=e.target.value;storeSearch(true)};
+$("#storeType").onclick=e=>{const c=e.target.closest("[data-type]");if(!c||c.dataset.type===store.type)return;store.type=c.dataset.type;
+  $$("#storeType .chip").forEach(x=>x.classList.toggle("on",x===c));$("#perfCard").classList.toggle("hide",store.type!=="mod"||S.type!=="fabric");storeSearch(true)};
+$("#storeCats").onclick=e=>{const c=e.target.closest("[data-cat]");if(!c)return;store.cat=c.dataset.cat;$$("#storeCats .chip").forEach(x=>x.classList.toggle("on",x===c));storeSearch(true)};
+$("#searchResults").onclick=async e=>{const b=e.target.closest("[data-install]");if(!b)return;b.disabled=true;b.textContent="Memasang…";
+  try{await (store.type==="datapack"?installPack:installProject)(b.dataset.install);b.textContent="Terpasang";loadMods()}catch(err){toast(err.message,true);b.disabled=false;b.textContent="Pasang"}};
+
+// ---------------------------------------------------------- world
+const IC={"NEWSRV":'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><path d="M3 15a2 2 0 0 1 2-2h7M7 7.5h.01M17 15v6M14 18h6"/></svg>',"ZIP": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M10 4v3h4V4M12 11v.01M12 15v.01\"/></svg>", "DL": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 4v11M7 10l5 5 5-5M5 20h14\"/></svg>", "RESTORE": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 0 2.6-6.4L3 8\"/><path d=\"M3 3v5h5\"/></svg>", "FOLDER": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg>", "FILE": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z\"/><path d=\"M14 3v5h5\"/></svg>", "TXT": "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z\"/><path d=\"M14 3v5h5M9 13h6M9 17h4\"/></svg>"};
+let worldView="backup", WI=null, BK=null, lastTask="";
+function setWorldView(v){worldView=v;$$("#worldSeg button").forEach(b=>b.classList.toggle("on",b.dataset.wv===v));
+  for(const k of ["backup","files","props"])$("#wv-"+k).classList.toggle("hide",k!==v);
+  if(v==="backup"){loadBackups();loadWorldInfo()}if(v==="files"){loadWorldInfo();loadFiles(fPath)}if(v==="props")loadProps()}
+$("#worldSeg").onclick=e=>{const b=e.target.closest("[data-wv]");if(b)setWorldView(b.dataset.wv)};
+function ago(t){const s=Math.max(0,(Date.now()-t)/1000);if(s<60)return"baru saja";if(s<3600)return Math.floor(s/60)+" mnt lalu";if(s<86400)return Math.floor(s/3600)+" jam lalu";return Math.floor(s/86400)+" hari lalu"}
+const fmtDate=t=>{const d=new Date(t),o={day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"};if(d.getFullYear()!==new Date().getFullYear())o.year="numeric";return d.toLocaleString(LANG,o)};
+async function loadWorldInfo(force){try{WI=await api("/api/world/info"+(force?"?force=1":""));renderWorldInfo();renderQuick()}catch(e){}}
+function renderWorldInfo(){const w=WI;if(!w)return;
+  $("#wName").textContent=w.name;
+  const last=BK&&BK.backups.length?BK.backups[0]:null;
+  $("#wMeta").textContent=w.exists?(fmtSize(w.size)+" · "+(last?"backup terakhir "+ago(last.time):"belum pernah di-backup")):"World belum dibuat. Start server sekali dulu.";
+  $("#wDims").innerHTML=[["Overworld",w.overworld,true,"#5fd068"],["Nether",w.nether,w.netherExists,"#ef6b5b"],["End",w.end,w.endExists,"#b48cf2"]].map(([k,v,ex,c])=>'<div class="dim" style="--c:'+c+'"><div class="k">'+k+'</div><div class="v">'+(w.exists&&ex?fmtSize(v):"-")+'</div></div>').join("");
+  const alive=["running","starting","stopping"].includes(S.state);
+  $$("[data-resetdim]").forEach(b=>{const ex=b.dataset.resetdim==="nether"?w.netherExists:w.endExists;b.disabled=!ex||alive});
+  $("#bResetWorld").disabled=!w.exists||alive;
+  $("#dzNote").textContent=alive?"Matikan server dulu untuk memakai aksi di sini.":"Backup dulu kalau masih butuh. Aksi ini tidak bisa dibatalkan.";$("#bBackup").disabled=!w.exists||!!(S.task);
+}
+function backupMeta(b){const m=/^(auto-)?(full-)?(.+)-(\d{8})-(\d{6})\.zip$/.exec(b.name);
+  if(!m)return{title:b.name.replace(/\.zip$/,""),kind:"Upload",cls:"info",full:true};
+  return{title:fmtDate(b.time),kind:m[2]?"Lengkap":m[1]?"Otomatis":"Manual",cls:m[2]?"ok":"",full:!!m[2]}}
+async function loadBackups(){
+  try{BK=await api("/api/backups");renderBackups();renderWorldInfo()}catch(e){toast(e.message,true)}
+}
+function renderBackups(){const r=BK;if(!r)return;
+  $("#bCount").textContent=r.backups.length||"";
+  $("#backupList").innerHTML=r.backups.length?r.backups.map((b,i)=>{const m=backupMeta(b);
+    return '<div class="mrow brow"><div class="bico">'+IC.ZIP+'</div><div class="n"><b title="'+esc(b.name)+'">'+esc(m.title)+'</b><span>'+fmtSize(b.size)+' · '+ago(b.time)+'</span>'+
+      '<div class="tags">'+(i===0?'<span class="tag ok">Terbaru</span>':'')+'<span class="tag '+m.cls+'">'+m.kind+'</span></div></div>'+
+      '<a class="ibtn" title="Unduh" aria-label="Unduh" href="/api/backups/download?name='+encodeURIComponent(b.name)+'" download="'+esc(b.name)+'">'+IC.DL+'</a>'+
+      '<button class="ibtn" title="Restore" aria-label="Restore" data-restore="'+esc(b.name)+'"'+(r.running?" disabled":"")+'>'+IC.RESTORE+'</button>'+
+      (m.full?'<button class="ibtn" title="Jadikan server baru" aria-label="Jadikan server baru" data-bnew="'+esc(b.name)+'"'+(r.running?" disabled":"")+'>'+IC.NEWSRV+'</button>':'')+
+      '<button class="ibtn danger" title="Hapus" aria-label="Hapus" data-bdel="'+esc(b.name)+'">'+TRASH+'</button></div>'}).join("")
+    :'<div class="empty">Belum ada backup'+(r.worldExists?". Tekan Backup sekarang.":" (world belum dibuat)")+'</div>';
+  const on=r.autoHours>0;$("#abOn").checked=on;$("#abOpts").classList.toggle("hide",!on);
+  if(on){$("#abHours").value=String(r.autoHours);$("#abKeep").value=String(r.keep);
+    if(!$("#abHours").value){$("#abHours").insertAdjacentHTML("beforeend",'<option value="'+r.autoHours+'">'+r.autoHours+' jam</option>');$("#abHours").value=String(r.autoHours)}
+    if(!$("#abKeep").value){$("#abKeep").insertAdjacentHTML("beforeend",'<option value="'+r.keep+'">'+r.keep+' terakhir</option>');$("#abKeep").value=String(r.keep)}}
+  $("#abInfo").textContent=on?("Tiap "+r.autoHours+" jam, simpan "+r.keep+" terakhir. "+(r.lastAuto?"Terakhir "+ago(r.lastAuto)+".":"Belum ada backup otomatis.")):"Mati. Nyalakan supaya world di-backup sendiri selama server jalan.";
+}
+function renderBackupProgress(){const t=S.task||"",busy=/^(Backup|Restore)/.test(t);
+  $("#bProgress").classList.toggle("hide",!busy);
+  if(busy){$("#bProgText").textContent=t+"…";const p=S.taskProgress;$("#bProgPct").textContent=p>=0?p+"%":"";$("#bProgBar").style.width=(p>=0?p:15)+"%"}
+  if(lastTask&&!t&&tab==="world"){loadBackups();loadWorldInfo(true);if(worldView==="files")loadFiles(fPath)}
+  lastTask=t;
+  if(WI&&tab==="world")renderWorldInfo();else if($("#bBackup"))$("#bBackup").disabled=!!t||(WI&&!WI.exists);
+  if(BK&&tab==="world"&&BK.running!==["running","starting","stopping"].includes(S.state)){BK.running=!BK.running;renderBackups()}
+}
+$("#bBackup").onclick=()=>act("/api/backups/create",null,"Backup dimulai");
+$("#backupList").onclick=async e=>{const nb=e.target.closest("[data-bnew]");
+  if(nb&&!nb.disabled){if(await ask("Jadikan "+nb.dataset.bnew+" server baru? Server yang sekarang tidak berubah."))await act("/api/backups/clone",{name:nb.dataset.bnew},"Import dimulai, pantau di Konsol");return}
+  const r=e.target.closest("[data-restore]"),d=e.target.closest("[data-bdel]");
+  if(r&&!r.disabled&&await ask("Ganti world sekarang dengan backup ini?\n"+r.dataset.restore+"\n\nWorld yang sekarang akan ditimpa."))await act("/api/backups/restore",{name:r.dataset.restore},"Restore dimulai");
+  if(d&&await ask("Hapus backup "+d.dataset.bdel+"?")){await act("/api/backups/delete",{name:d.dataset.bdel},"Backup dihapus");loadBackups()}};
+$("#worldUpload").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{toast("Upload "+f.name+" ("+fmtSize(f.size)+")…");await api("/api/backups/upload?name="+encodeURIComponent(f.name.replace(/[^\w.\-]/g,"_")),{method:"PUT",body:f});toast("Upload selesai, tekan Restore");loadBackups()}catch(err){toast(err.message,true)}e.target.value=""};
+$("#bResetWorld").onclick=async()=>{if(await ask("Hapus world sekarang? Backup dulu kalau masih butuh.")&&(await askText("Ketik HAPUS untuk lanjut"))==="HAPUS")act("/api/world/reset",null,"World dihapus").then(()=>loadWorldInfo(true))};
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-resetdim]");if(!b||b.disabled)return;const n=b.dataset.resetdim==="nether"?"Nether":"End";
+  if(await ask("Reset "+n+"? Semua bangunan dan barang di "+n+" hilang."))act("/api/world/reset-dim",{dim:b.dataset.resetdim},n+" direset").then(()=>loadWorldInfo(true))});
+async function saveAutoBackup(){const on=$("#abOn").checked;
+  try{await api("/api/settings",{form:{autoBackupHours:on?($("#abHours").value||"6"):"0",backupKeep:$("#abKeep").value||"5"}});toast(on?"Backup otomatis aktif":"Backup otomatis mati");loadBackups()}catch(e){toast(e.message,true)}}
+$("#abOn").onchange=()=>{if($("#abOn").checked&&!BK.autoHours){$("#abHours").value="6";$("#abKeep").value="5"}saveAutoBackup()};
+$("#abHours").onchange=saveAutoBackup;$("#abKeep").onchange=saveAutoBackup;
+
+// ---------------------------------------------------------- file world
+let fPath="", FL=null, fMenu=null, edFile=null, edDirty=false;
+const joinP=(a,b)=>a?a+"/"+b:b;
+function renderQuick(){const w=WI||{},wn=w.name||"world";
+  const ad=w.addonDir||"",q=[["Overworld",wn,w.exists?fmtSize(w.overworld):"belum ada","#4ade80",w.exists],["Nether",w.netherPath||wn+"/DIM-1",w.netherExists?fmtSize(w.nether):"belum ada","#ff5f56",w.netherExists],
+    ["End",w.endPath||wn+"/DIM1",w.endExists?fmtSize(w.end):"belum ada","#c084fc",w.endExists],["config","config",w.config?fmtSize(w.config):"kosong","#60a5fa",true],
+    ad?[ad,ad,fmtSize(w.mods||0),"#fb923c",true]:["datapacks",wn+"/datapacks","folder datapack","#fb923c",w.exists],["Server","","semua file","#a0a0a0",true]];
+  $("#fQuick").innerHTML=q.map(([k,p,v,c,ok])=>'<button class="qk" style="--c:'+c+'" data-fgo="'+esc(p)+'"'+(ok?"":" disabled")+'><div class="k">'+k+'</div><div class="v">'+v+'</div></button>').join("")}
+$("#fQuick").onclick=e=>{const b=e.target.closest("[data-fgo]");if(b&&!b.disabled)loadFiles(b.dataset.fgo)};
+async function loadFiles(p){closeFMenu();
+  try{FL=await api("/api/files/list?path="+encodeURIComponent(p));fPath=FL.path;renderFiles()}
+  catch(e){if(p){toast(e.message,true);return loadFiles("")}$("#fList").innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
+function renderFiles(){const d=FL;
+  const parts=d.path?d.path.split("/"):[];
+  $("#fCrumbs").innerHTML='<button data-fgo="">Server</button>'+parts.map((x,i)=>'<span class="sep">/</span><button data-fgo="'+esc(parts.slice(0,i+1).join("/"))+'">'+esc(x)+'</button>').join("");
+  const locked=d.running&&d.inWorld;$("#fWarn").classList.toggle("hide",!locked);
+  $("#fZip").href="/api/files/download?path="+encodeURIComponent(d.path);$("#fZip").setAttribute("download",(parts[parts.length-1]||"server")+".zip");
+  $("#fList").innerHTML=(d.path?'<div class="mrow frow" data-fgo="'+esc(parts.slice(0,-1).join("/"))+'"><div class="fico dir">'+IC.FOLDER+'</div><div class="n"><b>..</b><span>Folder atas</span></div></div>':"")+
+    (d.entries.length?d.entries.map(f=>{const kind=f.dir?"dir":f.text?"txt":"file";
+      const meta=f.dir?(f.items+" item"):(fmtSize(f.size)+" · "+fmtDate(f.time));
+      return '<div class="mrow frow" data-fname="'+esc(f.name)+'"><div class="fico '+kind+'">'+(f.dir?IC.FOLDER:f.text?IC.TXT:IC.FILE)+'</div><div class="n"><b title="'+esc(f.name)+'">'+esc(f.name)+'</b><span>'+meta+'</span></div>'+
+        '<button class="ibtn" aria-label="Aksi untuk '+esc(f.name)+'" data-fmenu="'+esc(f.name)+'">'+ICO_DOTS+'</button></div>'}).join(""):'<div class="empty">Folder kosong</div>');
+}
+$("#fCrumbs").onclick=e=>{const b=e.target.closest("[data-fgo]");if(b)loadFiles(b.dataset.fgo)};
+function fEntry(n){return FL&&FL.entries.find(x=>x.name===n)}
+function closeFMenu(){if(fMenu){fMenu.remove();fMenu=null}}
+function openFMenu(btn,name){closeFMenu();const f=fEntry(name);if(!f)return;const p=joinP(fPath,name),locked=FL.running&&(FL.inWorld||(!fPath&&name===FL.world));
+  const m=document.createElement("div");m.className="menu";
+  m.innerHTML=(f.dir?'<button data-fa="open">Buka</button>':"")+(f.text?'<button data-fa="edit">'+(locked?"Lihat isi":"Edit")+'</button>':"")+
+    '<a href="/api/files/download?path='+encodeURIComponent(p)+'" download="'+esc(f.dir?name+".zip":name)+'"><button data-fa="dl">'+(f.dir?"Unduh .zip":"Unduh")+'</button></a>'+
+    '<button data-fa="rename"'+(locked?" disabled":"")+'>Ganti nama</button><hr><button class="bad" data-fa="del"'+(locked?" disabled":"")+'>Hapus</button>';
+  m.dataset.name=name;btn.closest(".frow").appendChild(m);fMenu=m;placeMenu(m,btn)}
+function placeMenu(m,btn){const r=btn.getBoundingClientRect(),h=m.offsetHeight,navH=window.innerWidth<860?72:0;
+  if(r.bottom+h+8>window.innerHeight-navH&&r.top-h>60)m.classList.add("up")}
+document.addEventListener("click",e=>{if(fMenu&&!e.target.closest(".menu")&&!e.target.closest("[data-fmenu]"))closeFMenu()});
+$("#fList").onclick=async e=>{
+  const mb=e.target.closest("[data-fmenu]");if(mb){e.stopPropagation();if(fMenu&&fMenu.dataset.name===mb.dataset.fmenu)closeFMenu();else openFMenu(mb,mb.dataset.fmenu);return}
+  const a=e.target.closest("[data-fa]");
+  if(a){const name=a.closest(".menu").dataset.name,p=joinP(fPath,name),act2=a.dataset.fa;if(a.disabled)return;
+    if(act2==="dl"){setTimeout(closeFMenu,50);return}
+    closeFMenu();
+    if(act2==="open")return loadFiles(p);
+    if(act2==="edit")return openEditor(p);
+    if(act2==="rename"){const to=await askText("Nama baru",name);if(!to||to===name)return;try{await api("/api/files/rename",{form:{path:p,to:to.trim()}});toast("Nama diganti");loadFiles(fPath)}catch(err){toast(err.message,true)}return}
+    if(act2==="del"){const f=fEntry(name);if(!await ask("Hapus "+(f&&f.dir?"folder":"file")+" "+name+"?"+(f&&f.dir?"\nSemua isinya ikut terhapus.":"")))return;
+      try{await api("/api/files/delete",{form:{path:p}});toast(name+" dihapus");loadFiles(fPath);loadWorldInfo(true)}catch(err){toast(err.message,true)}return}
+    return}
+  if(e.target.closest(".menu"))return;
+  const up=e.target.closest(".frow[data-fgo]");if(up)return loadFiles(up.dataset.fgo);
+  const row=e.target.closest(".frow[data-fname]");if(!row)return;const f=fEntry(row.dataset.fname);if(!f)return;const p=joinP(fPath,f.name);
+  if(f.dir)return loadFiles(p);
+  if(f.text)return openEditor(p);
+  location.href="/api/files/download?path="+encodeURIComponent(p)};
+$("#fRefresh").onclick=()=>{loadFiles(fPath);loadWorldInfo(true)};
+$("#fMkdir").onclick=async()=>{const n=await askText("Nama folder baru");if(!n)return;try{await api("/api/files/mkdir",{form:{path:fPath,name:n.trim()}});loadFiles(fPath)}catch(e){toast(e.message,true)}};
+$("#fUpload").onchange=async e=>{for(const f of e.target.files){try{toast("Upload "+f.name+"…");await api("/api/files/upload?path="+encodeURIComponent(fPath)+"&name="+encodeURIComponent(f.name),{method:"PUT",body:f})}catch(err){toast(f.name+": "+err.message,true)}}
+  e.target.value="";loadFiles(fPath);loadWorldInfo(true)};
+// editor
+async function openEditor(p){try{const r=await fetch("/api/files/read?path="+encodeURIComponent(p));const t=await r.text();
+    if(!r.ok){let m=t;try{m=JSON.parse(t).error}catch(_){}throw new Error(m)}
+    edFile=p;edDirty=false;const name=p.split("/").pop();$("#edName").textContent=name;$("#edPath").textContent=p;$("#edText").value=t;
+    const ro=FL&&FL.running&&(FL.inWorld||p.startsWith((FL.world||"world")+"/"));$("#edText").readOnly=!!ro;$("#edSave").disabled=!!ro;
+    $("#edNote").textContent=ro?"Hanya baca selama server jalan (file ini bagian dari world).":/^config\//.test(p)?"Restart server supaya perubahan config mod dipakai.":p==="server.properties"?"Restart server supaya perubahan dipakai.":"Simpan lalu restart server kalau file ini dipakai server.";
+    $("#editModal").classList.remove("hide");setTimeout(()=>$("#edText").focus(),50)}catch(e){toast(e.message,true)}}
+async function closeEditor(){if(edDirty&&!await ask("Tutup tanpa menyimpan perubahan?"))return;$("#editModal").classList.add("hide");edFile=null}
+async function saveEditor(){if(!edFile||$("#edSave").disabled)return;try{await api("/api/files/write?path="+encodeURIComponent(edFile),{body:$("#edText").value,type:"text/plain; charset=utf-8"});edDirty=false;toast("Tersimpan");loadFiles(fPath);if(edFile==="server.properties")loadProps()}catch(e){toast(e.message,true)}}
+$("#edText").addEventListener("input",()=>{edDirty=true});
+$("#edText").addEventListener("keydown",e=>{if(e.key==="Tab"&&!e.target.readOnly){e.preventDefault();const t=e.target,a=t.selectionStart;t.setRangeText("  ",a,t.selectionEnd,"end");edDirty=true}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();saveEditor()}});
+$("#edClose").onclick=closeEditor;$("#edSave").onclick=saveEditor;
+$("#editModal").onclick=e=>{if(e.target.id==="editModal")closeEditor()};
+
+const PROPS=[["motd","Nama server (MOTD)","text"],["max-players","Maks pemain","number"],["view-distance","View distance (chunk)","number","HP: 5 sampai 8. Makin besar makin berat."],["simulation-distance","Simulation distance","number","HP: 4 sampai 6."],
+  ["difficulty","Kesulitan","select:peaceful,easy,normal,hard"],["gamemode","Gamemode default","select:survival,creative,adventure,spectator"],["online-mode","Online mode (akun premium)","bool","Nyala: cuma akun Minecraft asli (premium) yang bisa join. Kalau ada teman pakai Minecraft crack / non-premium (TLauncher dan sejenisnya), <b>matikan</b> ini. Saat mati, wajib nyalakan Whitelist, karena siapa pun bisa masuk pakai nama orang lain."],
+  ["white-list","Whitelist","bool","Cuma pemain yang ditambahkan di Konsol &gt; Pemain yang bisa masuk."],["pvp","PvP","bool"],["allow-flight","Izinkan terbang (mod)","bool"],["spawn-protection","Spawn protection","number"],["level-seed","Seed world baru","text"],["server-port","Port","number"]];
+let propLines=[];
+const PROP_DEF={"online-mode":"true","pvp":"true","white-list":"false","allow-flight":"false","difficulty":"easy","gamemode":"survival","max-players":"20","view-distance":"10","simulation-distance":"10","spawn-protection":"16","server-port":"25565","motd":"A Minecraft Server"};
+// difficulty dari server.properties dipaksa ke world tiap start, jadi command saja hilang setelah restart
+async function setDifficulty(d,label){try{
+  const t=await api("/api/properties"),nt=/^difficulty=/m.test(t)?t.replace(/^difficulty=.*$/m,"difficulty="+d):t.replace(/\n?$/,"\ndifficulty="+d+"\n");
+  await api("/api/properties",{body:nt,type:"text/plain; charset=utf-8"});
+  if(S.state==="running"){await api("/api/command",{form:{cmd:"difficulty "+d}});pollLog()}
+  toast("Difficulty: "+label)}catch(e){toast(e.message,true)}}
+async function loadProps(){try{const t=await api("/api/properties");$("#propRaw").value=t;propLines=t.split("\n");renderPropForm()}catch(e){toast(e.message,true)}}
+function propGet(k){for(const l of propLines){if(l.startsWith(k+"="))return l.slice(k.length+1)}return""}
+function renderPropForm(){$("#propForm").innerHTML='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">'+PROPS.map(([k,l,t,d])=>{const raw=propGet(k),v=raw!==""?raw:(t==="text"||t==="number"?"":(PROP_DEF[k]||""));const dd=d?'<div class="d">'+d+'</div>':"";
+  if(t==="bool")return '<div class="sw"'+(d?' style="grid-column:1/-1"':'')+'><div><div class="t" style="font-weight:500">'+l+'</div>'+dd+'</div><input type="checkbox" class="toggle" data-prop="'+k+'"'+(v==="true"?" checked":"")+'></div>';
+  if(t.startsWith("select:"))return '<label class="f"><span>'+l+'</span><select data-prop="'+k+'">'+t.slice(7).split(",").map(o=>'<option'+(o===v?" selected":"")+'>'+o+'</option>').join("")+'</select></label>';
+  return '<label class="f"><span>'+l+'</span><input type="'+t+'" data-prop="'+k+'" value="'+esc(v)+'" placeholder="'+esc(PROP_DEF[k]||"")+'">'+(d?'<span class="small muted" style="display:block;margin-top:4px">'+d+'</span>':'')+'</label>'}).join("")+'</div><div id="crackWarn" class="banner err hide" style="margin:12px 0 0">Online mode mati dan Whitelist mati: siapa pun yang tahu alamat server bisa masuk, termasuk pakai nama kamu. Nyalakan Whitelist lalu tambahkan nama teman di Konsol.</div>';
+  checkCrack();
+  if(!propLines.join("").trim())$("#propForm").insertAdjacentHTML("afterbegin",'<p class="small muted">server.properties dibuat saat Install Fabric. Isi form lalu simpan juga bisa.</p>');$$("#propForm select").forEach(dropdown)}
+$("#propForm").addEventListener("input",e=>syncPropsToRaw(e.target));$("#propForm").addEventListener("change",e=>syncPropsToRaw(e.target));
+function checkCrack(){const om=$('[data-prop="online-mode"]'),wl=$('[data-prop="white-list"]');if(!om||!wl)return;$("#crackWarn").classList.toggle("hide",om.checked||wl.checked)}
+function syncPropsToRaw(el){checkCrack();if(!el||!el.dataset||!el.dataset.prop)return;
+  const lines=$("#propRaw").value.split("\n"),k=el.dataset.prop,v=el.type==="checkbox"?String(el.checked):el.value.replace(/\n/g," ");
+  const i=lines.findIndex(l=>l.startsWith(k+"="));if(i>=0)lines[i]=k+"="+v;else if(v!==""){if(lines.length&&lines[lines.length-1]==="")lines.splice(lines.length-1,0,k+"="+v);else lines.push(k+"="+v)}
+  $("#propRaw").value=lines.join("\n")}
+$("#propRaw").addEventListener("change",()=>{propLines=$("#propRaw").value.split("\n");renderPropForm()});
+$("#bSaveProps").onclick=async()=>{try{await api("/api/properties",{body:$("#propRaw").value,type:"text/plain; charset=utf-8"});toast("Tersimpan, restart server untuk menerapkan");loadProps()}catch(e){toast(e.message,true)}};
+
+// ---------------------------------------------------------- settings
+$("#langSel").value=LANG;
+$("#langSel").onchange=async e=>{const l=e.target.value;try{await api("/api/settings",{form:{lang:l}});setLang(l)}catch(err){toast(err.message,true)}};
+
+// ---- tutorial: intro (bahasa + 3 slide) lalu tur sorot, gaya Anvil. Flag per browser di localStorage.
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+const INTRO=[
+  {lang:true,eye:"MC HOST",t:"Pilih bahasa",d:"Bisa diganti kapan saja di Pengaturan."},
+  {eye:"APA ITU MC HOST",t:"Server Minecraft, langsung dari HP",d:"Tanpa PC, tanpa VPS. HP di tanganmu yang jadi server.",
+   pts:["World tersimpan di HP kamu sendiri.","Teman join dari internet lewat playit.gg, gratis.","Main bareng dari HP, PC, atau laptop."]},
+  {eye:"SEPERTI DI PC",t:"Konsol langsung di saku",d:"Pantau server menyala dan kirim perintah persis seperti host di PC.",logos:true,
+   pts:["Pasang mod & plugin dari Modrinth tanpa keluar aplikasi.","Backup world otomatis, restore kapan saja.","Panel juga bisa dibuka dari laptop di WiFi yang sama."]},
+  {eye:"SIAP?",t:"Ayo mulai",d:"Kita buat server bareng, lalu keliling sebentar melihat fitur-fiturnya.",note:true}];
+let II=0;
+function introOpen(i){II=i||0;$("#intro").classList.remove("hide");introRender()}
+function introRender(){const sl=INTRO[II];
+  $("#iSlide").innerHTML='<div class="eye">'+esc(sl.eye)+'</div><h1>'+esc(sl.t)+'</h1><p>'+esc(sl.d)+'</p>'
+    +(sl.lang?'<div class="ilang">'+[["en","English"],["id","Indonesia"],["zh","中文"],["ru","Русский"]].map(([c,n])=>'<button class="btn'+(LANG===c?" on":"")+'" data-lang="'+c+'" type="button">'+n+'</button>').join("")+'</div>':"")
+    +(sl.logos?'<div class="ilogos">'+["paper","purpur","fabric","forge","neoforge","vanilla"].map(k=>'<img alt="'+k+'" src="'+TYPE[k].logo+'">').join("")+'</div>':"")
+    +(sl.pts?'<ul class="ipts">'+sl.pts.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>':"")
+    +(sl.note?'<p class="inote">Bukan produk resmi Minecraft. Tidak terkait dengan Mojang atau Microsoft.</p>':"");
+  $("#iDots").innerHTML=INTRO.map((_,i)=>'<i class="'+(i===II?"on":"")+'"></i>').join("");
+  $("#iNext").textContent=II===INTRO.length-1?"Mulai":"Lanjut";$("#iSkip").classList.toggle("hide",II===INTRO.length-1)}
+$("#iSlide").onclick=async e=>{const b=e.target.closest("[data-lang]");if(!b)return;const l=b.dataset.lang;
+  if(l===LANG){II++;return introRender()}
+  try{await api("/api/settings",{form:{lang:l}})}catch(err){}
+  lsSet("introStep","1");setLang(l)};
+$("#iNext").onclick=()=>{if(II<INTRO.length-1){II++;return introRender()}introDone(true)};
+$("#iSkip").onclick=()=>introDone(false);
+function introDone(tour){$("#intro").classList.add("hide");lsSet("introDone","1");lsSet("introStep",null);
+  if(!tour){lsSet("tourDone","1");return}
+  if(S.serverId)tourStart();else{lsSet("tourPending","1");openWizard()}}
+const TOUR=[
+  {tab:"home",sel:"#activeCard .srow",t:"Kartu server",b:"Ini dashboard server kamu: status, versi Java, dan gerigi untuk pengaturan server seperti nama, RAM, dan versi."},
+  {tab:"home",sel:"#addrList",t:"Alamat untuk teman",b:"Teman join pakai alamat di sini. JAVA IP dan DOMAIN untuk dari internet, LAN untuk yang satu WiFi, PANEL untuk buka panel dari laptop. Tekan ikon salin lalu kirim ke teman."},
+  {tab:"home",sel:"#activeCard .pbar",t:"Siapa yang main",b:"Pemain online tampil di sini. Tekan Kelola pemain untuk whitelist, OP, kick, atau ban."},
+  {tab:"home",sel:"#activeCard .sbtns",t:"Nyalakan server",b:"Start menyalakan server. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world."},
+  {tab:"console",sel:"#tab-console .logwrap",t:"Membaca konsol",b:"Server melapor di sini: pemain masuk dan keluar, world tersimpan, dan alasannya kalau ada error. Pakai filter level dan tombol cari."},
+  {tab:"console",sel:"#cmdForm",t:"Mengirim perintah",b:"Perintah yang diketik di sini langsung dijalankan server dengan izin penuh. Chip di atasnya jalan pintas: siang, cerah, difficulty, whitelist."},
+  {tab:"mods",sel:"#modSeg",t:"Mod & plugin",b:"Kelola yang terpasang, atau cari dan pasang langsung dari Modrinth lewat Store. Versinya otomatis disesuaikan dengan server."},
+  {tab:"world",sel:"#tab-world .card",t:"Dunia & backup",b:"Backup world kapan saja atau otomatis, unduh ke HP, upload world dari PC, lalu restore."},
+  {tab:"tunnel",sel:"#tab-tunnel .card:not(.hide)",t:"Main dari internet",b:"Hubungkan playit.gg (gratis) supaya teman di luar WiFi bisa join. Domain Cloudflare opsional untuk alamat yang lebih rapi."},
+  {tab:"home",sel:"#bNew,#bNewSide",t:"Server lain",b:"Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus. Tutorial bisa diulang dari Pengaturan."}];
+let TI=-1;
+function tourStart(){lsSet("tourPending",null);TI=0;$("#tour").classList.remove("hide");tourShow()}
+function tourEnd(){TI=-1;$("#tour").classList.add("hide");lsSet("tourDone","1");go("home")}
+function tourEl(){return TI<0?null:$$(TOUR[TI].sel).find(e=>e.offsetParent)}
+function tourShow(){const st=TOUR[TI];if(tab!==st.tab)go(st.tab);
+  setTimeout(()=>{const el=tourEl();if(!el){if(++TI>=TOUR.length)return tourEnd();return tourShow()}
+    el.scrollIntoView({block:"center"});
+    $("#tN").textContent=(TI+1)+" / "+TOUR.length;$("#tT").textContent=st.t;$("#tB").textContent=st.b;
+    $("#tNext").textContent=TI===TOUR.length-1?"Selesai":"Lanjut";setTimeout(tourPlace,200)},150)}
+function tourPlace(){const el=tourEl();if(!el)return;const r=el.getBoundingClientRect(),p=6,b=$("#tBub");
+  Object.assign($("#tSpot").style,{left:r.left-p+"px",top:r.top-p+"px",width:r.width+2*p+"px",height:r.height+2*p+"px"});
+  const h=b.offsetHeight,below=r.bottom+p+12+h<=innerHeight-8;
+  b.style.top=(below?r.bottom+p+12:Math.max(8,r.top-p-12-h))+"px"}
+$("#tNext").onclick=()=>{if(++TI>=TOUR.length)return tourEnd();tourShow()};
+$("#tSkip").onclick=tourEnd;
+addEventListener("resize",()=>TI>=0&&tourPlace());addEventListener("scroll",()=>TI>=0&&tourPlace(),{passive:true});
+let introChecked=false;
+function tutorialCheck(){
+  if(!introChecked){introChecked=true;if(!lsGet("introDone"))return introOpen(+lsGet("introStep")||0)}
+  if(lsGet("tourPending")&&S.serverId&&TI<0&&$("#newModal").classList.contains("hide"))setTimeout(tourStart,600)}
+$("#bReplay").onclick=()=>{["introDone","tourDone","tourPending"].forEach(k=>lsSet(k,null));introChecked=false;introOpen(0)};
+
+// ---- popup konfirmasi di tengah layar (pengganti confirm/prompt bawaan browser)
+let askDone=null;
+function askOpen(msg,input,value){return new Promise(res=>{if(askDone)askDone(null);
+  askDone=v=>{askDone=null;$("#askModal").classList.add("hide");res(v)};
+  $("#askMsg").textContent=msg;const i=$("#askIn"),ok=$("#askOk");i.classList.toggle("hide",!input);i.value=value||"";
+  ok.className="btn "+(!input&&/^(Hapus|Ban|Matikan paksa|Reset|Putuskan|Ganti world)/.test(msg)?"bad":"primary");
+  $("#askModal").classList.remove("hide");setTimeout(()=>(input?i:ok).focus(),30)})}
+const ask=msg=>askOpen(msg,false).then(v=>v===true),askText=(msg,value)=>askOpen(msg,true,value);
+$("#askOk").onclick=()=>askDone&&askDone($("#askIn").classList.contains("hide")?true:$("#askIn").value);
+$("#askNo").onclick=()=>askDone&&askDone(null);
+$("#askModal").onclick=e=>{if(e.target.id==="askModal"&&askDone)askDone(null)};
+$("#askIn").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$("#askOk").click()}};
+document.addEventListener("keydown",e=>{if(askDone&&e.key==="Escape"){e.stopImmediatePropagation();askDone(null)}},true);
+
+// ---- sheet bisa ditutup dengan digeser ke bawah (HP); menekan tombol [data-close] milik sheet itu
+$$(".modal>.sheet").forEach(sh=>{let y0=null,dy=0,t0=0;
+  sh.addEventListener("touchstart",e=>{if(sh.scrollTop>0||e.target.closest("textarea,input,select,.dd-menu"))return;y0=e.touches[0].clientY;dy=0;t0=Date.now()},{passive:true});
+  sh.addEventListener("touchmove",e=>{if(y0==null)return;dy=e.touches[0].clientY-y0;if(dy<0){dy=0}sh.style.transition="none";sh.style.transform="translateY("+dy+"px)"},{passive:true});
+  sh.addEventListener("touchend",()=>{if(y0==null)return;y0=null;sh.style.transition="transform .2s";
+    const fling=dy>40&&Date.now()-t0<250;sh.style.transform="";
+    if(dy>90||fling){const c=sh.querySelector("[data-close]");if(c)c.click()}})});
+
+// ---- dropdown yang membuka daftar ke bawah, pengganti popup <select> native di Android
+const SELVAL=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value");
+function ddClose(){$$(".dd-menu").forEach(m=>{m.parentNode.classList.remove("open");m.remove()})}
+function dropdown(sel){if(sel._dd)return sel._dd();
+  const w=document.createElement("div"),b=document.createElement("button");w.className="dd";b.type="button";
+  w.style.cssText=sel.style.cssText;sel.style.display="none";sel.after(w);w.append(b);
+  if(sel.getAttribute("aria-label"))b.setAttribute("aria-label",sel.getAttribute("aria-label"));
+  const sync=()=>{const o=sel.options[sel.selectedIndex];b.textContent=o?o.textContent:"";b.disabled=sel.disabled};
+  b.onclick=e=>{e.stopPropagation();const was=w.classList.contains("open");ddClose();if(was)return;
+    const m=document.createElement("div");m.className="dd-menu";
+    [...sel.options].forEach((o,i)=>{const x=document.createElement("button");x.type="button";x.textContent=o.textContent;if(i===sel.selectedIndex)x.className="on";
+      x.onclick=ev=>{ev.stopPropagation();ddClose();if(sel.selectedIndex===i)return;sel.selectedIndex=i;sync();sel.dispatchEvent(new Event("change",{bubbles:true}))};m.append(x)});
+    w.append(m);w.classList.add("open");const on=m.querySelector(".on");if(on)on.scrollIntoView({block:"nearest"})};
+  Object.defineProperty(sel,"value",{get(){return SELVAL.get.call(this)},set(v){SELVAL.set.call(this,v);sync()}});
+  new MutationObserver(sync).observe(sel,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["disabled"]});
+  sel._dd=sync;sync()}
+document.addEventListener("click",ddClose);document.addEventListener("keydown",e=>{if(e.key==="Escape")ddClose()});
+$$("select").forEach(dropdown);
+// ---- backup config (panel.properties); server menolak kalau bukan dari HP sendiri
+$("#cfgImport").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+  if(!await ask("Ganti pengaturan aplikasi dengan isi "+f.name+"?"))return;
+  try{await api("/api/config/import",{method:"PUT",body:f});toast("Config dipulihkan");setTimeout(()=>location.reload(),800)}catch(err){toast(err.message,true)}};
+// ---- modpack dari Modrinth (.mrpack): cari, pilih versi, server dibuat lengkap dengan mod-nya
+let mpTimer,mpHits=[],mpVers=[];
+function mpOpen(){if(S.task)return toast("Tunggu proses yang sedang jalan selesai",true);
+  if(!$("#newModal").classList.contains("hide"))closeWizard();
+  $("#mpModal").classList.remove("hide");$("#mpPick").classList.add("hide");$("#mpSearch").classList.remove("hide");$("#mpQ").value="";mpSearch()}
+async function mpSearch(){const q=$("#mpQ").value.trim();$("#mpList").innerHTML='<div class="empty">Memuat…</div>';
+  try{const facets=JSON.stringify([["project_type:modpack"],["categories:fabric","categories:forge","categories:neoforge"]]);
+    const r=await proxy(MR+"search?limit=20&index="+(q?"relevance":"downloads")+"&query="+encodeURIComponent(q)+"&facets="+encodeURIComponent(facets));mpHits=r.hits||[];
+    $("#mpList").innerHTML=mpHits.length?mpHits.map(h=>'<button class="mrow mprow" type="button" data-mp="'+esc(h.project_id)+'"><div class="mic">'+(h.icon_url?'<img loading="lazy" alt="" src="'+esc(h.icon_url)+'">':'<span>'+esc((h.title||"?").charAt(0))+'</span>')+'</div>'+
+      '<div class="n"><b>'+esc(h.title)+'</b><span>'+esc(h.description||"")+'</span><span>⬇ '+compact(h.downloads||0)+' · '+esc((h.versions||[]).slice(-1)[0]||"")+'</span></div></button>').join("")
+      :'<div class="empty">Tidak ada modpack yang cocok</div>'}catch(e){$("#mpList").innerHTML='<div class="empty">'+esc(e.message)+'</div>'}}
+$("#mpQ").oninput=()=>{clearTimeout(mpTimer);mpTimer=setTimeout(mpSearch,400)};
+$("#mpList").onclick=async e=>{const b=e.target.closest("[data-mp]");if(!b)return;const h=mpHits.find(x=>x.project_id===b.dataset.mp);if(!h)return;
+  $("#mpSearch").classList.add("hide");$("#mpPick").classList.remove("hide");$("#mpName").textContent=h.title;$("#mpIcon").src=h.icon_url||"";
+  $("#mpMeta").textContent=(h.categories||[]).filter(c=>["fabric","forge","neoforge"].includes(c)).join(" / ");$("#mpSrvName").value=(h.title||"").slice(0,40);
+  const sel=$("#mpVer");sel.innerHTML='<option value="">Memuat…</option>';
+  try{mpVers=(await proxy(MR+"project/"+encodeURIComponent(h.project_id)+"/version")).filter(v=>(v.loaders||[]).some(l=>["fabric","forge","neoforge"].includes(l)));
+    sel.innerHTML=mpVers.length?mpVers.map((v,i)=>'<option value="'+i+'">'+esc(v.version_number+" · MC "+(v.game_versions||[]).join(", ")+" · "+(v.loaders||[]).join("/"))+'</option>').join(""):'<option value="">Tidak ada versi yang cocok</option>'}
+  catch(err){sel.innerHTML='<option value="">'+esc(err.message)+'</option>'}};
+$("#mpBack").onclick=()=>{$("#mpPick").classList.add("hide");$("#mpSearch").classList.remove("hide")};
+$("#mpClose").onclick=()=>$("#mpModal").classList.add("hide");
+$("#mpCreate").onclick=async()=>{const v=mpVers[+$("#mpVer").value];if(!v)return;
+  const f=(v.files||[]).find(x=>x.primary&&/\.mrpack$/.test(x.filename))||(v.files||[]).find(x=>/\.mrpack$/.test(x.filename));
+  if(!f)return toast("Versi ini tidak punya file .mrpack",true);
+  if(!S.eula&&!await ask("Setujui EULA Minecraft (aka.ms/MinecraftEULA)?"))return;
+  try{if(!S.eula)await api("/api/settings",{form:{eula:"true"}});
+    await api("/api/servers/create-modpack",{form:{url:f.url,name:$("#mpSrvName").value,ram:$("#mpRam").value}});
+    $("#mpModal").classList.add("hide");toast("Modpack sedang dipasang, pantau di Konsol");await refresh();go("console")}catch(e){toast(e.message,true)}};
+document.addEventListener("click",e=>{if(e.target.closest("[data-modpack]")){e.preventDefault();mpOpen()}});
+// ---- import server dari backup lengkap / zip folder server
+document.addEventListener("click",e=>{if(e.target.closest("[data-import]")){e.preventDefault();$("#importZip").click()}});
+$("#importZip").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;
+  if(!await ask("Import "+f.name+" ("+fmtSize(f.size)+") sebagai server baru?"))return;
+  try{toast("Upload "+f.name+"…");await api("/api/servers/import?name="+encodeURIComponent(f.name.replace(/[^\w.\-]/g,"_")),{method:"PUT",body:f});
+    if(!$("#newModal").classList.contains("hide"))closeWizard();toast("Import dimulai, pantau di Konsol");refresh()}catch(err){toast(err.message,true)}};
+async function loadSettings(){$("#cfgRemote").classList.toggle("hide",!!S.local);$$("#bCfgExport,#cfgCard label").forEach(b=>b.classList.toggle("hide",!S.local));try{const s=await api("/api/settings");
+  for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer","backupFull","notifyServer","notifyPlayers","notifyHeat"])$("#"+k).checked=s[k];
+  if(s.deviceRamMb>0)deviceRam=s.deviceRamMb;$("#customDomain").value=s.customDomain||"";$("#cfAutosync").checked=!!s.cfAutosync}catch(e){toast(e.message,true)}}
+let deviceRam=0;
+const gb=mb=>(mb/1024).toFixed(2).replace(/\.?0+$/,"")+" GB";
+for(const k of ["eula","autoRestart","autoStart","bootStart","playitAutostart","playitWithServer","backupFull","notifyServer","notifyPlayers","notifyHeat"])$("#"+k).onchange=e=>act("/api/settings",{[k]:String(e.target.checked)},"Tersimpan");
+$("#bSavePin").onclick=()=>{const p=$("#newPin").value.trim();act("/api/settings",{pin:p},"PIN diganti");$("#newPin").value=""};
+$("#bLogout").onclick=async()=>{await api("/api/logout",{post:true}).catch(()=>{});location.reload()};
+$("#bBattery").onclick=()=>bridge&&bridge.requestIgnoreBattery();
+$("#bAppInfo").onclick=()=>bridge&&bridge.openAppInfo();
+async function saveSecret(inp){const v=inp.value.trim();if(!v)return toast("Secret key kosong",true);
+  try{await api("/api/settings",{form:{playitSecret:v}});inp.value="";editSecret=false;toast("Secret key disimpan");await refresh();tunnels=null;await loadTunnels(true);
+    if(S.playit.available&&S.playit.state!=="running"&&await ask("Nyalakan tunnel sekarang?"))tunnelToggle()}catch(e){toast(e.message,true)}}
+$("#bSaveSecret").onclick=()=>saveSecret($("#playitSecret"));
+$("#bSaveSecret2").onclick=()=>saveSecret($("#playitSecretNew"));
+$("#bEditSecret").onclick=()=>{editSecret=!editSecret;renderTunnelHero();if(editSecret)$("#playitSecretNew").focus()};
+$("#bCancelSecret").onclick=()=>{editSecret=false;$("#playitSecretNew").value="";renderTunnelHero()};
+$("#bClearSecret").onclick=async()=>{if(!await ask("Putuskan akun playit dari HP ini? Tunnel dimatikan dan secret key dihapus."))return;
+  try{if(S.playit.state==="running")await api("/api/playit/stop",{post:true});await api("/api/settings",{form:{clearPlayitSecret:"true"}});editSecret=false;tunnels=null;toast("playit diputus");refresh()}catch(e){toast(e.message,true)}};
+async function tunnelToggle(){const run=S.playit&&S.playit.state==="running";
+  await act(run?"/api/playit/stop":"/api/playit/start",null,run?"Tunnel dimatikan":"Tunnel dinyalakan");if(!run)setTimeout(()=>loadTunnels(true),4000)}
+$("#bTunnelToggle").onclick=tunnelToggle;
+$("#bTunnelRefresh").onclick=e=>{e.preventDefault();e.stopPropagation();loadTunnels(true)};
+
+// ---------------------------------------------------------- loops
+let tick=0;
+async function loop(){tick++;
+  if(!loggingIn){await refresh();if(tab==="console"||tab==="home"||tick%5===0)await pollLog();if(tab==="tunnel")await pollTunnel();if(tab==="home"||tab==="tunnel")loadTunnels(false);if(tab==="console")loadPlayers(false);if(tab==="home"&&tick%8===0)loadServers()}
+  setTimeout(loop,tab==="console"?900:1600)}
+api("/api/login").then(r=>{if(!r.authorized)showLogin()}).catch(()=>{}).finally(()=>{loop();loadServers()});
+</script>
+</body>
+</html>

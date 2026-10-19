@@ -1,0 +1,45 @@
+THIRD PARTY NOTICES
+===================
+
+MC Host source code is licensed under the GNU General Public License v3.0
+or later (GPL-3.0-or-later), see LICENSE.
+
+  MC Host, Minecraft Fabric server host for Android
+  Copyright (C) 2026 Akhda
+
+  This program is free software: you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the Free
+  Software Foundation, either version 3 of the License, or (at your option)
+  any later version. This program is distributed WITHOUT ANY WARRANTY; see
+  the GNU General Public License for more details:
+  https://www.gnu.org/licenses/gpl-3.0.html
+  Source code: https://github.com/Akhdaa/Minecraft-Host-Android
+
+The APK built by CI also bundles the following third party software.
+None of it is modified by this project.
+
+1. OpenJDK (Termux "openjdk-17" package, aarch64)
+   License: GNU General Public License v2 with the Classpath Exception.
+   The full license text ships inside the bundled runtime (jvm/legal/ when present).
+   Corresponding source: https://github.com/openjdk/jdk17u
+   Termux build recipe and patches: https://github.com/termux/termux-packages/tree/master/packages/openjdk-17
+   Library dependencies (libandroid-shmem, libandroid-spawn, zlib, ...) come from the
+   same Termux repository; each package's recipe and license is listed in termux-packages.
+
+2. playitd (playit.gg agent), built from https://github.com/playit-cloud/playit-agent
+   License: BSD 2-Clause, reproduced below.
+
+   Copyright 2022 Developed Methods LLC
+   
+   Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+   
+   1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+   
+   2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+   
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+3. Not bundled: Minecraft and the Fabric server launcher are downloaded on the phone
+   at install time from their official sources (meta.fabricmc.net and Mojang). Running
+   the server requires accepting the Minecraft EULA: https://aka.ms/MinecraftEULA
+   Mods installed from Modrinth keep their own licenses.
