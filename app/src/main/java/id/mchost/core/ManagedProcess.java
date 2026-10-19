@@ -62,7 +62,11 @@ public abstract class ManagedProcess {
             String line;
             while ((line = r.readLine()) != null) {
                 log.add(line);
-                onLine(line);
+                try {
+                    onLine(line);
+                } catch (RuntimeException ignored) {
+                    // a parser choking on odd output (player chat included) must never stop draining the pipe
+                }
             }
         } catch (IOException ignored) {
         }

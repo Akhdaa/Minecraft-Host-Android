@@ -19,9 +19,10 @@ public class McServer extends ManagedProcess {
     private static final Pattern JOIN = Pattern.compile("\\]: ([A-Za-z0-9_.]{2,20}) joined the game");
     private static final Pattern LEAVE = Pattern.compile("\\]: ([A-Za-z0-9_.]{2,20}) left the game");
     private static final Pattern SAVED = Pattern.compile("Saved the game|Saved the world");
-    private static final Pattern LAG = Pattern.compile("Can't keep up!.*?Running (\\d+)ms");
-    private static final Pattern CHUNKY = Pattern.compile("Task (running|finished|paused|stopped|cancelled) for ([\\w:/.-]+?)\\."
-            + "(?: Processed: (\\d+) chunks \\(([\\d.]+)%\\))?(?:, ETA: ([\\d:]+))?(?:, Rate: ([\\d.]+) cps)?");
+    // anchored to the logger's "]: " so chat ("]: <Player> ...") can't fake lag or pre-generation state
+    private static final Pattern LAG = Pattern.compile("]: Can't keep up!.*?Running (\\d{1,9})ms");
+    private static final Pattern CHUNKY = Pattern.compile("]: \\[Chunky] Task (running|finished|paused|stopped|cancelled) for ([\\w:/.-]+?)\\."
+            + "(?: Processed: (\\d+) chunks \\((\\d{1,3}(?:\\.\\d+)?)%\\))?(?:, ETA: ([\\d:]+))?(?:, Rate: ([\\d.]+) cps)?");
 
     private final Host host;
     private volatile String state = "stopped";
