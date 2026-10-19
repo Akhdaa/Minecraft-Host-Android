@@ -838,5 +838,10 @@ window.EN = {
 "Selesai 100%": "Done 100%",
 "Dibatalkan": "Cancelled",
 "Memasang Chunky, pantau di Konsol": "Installing Chunky, follow it in the Console",
-"Batalkan pre-generate? Chunk yang sudah dibuat tetap tersimpan.": "Cancel pre-generation? Chunks already generated are kept."
+"Batalkan pre-generate? Chunk yang sudah dibuat tetap tersimpan.": "Cancel pre-generation? Chunks already generated are kept.",
+"{0} hari {1} jam": "{0}d {1}h",
+"{0} jam {1} mnt": "{0}h {1}m",
+"{0} mnt {1} dtk": "{0}m {1}s",
+"{0} dtk": "{0}s",
+"Aktifkan {0}": "Enable {0}"
 };

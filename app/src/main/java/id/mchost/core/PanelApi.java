@@ -24,6 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /** REST API + static files for the web panel. */
 public class PanelApi implements MiniHttp.Handler {
     private static final String COOKIE = "mch_session";
+    /** Random per process. MainActivity puts it in its WebView's cookies, so only the app itself counts as "local":
+     *  other apps on the phone and DNS-rebound web pages also connect from 127.0.0.1 but never see this value. */
+    public static final String LOCAL_COOKIE = "mch_local", LOCAL_TOKEN = hex(new SecureRandom(), 24);
     private static final Set<String> PROXY_HOSTS = new HashSet<>(Arrays.asList("meta.fabricmc.net", "api.modrinth.com",
             "piston-meta.mojang.com", "fill.papermc.io", "api.purpurmc.org", "files.minecraftforge.net", "maven.neoforged.net"));
     /** Endpoints that work without any server (everything else acts on the active server). */
@@ -46,6 +49,10 @@ public class PanelApi implements MiniHttp.Handler {
     @Override
     public void handle(MiniHttp.Req req, MiniHttp.Res res) throws Exception {
         String p = req.path;
+        if (!privateAddress(req.remote)) {
+            res.error(403, Host.tr("The panel only opens from the same Wi-Fi/hotspot or a VPN", "Panel cuma bisa dibuka dari WiFi/hotspot yang sama atau VPN"));
+            return;
+        }
         if (!p.startsWith("/api/")) {
             serveStatic(p, res);
             return;
@@ -140,9 +147,32 @@ public class PanelApi implements MiniHttp.Handler {
     // ------------------------------------------------------------ auth
 
     private boolean authorized(MiniHttp.Req req) {
-        if (req.isLocal()) return true;
+        if (local(req)) return true;
         String c = req.cookie(COOKIE);
         return c != null && sessions.contains(c);
+    }
+
+    /** Loopback, LAN/hotspot, link-local and VPN ranges (Tailscale 100.64/10, fc00::/7). The socket listens on every
+     *  interface and phones on mobile data often get a public IPv6 address, so the internet must never reach the PIN. */
+    static boolean privateAddress(InetAddress a) {
+        if (a == null) return false;
+        if (a.isLoopbackAddress() || a.isSiteLocalAddress() || a.isLinkLocalAddress()) return true;
+        byte[] b = a.getAddress();
+        if (b.length == 4) return (b[0] & 0xff) == 100 && (b[1] & 0xc0) == 64;
+        return (b[0] & 0xfe) == 0xfc;
+    }
+
+    private static boolean local(MiniHttp.Req req) {
+        String t = req.cookie(LOCAL_COOKIE);
+        return req.isLocal() && t != null && java.security.MessageDigest.isEqual(t.getBytes(), LOCAL_TOKEN.getBytes());
+    }
+
+    private static String hex(SecureRandom random, int bytes) {
+        byte[] b = new byte[bytes];
+        random.nextBytes(b);
+        StringBuilder s = new StringBuilder();
+        for (byte x : b) s.append(String.format("%02x", x));
+        return s.toString();
     }
 
     // Brute-force guard: 3 wrong PINs per IP -> cooldown that doubles each time (30 s .. 15 min),
@@ -225,11 +255,8 @@ public class PanelApi implements MiniHttp.Handler {
             return;
         }
         guards.remove(ip);
-        byte[] b = new byte[24];
-        random.nextBytes(b);
-        StringBuilder tok = new StringBuilder();
-        for (byte x : b) tok.append(String.format("%02x", x));
-        sessions.add(tok.toString());
+        String tok = hex(random, 24);
+        sessions.add(tok);
         host.mcLog.panel("Login panel berhasil dari " + ip);
         res.header("Set-Cookie", COOKIE + "=" + tok + "; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000");
         res.ok();
@@ -274,8 +301,8 @@ public class PanelApi implements MiniHttp.Handler {
                 .raw("playit", Json.obj().put("available", host.playit.available())
                         .put("state", host.playit.alive() ? "running" : host.playit.state())
                         .put("hasSecret", !host.cfg.get(Config.PLAYIT_SECRET, "").isEmpty()).toString())
-                .put("local", req.isLocal());
-        if (req.isLocal()) j.put("pin", host.cfg.get(Config.PIN, ""));
+                .put("local", local(req));
+        if (local(req)) j.put("pin", host.cfg.get(Config.PIN, ""));
         res.json(200, j.toString());
     }
 
@@ -357,7 +384,7 @@ public class PanelApi implements MiniHttp.Handler {
             }
             String pin = req.param("pin");
             if (pin != null && !pin.trim().isEmpty()) {
-                if (!req.isLocal()) throw new IllegalStateException("PIN hanya bisa diganti dari aplikasi di HP");
+                if (!local(req)) throw new IllegalStateException("PIN hanya bisa diganti dari aplikasi di HP");
                 if (!pin.trim().matches("[0-9]{4,12}")) throw new IllegalArgumentException("PIN harus 4 sampai 12 angka");
                 c.set(Config.PIN, pin.trim());
                 sessions.clear();
@@ -695,13 +722,13 @@ public class PanelApi implements MiniHttp.Handler {
 
     /** panel.properties as a download; phone only, because it holds the PIN, playit secret and Cloudflare token. */
     private void configExport(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
-        if (!req.isLocal()) throw new IllegalStateException("Backup config cuma bisa dari aplikasi di HP");
+        if (!local(req)) throw new IllegalStateException("Backup config cuma bisa dari aplikasi di HP");
         res.file(new File(host.base, "panel.properties"), "text/plain; charset=utf-8", "mchost-config.properties");
     }
 
     /** Applies an exported config. The active server id is skipped because ids differ between installs. */
     private void configImport(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
-        if (!req.isLocal()) throw new IllegalStateException("Restore config cuma bisa dari aplikasi di HP");
+        if (!local(req)) throw new IllegalStateException("Restore config cuma bisa dari aplikasi di HP");
         if (req.contentLength() <= 0 || req.contentLength() > 64 * 1024) throw new IllegalArgumentException("File config tidak valid");
         Properties in = new Properties();
         try (InputStream body = req.body()) {

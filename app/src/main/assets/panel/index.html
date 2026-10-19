@@ -581,7 +581,7 @@ nav .fab svg{width:26px;height:26px}
     <div class="wcol">
     <div class="card">
       <div class="wsum"><div class="wico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div>
-        <div class="n"><b id="wName">world</b><span class="small muted" id="wMeta">Memuat…</span></div></div>
+        <div class="n"><b id="worldName">world</b><span class="small muted" id="wMeta">Memuat…</span></div></div>
       <div class="dims" id="wDims"></div>
       <div id="bProgress" class="hide" style="margin-top:12px">
         <div class="row" style="justify-content:space-between"><span class="small" id="bProgText"></span><span class="small muted" id="bProgPct"></span></div>
@@ -1637,7 +1637,7 @@ function ago(t){const s=Math.max(0,(Date.now()-t)/1000);if(s<60)return"baru saja
 const fmtDate=t=>{const d=new Date(t),o={day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"};if(d.getFullYear()!==new Date().getFullYear())o.year="numeric";return d.toLocaleString(LANG,o)};
 async function loadWorldInfo(force){try{WI=await api("/api/world/info"+(force?"?force=1":""));renderWorldInfo();renderQuick()}catch(e){}}
 function renderWorldInfo(){const w=WI;if(!w)return;
-  $("#wName").textContent=w.name;
+  $("#worldName").textContent=w.name;
   const last=BK&&BK.backups.length?BK.backups[0]:null;
   $("#wMeta").textContent=w.exists?(fmtSize(w.size)+" · "+(last?"backup terakhir "+ago(last.time):"belum pernah di-backup")):"World belum dibuat. Start server sekali dulu.";
   $("#wDims").innerHTML=[["Overworld",w.overworld,true,"#5fd068"],["Nether",w.nether,w.netherExists,"#ef6b5b"],["End",w.end,w.endExists,"#b48cf2"]].map(([k,v,ex,c])=>'<div class="dim" style="--c:'+c+'"><div class="k">'+k+'</div><div class="v">'+(w.exists&&ex?fmtSize(v):"-")+'</div></div>').join("");

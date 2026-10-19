@@ -17,6 +17,7 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.view.View;
+import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
@@ -27,6 +28,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+
+import id.mchost.core.PanelApi;
 
 /** Full screen WebView on the local panel (http://127.0.0.1:port). */
 public class MainActivity extends Activity {
@@ -103,7 +106,9 @@ public class MainActivity extends Activity {
             ui.postDelayed(this::loadPanel, 400);
             return;
         }
-        web.loadUrl("http://127.0.0.1:" + port + "/");
+        String origin = "http://127.0.0.1:" + port;
+        CookieManager.getInstance().setCookie(origin, PanelApi.LOCAL_COOKIE + "=" + PanelApi.LOCAL_TOKEN + "; Path=/; HttpOnly; SameSite=Strict",
+                ok -> web.loadUrl(origin + "/"));
     }
 
     private void download(String url, String disposition, String mime) {
@@ -118,7 +123,8 @@ public class MainActivity extends Activity {
         DownloadManager.Request r = new DownloadManager.Request(Uri.parse(url))
                 .setTitle(name)
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "MCHost/" + name);
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "MCHost/" + name)
+                .addRequestHeader("Cookie", String.valueOf(CookieManager.getInstance().getCookie(url))); // DownloadManager has no WebView cookies
         DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         dm.enqueue(r);
         Toast.makeText(this, "Disimpan ke Download/MCHost/" + name, Toast.LENGTH_LONG).show();

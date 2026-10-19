@@ -807,5 +807,10 @@ window.ZH = {
 "Selesai 100%": "已完成 100%",
 "Dibatalkan": "已取消",
 "Memasang Chunky, pantau di Konsol": "正在安装 Chunky，在控制台查看进度",
-"Batalkan pre-generate? Chunk yang sudah dibuat tetap tersimpan.": "取消预生成？已生成的区块会保留。"
+"Batalkan pre-generate? Chunk yang sudah dibuat tetap tersimpan.": "取消预生成？已生成的区块会保留。",
+"{0} hari {1} jam": "{0} 天 {1} 小时",
+"{0} jam {1} mnt": "{0} 小时 {1} 分",
+"{0} mnt {1} dtk": "{0} 分 {1} 秒",
+"{0} dtk": "{0} 秒",
+"Aktifkan {0}": "启用 {0}"
 };

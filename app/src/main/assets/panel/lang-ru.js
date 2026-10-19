@@ -807,5 +807,10 @@ window.RU = {
 "Selesai 100%": "Готово 100%",
 "Dibatalkan": "Отменено",
 "Memasang Chunky, pantau di Konsol": "Ставим Chunky, следи в консоли",
-"Batalkan pre-generate? Chunk yang sudah dibuat tetap tersimpan.": "Отменить предгенерацию? Уже созданные чанки сохранятся."
+"Batalkan pre-generate? Chunk yang sudah dibuat tetap tersimpan.": "Отменить предгенерацию? Уже созданные чанки сохранятся.",
+"{0} hari {1} jam": "{0} д {1} ч",
+"{0} jam {1} mnt": "{0} ч {1} мин",
+"{0} mnt {1} dtk": "{0} мин {1} с",
+"{0} dtk": "{0} с",
+"Aktifkan {0}": "Включить {0}"
 };
