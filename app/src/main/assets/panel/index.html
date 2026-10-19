@@ -46,10 +46,12 @@ nav button.on{color:var(--accent)}
   #toast{bottom:28px;left:calc(50% + 108px)}
 }
 @media(min-width:1024px){
-  #tab-home.on{display:grid;grid-template-columns:minmax(360px,1fr) minmax(0,1.25fr);grid-template-areas:"wel wel" "set set" "act log" "perf log" "oth log";column-gap:14px;align-items:start}
-  #tab-home.on{grid-template-rows:auto auto auto auto 1fr}#lagCard{grid-area:perf}
+  #tab-home.on{display:grid;grid-template-columns:minmax(360px,1fr) minmax(0,1.25fr);grid-template-areas:"wel wel" "set set" "act log" "oth log";column-gap:14px;align-items:start}
+  #tab-home.on{grid-template-rows:auto auto auto 1fr}
+  #tab-home #rightCol{grid-area:log;position:sticky;top:84px;height:calc(100vh - 108px);min-height:560px;display:flex;flex-direction:column;gap:14px}
+  #rightCol>.card{margin:0}#rightCol .perfgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
   #welcomeCard{grid-area:wel}#setupCard{grid-area:set}#activeCard{grid-area:act}#otherBox{grid-area:oth}
-  #logCard{grid-area:log;position:sticky;top:84px;height:calc(100vh - 108px);min-height:420px;display:flex;flex-direction:column}
+  #logCard{flex:1;min-height:300px;display:flex;flex-direction:column}
   #logCard .console.mini{flex:1;height:auto;min-height:0}
 }
 @media(min-width:1240px){
@@ -80,7 +82,7 @@ section{display:none}section.on{display:block}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .big{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px}
 .big .btn{justify-content:center;padding:12px}
-input[type=text],input[type=password],input[type=number],select,textarea{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none}
+input[type=text],input[type=password],input[type=number],input[type=time],select,textarea{width:100%;color-scheme:dark;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--accent2)}
 textarea{font-family:var(--mono);font-size:13px;min-height:260px;resize:vertical}
 label.f{display:block;margin-bottom:12px}
@@ -167,6 +169,7 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .pchart{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px 8px;min-width:0}
 .pl{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:6px}
 .pl b{color:var(--text);font-size:14px;white-space:nowrap}.pchart svg{width:100%;height:44px;display:block;overflow:visible}
+#rightCol{display:contents}
 .hide{display:none!important}
 .players{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .players span{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px}
@@ -459,9 +462,11 @@ nav .fab svg{width:26px;height:26px}
     <div class="list" id="otherList"></div>
   </div>
 
+  <div id="rightCol">
   <div class="card" id="logCard">
     <h2><span class="grow">Log terbaru</span><button class="btn small" data-go="console">Buka konsol</button></h2>
     <div class="console mini" id="miniLog"></div>
+  </div>
   </div>
 </section>
 
@@ -827,7 +832,7 @@ nav .fab svg{width:26px;height:26px}
   <p class="small muted" id="srvRamWarn" style="margin:0 0 12px"></p>
   <label class="f"><span>JVM args tambahan (opsional)</span><input type="text" id="srvJvm" placeholder="-XX:+UseStringDeduplication" spellcheck="false" autocapitalize="off"></label>
   <div class="grid2">
-   <label class="f"><span>Tidur kalau sepi</span><select id="srvSleep"><option value="0">Mati</option><option value="10">10 menit</option><option value="15">15 menit</option><option value="30">30 menit</option><option value="60">60 menit</option></select></label>
+   <label class="f"><span>Tidur kalau sepi</span><select id="srvSleep"><option value="0">Nonaktif</option><option value="10">10 menit</option><option value="15">15 menit</option><option value="30">30 menit</option><option value="60">60 menit</option></select></label>
    <label class="f"><span>Restart harian</span><input type="time" id="srvDaily"></label>
   </div>
   <p class="small muted" style="margin:-4px 0 12px">Tidur: server berhenti kalau tidak ada pemain, lalu bangun sendiri saat ada yang join. Restart harian: kosongkan untuk mematikan.</p>
@@ -1903,7 +1908,7 @@ $("#cfgImport").onchange=async e=>{const f=e.target.files[0];e.target.value="";i
 
 // ---- grafik performa: di HP ikut tab Konsol, di layar lebar pindah ke tab Server
 const PERF_DESK=matchMedia("(min-width:1024px)");
-function placePerf(){const c=$("#lagCard");if(PERF_DESK.matches)$("#tab-home").insertBefore(c,$("#otherBox"));else $("#tab-console").appendChild(c)}
+function placePerf(){const c=$("#lagCard");if(PERF_DESK.matches)$("#rightCol").prepend(c);else $("#tab-console").appendChild(c)}
 PERF_DESK.addEventListener("change",placePerf);placePerf();
 function sparkLine(vals,max,color){const n=vals.length;if(n<2)return"";let d="",open=false;
   vals.forEach((x,i)=>{if(x<0){open=false;return}d+=(open?"L":"M")+(i/(n-1)*100).toFixed(2)+" "+(31-Math.min(1,x/max)*29).toFixed(2);open=true});
