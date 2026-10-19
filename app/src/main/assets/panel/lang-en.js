@@ -863,5 +863,9 @@ window.EN = {
 "Belum bisa diakses dari internet ({0}). Cek aturan router, atau ISP memakai CGNAT.": "Not reachable from the internet yet ({0}). Check the router rule, or your ISP uses CGNAT.",
 "PUBLIK": "PUBLIC",
 "port forwarding router": "router port forwarding",
-"Alamat publik (untuk teman)": "Public address (for friends)"
+"Alamat publik (untuk teman)": "Public address (for friends)",
+"Fitur tambahan": "Extra features",
+"Cara lain supaya teman bisa join. playit.gg sudah cukup untuk kebanyakan orang.": "Other ways for friends to join. playit.gg is enough for most people.",
+"Teman join pakai domain sendiri, misal mc.domainkamu.com.": "Friends join with your own domain, e.g. mc.yourdomain.com.",
+"Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "Turn off the Cloudflare domain? {0} is removed from the panel; the record at Cloudflare stays."
 };

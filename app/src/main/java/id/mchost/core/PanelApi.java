@@ -299,6 +299,8 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("maxPlayers", host.property("max-players", "20"))
                 .put("customDomain", host.cfg.get(Config.CUSTOM_DOMAIN, ""))
                 .put("portForward", host.cfg.getBool(Config.PORT_FORWARD))
+                // an existing domain keeps the Cloudflare card visible for installs from before the switch
+                .put("cfEnabled", host.cfg.getBool(Config.CF_ENABLED) || !host.cfg.get(Config.CUSTOM_DOMAIN, "").isEmpty())
                 .put("publicIp", host.cfg.getBool(Config.PORT_FORWARD) ? publicIp(false) : "")
                 .raw("battery", host.platform.batteryJson())
                 .raw("playit", Json.obj().put("available", host.playit.available())
@@ -347,7 +349,7 @@ public class PanelApi implements MiniHttp.Handler {
             for (String[] b : new String[][]{{"autoRestart", Config.AUTO_RESTART}, {"autoStart", Config.AUTO_START},
                     {"bootStart", Config.BOOT_START}, {"eula", Config.EULA}, {"playitAutostart", Config.PLAYIT_AUTOSTART},
                     {"playitWithServer", Config.PLAYIT_WITH_SERVER}, {"backupFull", Config.BACKUP_FULL}, {"notifyServer", Config.NOTIFY_SERVER},
-                    {"notifyPlayers", Config.NOTIFY_PLAYERS}, {"notifyHeat", Config.NOTIFY_HEAT}, {"portForward", Config.PORT_FORWARD}}) {
+                    {"notifyPlayers", Config.NOTIFY_PLAYERS}, {"notifyHeat", Config.NOTIFY_HEAT}, {"portForward", Config.PORT_FORWARD}, {"cfEnabled", Config.CF_ENABLED}}) {
                 String v = req.param(b[0]);
                 if (v != null) c.set(b[1], String.valueOf("true".equals(v)));
             }

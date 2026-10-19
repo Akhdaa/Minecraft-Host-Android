@@ -832,5 +832,9 @@ window.ZH = {
 "Belum bisa diakses dari internet ({0}). Cek aturan router, atau ISP memakai CGNAT.": "外网还无法访问（{0}）。请检查路由器规则，或运营商使用了 CGNAT。",
 "PUBLIK": "公网",
 "port forwarding router": "路由器端口转发",
-"Alamat publik (untuk teman)": "公网地址（给朋友）"
+"Alamat publik (untuk teman)": "公网地址（给朋友）",
+"Fitur tambahan": "附加功能",
+"Cara lain supaya teman bisa join. playit.gg sudah cukup untuk kebanyakan orang.": "让朋友加入的其他方式。大多数人用 playit.gg 就够了。",
+"Teman join pakai domain sendiri, misal mc.domainkamu.com.": "朋友用你自己的域名加入，例如 mc.yourdomain.com。",
+"Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "关闭 Cloudflare 域名？{0} 会从面板移除，Cloudflare 上的记录不会删除。"
 };

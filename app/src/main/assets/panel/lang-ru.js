@@ -832,5 +832,9 @@ window.RU = {
 "Belum bisa diakses dari internet ({0}). Cek aturan router, atau ISP memakai CGNAT.": "Пока недоступен из интернета ({0}). Проверьте правило роутера, либо у провайдера CGNAT.",
 "PUBLIK": "ПУБЛИЧНЫЙ",
 "port forwarding router": "проброс портов",
-"Alamat publik (untuk teman)": "Публичный адрес (для друзей)"
+"Alamat publik (untuk teman)": "Публичный адрес (для друзей)",
+"Fitur tambahan": "Дополнительно",
+"Cara lain supaya teman bisa join. playit.gg sudah cukup untuk kebanyakan orang.": "Другие способы подключить друзей. Большинству хватает playit.gg.",
+"Teman join pakai domain sendiri, misal mc.domainkamu.com.": "Друзья подключаются по вашему домену, например mc.yourdomain.com.",
+"Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "Отключить домен Cloudflare? {0} будет убран из панели, запись в Cloudflare останется."
 };

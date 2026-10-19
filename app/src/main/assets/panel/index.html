@@ -710,7 +710,14 @@ nav .fab svg{width:26px;height:26px}
    </div>
 
    <div class="tcol">
-    <div class="card" id="dCard">
+    <div class="card" id="optCard">
+      <h2>Fitur tambahan</h2>
+      <p class="small muted" style="margin:-4px 0 6px">Cara lain supaya teman bisa join. playit.gg sudah cukup untuk kebanyakan orang.</p>
+      <div class="sw"><div><div class="t">Domain Cloudflare</div><div class="d">Teman join pakai domain sendiri, misal mc.domainkamu.com.</div></div><input type="checkbox" class="toggle" id="cfEnabled"></div>
+      <div class="sw"><div><div class="t">Port forwarding router</div><div class="d">Untuk internet rumah yang punya IP publik. Teman join langsung ke rumahmu tanpa playit, ping lebih kecil.</div></div><input type="checkbox" class="toggle" id="portForward"></div>
+    </div>
+
+    <div class="card hide" id="dCard">
       <h2><span class="grow">Domain Cloudflare</span><button class="btn small" data-help="cf">Bantuan</button><span class="pill" id="dnsPill">Opsional</span></h2>
       <div id="dView" class="hide">
         <div class="taddr"><div class="n"><span class="small muted">Teman join pakai</span><b class="addr" id="dName"></b></div><button class="btn small" id="bEditDomain">Ubah</button></div>
@@ -742,10 +749,9 @@ nav .fab svg{width:26px;height:26px}
       </details>
     </div>
 
-    <div class="card" id="pfCard">
-      <h2><span class="grow">Port forwarding router</span><span class="pill" id="pfPill">Opsional</span></h2>
-      <div class="sw"><div><div class="t">Pakai port forwarding</div><div class="d">Untuk internet rumah yang punya IP publik. Teman join langsung ke rumahmu tanpa playit, ping lebih kecil.</div></div><input type="checkbox" class="toggle" id="portForward"></div>
-      <div id="pfBox" class="hide">
+    <div class="card hide" id="pfCard">
+      <h2>Port forwarding router</h2>
+      <div id="pfBox">
         <ol class="steps small">
           <li>Buka pengaturan router (biasanya 192.168.1.1), cari menu Port Forwarding, Virtual Server, atau NAT.</li>
           <li>Buat aturan ke IP HP ini dengan port di bawah (TCP, plus UDP kalau Bedrock aktif).</li>
@@ -1965,11 +1971,17 @@ $("#pgCancel").onclick=async()=>{if(await ask("Batalkan pre-generate? Chunk yang
 setInterval(loadPregen,4000);
 
 // ---- port forwarding router (opsional): IP + port untuk aturan router, alamat publik, cek dari internet
-function renderPf(){const on=!!S.portForward;$("#pfBox").classList.toggle("hide",!on);$("#pfPill").textContent=on?"Aktif":"Opsional";if(!on)return;
+function renderOpt(){$("#cfEnabled").checked=!!S.cfEnabled;$("#dCard").classList.toggle("hide",!S.cfEnabled)}
+function renderPf(){renderOpt();const on=!!S.portForward;$("#pfCard").classList.toggle("hide",!on);if(!on)return;
   const me=typeof SV!=="undefined"&&SV&&SV.servers.find(x=>x.active);
   $("#pfRows").innerHTML=S.lan.map(ip=>addrItem("IP HP (tujuan aturan)",ip)).join("")+addrItem("Port TCP (Java)",S.mcPort)+(me&&me.bedrock?addrItem("Port UDP (Bedrock)","19132"):"")+
     (S.publicIp?addrItem("Alamat publik (untuk teman)",S.publicIp+(S.mcPort==="25565"?"":":"+S.mcPort),"IP publik rumah, bisa berubah kalau modem restart"):"")}
 $("#portForward").addEventListener("change",e=>{S.portForward=e.target.checked;renderPf()});
+// turning Cloudflare off while a domain is set also removes the domain (after asking), otherwise the DOMAIN row would stay
+$("#cfEnabled").onchange=async e=>{const on=e.target.checked;
+  if(!on&&S.customDomain){e.target.checked=true;if(!await ask("Matikan domain Cloudflare? Domain "+S.customDomain+" dihapus dari panel, record di Cloudflare tidak dihapus."))return;
+    try{await api("/api/settings",{form:{customDomain:"",cfEnabled:"false"}});dnsInfo=null;editDomain=false;$("#customDomain").value="";toast("Domain dihapus");await refresh()}catch(err){toast(err.message,true)}return}
+  try{await api("/api/settings",{form:{cfEnabled:String(on)}});S.cfEnabled=on;renderOpt();if(on)loadDomain(true)}catch(err){e.target.checked=!on;toast(err.message,true)}};
 $("#bPfCheck").onclick=async e=>{const b=e.target,r=$("#pfResult");b.disabled=true;r.style.color="";r.textContent="Mengecek dari internet…";
   try{const d=await api("/api/portforward/check",{form:{}});r.style.color=d.online?"var(--accent)":"var(--bad)";
     r.textContent=d.online?"Bisa diakses dari internet: "+d.address:"Belum bisa diakses dari internet ("+d.address+"). Cek aturan router, atau ISP memakai CGNAT."}
