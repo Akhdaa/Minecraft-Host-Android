@@ -531,7 +531,7 @@ public class PanelApi implements MiniHttp.Handler {
 
     private void serverCreate(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
         String id = host.createServer(req.param("name", ""), req.param("type", ""), req.param("mc", "").trim(),
-                req.param("loader", "").trim(), parseRam(req.param("ram", "3072")));
+                req.param("loader", "").trim(), parseRam(req.param("ram", "3072")), "true".equals(req.param("bedrock")));
         files.invalidate();
         res.json(200, Json.obj().put("ok", true).put("id", id).toString());
     }

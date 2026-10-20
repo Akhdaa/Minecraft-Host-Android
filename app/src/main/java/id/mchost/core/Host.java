@@ -173,14 +173,28 @@ public class Host {
     }
 
     /** Creates servers/sN, makes it active and installs the software in the background. */
-    public synchronized String createServer(String name, String type, String mcVer, String loader, int ramMb) {
+    public synchronized String createServer(String name, String type, String mcVer, String loader, int ramMb, boolean bedrock) {
         name = cleanName(name);
         if (!Software.valid(type)) throw new IllegalArgumentException("Jenis server tidak dikenal");
         Software.checkVersion(mcVer, false);
         Software.checkVersion(loader, true);
+        List<String> geyser = bedrock ? bedrockLoaders(type) : null;
+        if (bedrock && geyser == null) throw new IllegalArgumentException(tr("Bedrock isn't supported for ", "Bedrock belum didukung untuk ") + Software.label(type));
         requireIdle();
         String id = newServer(name, type, mcVer, ramMb);
-        install(mcVer, loader);
+        Config m = srv;
+        File dir = serverDir;
+        // Bedrock goes in the same task, so it still happens when the app is closed during the install
+        runTask("Install " + Software.label(type) + " " + mcVer, () -> {
+            doInstall(type, mcVer, loader, dir, m);
+            if (geyser == null) return;
+            try {
+                applyBedrock(true, type, mcVer, new File(dir, Software.addonDir(type)), m, geyser);
+            } catch (IOException e) {
+                mcLog.panel(e.getMessage() + tr(" (the server works; turn Bedrock on later in server settings)",
+                        " (server tetap jalan; nyalakan Bedrock nanti di pengaturan server)"));
+            }
+        });
         return id;
     }
 
@@ -636,7 +650,11 @@ public class Host {
         if (addons == null) throw new IllegalArgumentException(tr("Bedrock isn't supported for ", "Bedrock belum didukung untuk ") + Software.label(type));
         File dir = new File(serverDir, addons);
         Config m = srv;
-        runTask(on ? "Bedrock (Geyser)" : tr("Removing Bedrock", "Hapus Bedrock"), () -> {
+        runTask(on ? "Bedrock (Geyser)" : tr("Removing Bedrock", "Hapus Bedrock"), () -> applyBedrock(on, type, mcVer, dir, m, loaders));
+    }
+
+    /** Removes the previous Geyser/Floodgate jars, then (when on) downloads the ones matching this server. Runs inside a task. */
+    private void applyBedrock(boolean on, String type, String mcVer, File dir, Config m, List<String> loaders) throws IOException {
             for (String f : m.get(BEDROCK_FILES, "").split(",")) {
                 if (IO.safeName(f.trim())) //noinspection ResultOfMethodCallIgnored
                     new File(dir, f.trim()).delete();
@@ -674,7 +692,6 @@ public class Host {
             m.save();
             mcLog.panel(tr("Bedrock support installed (Geyser). Restart the server; Bedrock players join on port 19132.",
                     "Dukungan Bedrock terpasang (Geyser). Restart server; pemain Bedrock join di port 19132."));
-        });
     }
 
     /** A new server from a Modrinth modpack (.mrpack): its loader, the server-side files and the overrides. */

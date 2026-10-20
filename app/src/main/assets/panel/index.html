@@ -21,7 +21,7 @@ a{color:var(--info)}
 button,input,select,textarea{font:inherit;color:inherit}
 header{position:sticky;top:0;z-index:5;background:rgba(20,20,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:10px;padding:10px 16px}
-.logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#6be590,#2fa35a);display:grid;place-items:center;font-weight:800;color:#0b1a10}
+.logo{width:28px;height:28px;border-radius:7px;display:block;object-fit:contain;flex:none}
 header h1{font-size:16px;margin:0;font-weight:700}
 header .sub{font-size:12px;color:var(--muted)}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:var(--bg2);border:1px solid var(--line)}
@@ -120,7 +120,7 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 #login{position:fixed;inset:0;z-index:120;display:none;place-items:center;padding:20px;
   background:radial-gradient(1200px 600px at 50% -10%,rgba(107,229,144,.14),transparent 60%),radial-gradient(800px 500px at 100% 110%,rgba(67,204,109,.10),transparent 60%),var(--bg)}
 .login-card{width:min(400px,100%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px 28px 24px;box-shadow:0 24px 60px rgba(0,0,0,.45);text-align:center}
-.login-card .logo{width:60px;height:60px;border-radius:16px;font-size:28px;margin:0 auto 14px}
+.login-card .logo{width:60px;height:60px;border-radius:16px;margin:0 auto 14px}
 .login-card h1{margin:0;font-size:22px}.login-card>p{margin:6px 0 22px;color:var(--muted)}
 .login-card form{text-align:left}.login-card .pin{font-size:26px;padding:12px}
 .login-card button{width:100%;justify-content:center;padding:12px;margin-top:6px}
@@ -385,7 +385,7 @@ nav .fab svg{width:26px;height:26px}
 </head>
 <body>
 <header>
-  <div class="logo">M</div>
+  <img class="logo" src="img/logo.png" alt="MC Host">
   <div style="flex:1;min-width:0">
     <h1>MC Host</h1>
     <div class="sub" id="hdrSub">Server Minecraft di HP</div>
@@ -934,7 +934,7 @@ nav .fab svg{width:26px;height:26px}
  </div>
 </div>
 <div id="login"><div class="login-card">
-  <div class="logo">M</div>
+  <img class="logo" src="img/logo.png" alt="MC Host">
   <h1>MC Host</h1>
   <p>Masuk ke panel server Minecraft</p>
   <form id="loginForm" autocomplete="on">
@@ -1360,14 +1360,15 @@ async function loadVers(type){if(VCACHE[type])return VCACHE[type];let list=[];
   return VCACHE[type]=[...new Set(list)].filter(supported).sort(vcmp)}
 
 // ---------------------------------------------------------- create server wizard
-const W={step:0,type:"",ver:"",name:"",ram:3072,eula:false};
+const W={step:0,type:"",ver:"",name:"",ram:3072,eula:false,bedrock:false};
+const BEDROCK_OK=["paper","purpur","fabric","neoforge"]; // Geyser builds exist for these
 const WSTEPS=[["Pilih software","Software menentukan server pakai plugin, mod, atau polos."],["Pilih versi","Teman harus main pakai versi Minecraft yang sama."],["Nama & RAM","Kasih nama biar gampang dibedakan, lalu atur memori server."],["Siap dibuat","Cek lagi sebelum dibuat. Semua bisa diubah nanti."]];
 const SEARCH_SVG='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
 const ramTop=()=>Math.max(1024,Math.min(8192,Math.round((deviceRam||8192)*0.6/256)*256));
 const ramRec=()=>deviceRam?Math.max(1024,Math.min(4096,Math.round(deviceRam*0.4/256)*256)):3072;
 function openWizard(){
   if(["running","starting","stopping"].includes(S.state)||S.task)return toast("Matikan "+(S.serverName||"server")+" dulu sebelum membuat server baru",true);
-  Object.assign(W,{step:0,type:"",ver:"",name:"",ram:ramRec(),eula:!!S.eula});$("#newModal").classList.remove("hide");renderWiz()}
+  Object.assign(W,{step:0,type:"",ver:"",name:"",ram:ramRec(),eula:!!S.eula,bedrock:false});$("#newModal").classList.remove("hide");renderWiz()}
 document.addEventListener("click",e=>{if(e.target.closest("#bNew,#bNewSide,[data-new]"))openWizard()});
 function renderWiz(){const [t,sub]=WSTEPS[W.step],b=$("#wizBody"),next=$("#wizNext");
   $("#wizStep").textContent="LANGKAH "+(W.step+1)+" DARI 4";$("#wizTitle").textContent=t;$("#wizSub").textContent=sub;$("#wizBar").style.width=((W.step+1)*25)+"%";
@@ -1384,11 +1385,13 @@ function renderWiz(){const [t,sub]=WSTEPS[W.step],b=$("#wizBody"),next=$("#wizNe
       '<div class="small muted">RAM untuk server'+(deviceRam?' (HP: '+gb(deviceRam)+')':'')+'</div>'+
       '<div class="presets" id="wPre">'+[["Hemat",2048],["Disarankan",ramRec()],["Tinggi",ramTop()]].map(([k,v])=>'<button data-ram="'+v+'">'+k+'<small>'+gb(v)+'</small></button>').join("")+'</div>'+
       '<label class="f"><span>RAM: <b id="wRamLabel"></b></span><input type="range" id="wRam" min="512" max="'+(deviceRam||8192)+'" step="128" style="width:100%"></label>'+
-      '<p class="small muted" id="wRamWarn" style="margin:0"></p>';
+      '<p class="small muted" id="wRamWarn" style="margin:0"></p>'+
+      (BEDROCK_OK.includes(W.type)?'<div class="sw" style="margin-top:14px"><div><div class="t">Pemain Bedrock bisa join</div><div class="d">Pasang Geyser + Floodgate dari Modrinth, sesuai versi server. Pemain HP/konsol join di port 19132.</div></div><input type="checkbox" class="toggle" id="wBedrock"'+(W.bedrock?' checked':'')+'></div>':'');
+    const wb=$("#wBedrock");if(wb)wb.onchange=e=>{W.bedrock=e.target.checked};
     $("#wName").oninput=e=>{W.name=e.target.value;next.disabled=!W.name.trim()};$("#wRam").oninput=e=>setWRam(+e.target.value);
-    setWRam(W.ram);next.disabled=!W.name.trim();setTimeout(()=>$("#wName").focus(),50)}
+    setWRam(W.ram);next.disabled=!W.name.trim();setTimeout(()=>{const n=$("#wName");if(n)n.focus()},50)} // the step may already have changed
   if(W.step===3){const ti=tinfo(W.type);
-    b.innerHTML=[["Software",ti.n+" ("+ti.tag+")"],["Versi Minecraft",W.ver],["Nama",W.name.trim()],["RAM",gb(W.ram)],["Java","otomatis sesuai versi"],["Tunnel","playit.gg yang sudah diatur (port 25565)"]]
+    b.innerHTML=[["Software",ti.n+" ("+ti.tag+")"],["Versi Minecraft",W.ver],["Nama",W.name.trim()],["RAM",gb(W.ram)],["Java","otomatis sesuai versi"],["Tunnel","playit.gg yang sudah diatur (port 25565)"]].concat(BEDROCK_OK.includes(W.type)?[["Bedrock",W.bedrock?"Bisa join (port 19132)":"Tidak"]]:[])
       .map(([k,v])=>'<div class="sumrow"><span>'+k+'</span><b>'+esc(v)+'</b></div>').join("")+
       (S.eula?'<p class="small muted" style="margin:14px 0 0">EULA Minecraft sudah disetujui.</p>':'<label class="eula"><input type="checkbox" class="toggle" id="wEula"'+(W.eula?' checked':'')+'><span>Saya setuju dengan <a href="https://aka.ms/MinecraftEULA" target="_blank" rel="noopener">EULA Minecraft</a></span></label>')+
       '<p class="small muted" style="margin:12px 0 0">Software di-download sekarang. '+(W.type==="forge"||W.type==="neoforge"?"Installer "+ti.n+" butuh beberapa menit. ":"")+'Pantau progresnya di Konsol.</p>';
@@ -1412,7 +1415,7 @@ $("#wizClose").onclick=closeWizard;$("#newModal").onclick=e=>{if(e.target.id==="
 $("#wizNext").onclick=async()=>{if(W.step<3){W.step++;renderWiz();return}
   const b=$("#wizNext");b.disabled=true;b.textContent="Membuat…";
   try{if(!S.eula)await api("/api/settings",{form:{eula:"true"}});
-    await api("/api/servers/create",{form:{name:W.name.trim(),type:W.type,mc:W.ver,ram:String(W.ram)}});
+    await api("/api/servers/create",{form:{name:W.name.trim(),type:W.type,mc:W.ver,ram:String(W.ram),bedrock:String(W.bedrock&&BEDROCK_OK.includes(W.type))}});
     closeWizard();toast("Server dibuat. Install "+tinfo(W.type).n+" "+W.ver+" dimulai");await refresh();go("home")}
   catch(e){toast(e.message,true);b.disabled=false;b.textContent="Buat server"}};
 
@@ -1425,7 +1428,7 @@ async function openSrvSheet(){if(!SV)await loadServers();const x=SV&&SV.servers.
   const sel=$("#srvVer");sel.innerHTML="<option>memuat…</option>";
   loadVers(x.type).then(L=>{sel.innerHTML=L.map(v=>'<option'+(v===x.mcVersion?" selected":"")+'>'+esc(v)+'</option>').join("")}).catch(e=>{sel.innerHTML='<option value="">gagal ambil versi: '+esc(e.message)+'</option>'});
   $("#srvSleep").value=String(x.sleepMin||0);$("#srvDaily").value=x.dailyRestart||"";$("#srvBedrock").checked=!!x.bedrock;
-  $("#srvBedrockBox").classList.toggle("hide",!["paper","purpur","fabric","neoforge"].includes(x.type));
+  $("#srvBedrockBox").classList.toggle("hide",!BEDROCK_OK.includes(x.type));
   $("#srvModal").classList.remove("hide")}
 function setSrvRam(v){v=Math.round(Number(v)||0);$("#srvRam").value=v;$("#srvRamNum").value=v;$("#srvRamLabel").textContent=gb(v);
   const w=$("#srvRamWarn"),risky=deviceRam&&v>deviceRam*0.6;w.style.color=risky?"var(--warn)":"";
@@ -1864,31 +1867,40 @@ function introDone(tour){$("#intro").classList.add("hide");lsSet("introDone","1"
   if(!tour){lsSet("tourDone","1");return}
   if(S.serverId)tourStart();else{lsSet("tourPending","1");openWizard()}}
 const TOUR=[
-  {tab:"home",sel:"#activeCard .srow",t:"Kartu server",b:"Ini dashboard server kamu: status, versi Java, dan gerigi untuk pengaturan server seperti nama, RAM, dan versi."},
+  {tab:"home",sel:"#activeCard .srow",t:"Kartu server",b:"Ini dashboard server kamu: status, versi Java, dan gerigi pengaturan server: nama, RAM, tidur kalau sepi, restart harian, Bedrock, dan ganti versi."},
   {tab:"home",sel:"#addrList",t:"Alamat untuk teman",b:"Teman join pakai alamat di sini. JAVA IP dan DOMAIN untuk dari internet, LAN untuk yang satu WiFi, PANEL untuk buka panel dari laptop. Tekan ikon salin lalu kirim ke teman."},
   {tab:"home",sel:"#activeCard .pbar",t:"Siapa yang main",b:"Pemain online tampil di sini. Tekan Kelola pemain untuk whitelist, OP, kick, atau ban."},
   {tab:"home",sel:"#activeCard .sbtns",t:"Nyalakan server",b:"Start menyalakan server. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world."},
+  {tab:()=>PERF_DESK.matches?"home":"console",sel:"#lagCard",t:"Grafik performa",b:"RAM, CPU, suhu HP, dan lonjakan lag selama 1 jam terakhir. Kalau sering lag, turunkan view distance atau tambah RAM."},
   {tab:"console",sel:"#tab-console .logwrap",t:"Membaca konsol",b:"Server melapor di sini: pemain masuk dan keluar, world tersimpan, dan alasannya kalau ada error. Pakai filter level dan tombol cari."},
   {tab:"console",sel:"#cmdForm",t:"Mengirim perintah",b:"Perintah yang diketik di sini langsung dijalankan server dengan izin penuh. Chip di atasnya jalan pintas: siang, cerah, difficulty, whitelist."},
-  {tab:"mods",sel:"#modSeg",t:"Mod & plugin",b:"Kelola yang terpasang, atau cari dan pasang langsung dari Modrinth lewat Store. Versinya otomatis disesuaikan dengan server."},
-  {tab:"world",sel:"#tab-world .card",t:"Dunia & backup",b:"Backup world kapan saja atau otomatis, unduh ke HP, upload world dari PC, lalu restore."},
-  {tab:"tunnel",sel:"#tab-tunnel .card:not(.hide)",t:"Main dari internet",b:"Hubungkan playit.gg (gratis) supaya teman di luar WiFi bisa join. Domain Cloudflare opsional untuk alamat yang lebih rapi."},
-  {tab:"home",sel:"#bNew,#bNewSide",t:"Server lain",b:"Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus. Tutorial bisa diulang dari Pengaturan."}];
+  {tab:"mods",pre:()=>setModView("manage"),sel:"#modSeg",t:"Mod & plugin",b:"Kelola yang terpasang, update semua sekali tekan, atau cari dan pasang langsung dari Modrinth lewat Store. Versinya otomatis disesuaikan dengan server."},
+  {tab:"world",pre:()=>setWorldView("backup"),sel:"#wv-backup .card",t:"Dunia & backup",b:"Backup world kapan saja atau otomatis, unduh ke HP, lalu restore. Nyalakan backup lengkap di Pengaturan kalau mod dan config mau ikut tersimpan."},
+  {tab:"world",pre:()=>setWorldView("backup"),sel:"#pgCard",t:"Pre-generate world",b:"Buat chunk di sekitar spawn duluan supaya pemain tidak lag saat menjelajah. Cukup sekali setelah server dibuat."},
+  {tab:"world",pre:()=>setWorldView("props"),sel:"#wv-props .prange",t:"Atur server",b:"Atur maks pemain, view distance (chunk), dan simulation distance pakai slider. Tekan angkanya untuk mengetik manual. Di bawahnya ada difficulty, gamemode, online mode, dan whitelist. Simpan, lalu restart server."},
+  {tab:"server",sel:"#tab-server .card",t:"Pengaturan",b:"Bahasa, PIN panel, notifikasi, backup lengkap, dan backup config ada di sini. Tutorial ini juga bisa diulang dari sini."},
+  {tab:"home",sel:"#bNew,#bNewSide",t:"Server lain",b:"Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus."},
+  {tab:"tunnel",sel:"#tab-tunnel .thero",t:"Biar teman bisa join dari internet",b:"Terakhir: hubungkan playit.gg, gratis. Buat akun, salin perintah Docker dari playit, tempel di sini, lalu Start tunnel. Alamat untuk teman muncul di tab Server.",
+   fin:"Buka panduan tunnel",act:()=>{const h=$('[data-help="playit"]');if(h)h.click()}}];
 let TI=-1;
 function tourStart(){lsSet("tourPending",null);TI=0;$("#tour").classList.remove("hide");tourShow()}
-function tourEnd(){TI=-1;$("#tour").classList.add("hide");lsSet("tourDone","1");go("home")}
+function tourEnd(stay){TI=-1;$("#tour").classList.add("hide");lsSet("tourDone","1");if(!stay)go("home")}
 function tourEl(){return TI<0?null:$$(TOUR[TI].sel).find(e=>e.offsetParent)}
-function tourShow(){const st=TOUR[TI];if(tab!==st.tab)go(st.tab);
-  setTimeout(()=>{const el=tourEl();if(!el){if(++TI>=TOUR.length)return tourEnd();return tourShow()}
+// some targets load from the server (properties form, backups), so wait up to ~3 s before skipping a step
+function tourShow(tries){const st=TOUR[TI],t=typeof st.tab==="function"?st.tab():st.tab;
+  if(!tries){if(tab!==t)go(t);if(st.pre)st.pre()}
+  setTimeout(()=>{if(TI<0)return;const el=tourEl();
+    if(!el){if((tries||0)<20)return tourShow((tries||0)+1);if(++TI>=TOUR.length)return tourEnd();return tourShow()}
     el.scrollIntoView({block:"center"});
     $("#tN").textContent=(TI+1)+" / "+TOUR.length;$("#tT").textContent=st.t;$("#tB").textContent=st.b;
-    $("#tNext").textContent=TI===TOUR.length-1?"Selesai":"Lanjut";setTimeout(tourPlace,200)},150)}
+    $("#tNext").textContent=TI===TOUR.length-1?(st.fin||"Selesai"):"Lanjut";setTimeout(tourPlace,200)},150)}
 function tourPlace(){const el=tourEl();if(!el)return;const r=el.getBoundingClientRect(),p=6,b=$("#tBub");
   Object.assign($("#tSpot").style,{left:r.left-p+"px",top:r.top-p+"px",width:r.width+2*p+"px",height:r.height+2*p+"px"});
   const h=b.offsetHeight,below=r.bottom+p+12+h<=innerHeight-8;
   b.style.top=(below?r.bottom+p+12:Math.max(8,r.top-p-12-h))+"px"}
-$("#tNext").onclick=()=>{if(++TI>=TOUR.length)return tourEnd();tourShow()};
-$("#tSkip").onclick=tourEnd;
+$("#tNext").onclick=()=>{const st=TOUR[TI];if(++TI<TOUR.length)return tourShow();
+  if(st&&st.act){tourEnd(true);st.act()}else tourEnd()};
+$("#tSkip").onclick=()=>tourEnd();
 addEventListener("resize",()=>TI>=0&&tourPlace());addEventListener("scroll",()=>TI>=0&&tourPlace(),{passive:true});
 let introChecked=false;
 function tutorialCheck(){

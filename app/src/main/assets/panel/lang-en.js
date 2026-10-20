@@ -876,5 +876,19 @@ window.EN = {
 "tempel perintah Docker atau SECRET_KEY baru": "paste the new Docker command or SECRET_KEY",
 "Salin perintah Docker.": "Copy the Docker command.",
 "Playit menampilkan perintah docker run atau docker compose berisi SECRET_KEY. Salin semuanya, app mengambil key-nya sendiri.": "Playit shows a docker run or docker compose command containing SECRET_KEY. Copy all of it; the app picks out the key itself.",
-"Secret key diambil dari perintah Docker": "Secret key taken from the Docker command"
+"Secret key diambil dari perintah Docker": "Secret key taken from the Docker command",
+"Bisa join (port 19132)": "Can join (port 19132)",
+"Ini dashboard server kamu: status, versi Java, dan gerigi pengaturan server: nama, RAM, tidur kalau sepi, restart harian, Bedrock, dan ganti versi.": "This is your server dashboard: status, Java version, and the gear for server settings: name, RAM, sleep when empty, daily restart, Bedrock and version changes.",
+"Grafik performa": "Performance graph",
+"RAM, CPU, suhu HP, dan lonjakan lag selama 1 jam terakhir. Kalau sering lag, turunkan view distance atau tambah RAM.": "RAM, CPU, phone temperature and lag spikes over the last hour. If it lags often, lower the view distance or add RAM.",
+"Kelola yang terpasang, update semua sekali tekan, atau cari dan pasang langsung dari Modrinth lewat Store. Versinya otomatis disesuaikan dengan server.": "Manage what's installed, update everything in one tap, or find and install straight from Modrinth in the Store. Versions are matched to the server automatically.",
+"Backup world kapan saja atau otomatis, unduh ke HP, lalu restore. Nyalakan backup lengkap di Pengaturan kalau mod dan config mau ikut tersimpan.": "Back up the world any time or automatically, download it to the phone, then restore. Turn on full backups in Settings to keep mods and configs too.",
+"Buat chunk di sekitar spawn duluan supaya pemain tidak lag saat menjelajah. Cukup sekali setelah server dibuat.": "Generate the chunks around spawn ahead of time so players don't lag while exploring. Once after creating the server is enough.",
+"Atur server": "Server settings",
+"Atur maks pemain, view distance (chunk), dan simulation distance pakai slider. Tekan angkanya untuk mengetik manual. Di bawahnya ada difficulty, gamemode, online mode, dan whitelist. Simpan, lalu restart server.": "Set max players, view distance (chunks) and simulation distance with the sliders. Tap a number to type it. Below are difficulty, gamemode, online mode and whitelist. Save, then restart the server.",
+"Bahasa, PIN panel, notifikasi, backup lengkap, dan backup config ada di sini. Tutorial ini juga bisa diulang dari sini.": "Language, panel PIN, notifications, full backups and config backup are here. You can replay this tutorial from here too.",
+"Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus.": "Make another server with a different version or mods here. Only one can run at a time.",
+"Biar teman bisa join dari internet": "So friends can join over the internet",
+"Terakhir: hubungkan playit.gg, gratis. Buat akun, salin perintah Docker dari playit, tempel di sini, lalu Start tunnel. Alamat untuk teman muncul di tab Server.": "Last step: connect playit.gg, it's free. Make an account, copy the Docker command from playit, paste it here, then Start tunnel. Your friends' address shows up on the Server tab.",
+"Buka panduan tunnel": "Open the tunnel guide"
 };

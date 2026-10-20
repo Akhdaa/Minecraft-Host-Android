@@ -845,5 +845,19 @@ window.RU = {
 "tempel perintah Docker atau SECRET_KEY baru": "вставьте новую команду Docker или SECRET_KEY",
 "Salin perintah Docker.": "Скопируйте команду Docker.",
 "Playit menampilkan perintah docker run atau docker compose berisi SECRET_KEY. Salin semuanya, app mengambil key-nya sendiri.": "playit показывает команду docker run или docker compose с SECRET_KEY. Скопируйте её целиком, приложение само найдёт ключ.",
-"Secret key diambil dari perintah Docker": "Секретный ключ взят из команды Docker"
+"Secret key diambil dari perintah Docker": "Секретный ключ взят из команды Docker",
+"Bisa join (port 19132)": "Могут заходить (порт 19132)",
+"Ini dashboard server kamu: status, versi Java, dan gerigi pengaturan server: nama, RAM, tidur kalau sepi, restart harian, Bedrock, dan ganti versi.": "Это панель сервера: статус, версия Java и шестерёнка настроек: имя, RAM, сон без игроков, ежедневный перезапуск, Bedrock и смена версии.",
+"Grafik performa": "График производительности",
+"RAM, CPU, suhu HP, dan lonjakan lag selama 1 jam terakhir. Kalau sering lag, turunkan view distance atau tambah RAM.": "RAM, CPU, температура телефона и скачки лагов за последний час. Если часто лагает, уменьшите дальность прорисовки или добавьте RAM.",
+"Kelola yang terpasang, update semua sekali tekan, atau cari dan pasang langsung dari Modrinth lewat Store. Versinya otomatis disesuaikan dengan server.": "Управляйте установленным, обновляйте всё одним нажатием или ищите и ставьте прямо с Modrinth в Магазине. Версии подбираются под сервер автоматически.",
+"Backup world kapan saja atau otomatis, unduh ke HP, lalu restore. Nyalakan backup lengkap di Pengaturan kalau mod dan config mau ikut tersimpan.": "Делайте бэкап мира когда угодно или автоматически, скачивайте на телефон и восстанавливайте. Включите полный бэкап в Настройках, чтобы сохранять и моды с конфигами.",
+"Buat chunk di sekitar spawn duluan supaya pemain tidak lag saat menjelajah. Cukup sekali setelah server dibuat.": "Заранее создайте чанки вокруг спавна, чтобы игроки не лагали при исследовании. Достаточно одного раза после создания сервера.",
+"Atur server": "Настройки сервера",
+"Atur maks pemain, view distance (chunk), dan simulation distance pakai slider. Tekan angkanya untuk mengetik manual. Di bawahnya ada difficulty, gamemode, online mode, dan whitelist. Simpan, lalu restart server.": "Задайте максимум игроков, дальность прорисовки (чанки) и дальность симуляции ползунками. Нажмите на число, чтобы ввести его. Ниже — сложность, режим игры, онлайн-режим и белый список. Сохраните и перезапустите сервер.",
+"Bahasa, PIN panel, notifikasi, backup lengkap, dan backup config ada di sini. Tutorial ini juga bisa diulang dari sini.": "Язык, PIN панели, уведомления, полный бэкап и бэкап настроек — здесь. Отсюда же можно пройти обучение заново.",
+"Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus.": "Здесь можно создать ещё сервер с другой версией или модами. Одновременно работает только один.",
+"Biar teman bisa join dari internet": "Чтобы друзья заходили через интернет",
+"Terakhir: hubungkan playit.gg, gratis. Buat akun, salin perintah Docker dari playit, tempel di sini, lalu Start tunnel. Alamat untuk teman muncul di tab Server.": "Последний шаг: подключите playit.gg, это бесплатно. Создайте аккаунт, скопируйте команду Docker из playit, вставьте сюда и запустите туннель. Адрес для друзей появится на вкладке Сервер.",
+"Buka panduan tunnel": "Открыть руководство по туннелю"
 };

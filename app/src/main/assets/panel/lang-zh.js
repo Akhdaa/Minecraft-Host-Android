@@ -845,5 +845,19 @@ window.ZH = {
 "tempel perintah Docker atau SECRET_KEY baru": "粘贴新的 Docker 命令或 SECRET_KEY",
 "Salin perintah Docker.": "复制 Docker 命令。",
 "Playit menampilkan perintah docker run atau docker compose berisi SECRET_KEY. Salin semuanya, app mengambil key-nya sendiri.": "playit 会显示包含 SECRET_KEY 的 docker run 或 docker compose 命令。全部复制，应用会自己提取密钥。",
-"Secret key diambil dari perintah Docker": "已从 Docker 命令中提取密钥"
+"Secret key diambil dari perintah Docker": "已从 Docker 命令中提取密钥",
+"Bisa join (port 19132)": "可以加入（端口 19132）",
+"Ini dashboard server kamu: status, versi Java, dan gerigi pengaturan server: nama, RAM, tidur kalau sepi, restart harian, Bedrock, dan ganti versi.": "这是服务器面板：状态、Java 版本，以及服务器设置齿轮：名称、内存、无人时休眠、每日重启、Bedrock 和更换版本。",
+"Grafik performa": "性能图表",
+"RAM, CPU, suhu HP, dan lonjakan lag selama 1 jam terakhir. Kalau sering lag, turunkan view distance atau tambah RAM.": "最近 1 小时的内存、CPU、手机温度和卡顿峰值。经常卡顿就调低视距或增加内存。",
+"Kelola yang terpasang, update semua sekali tekan, atau cari dan pasang langsung dari Modrinth lewat Store. Versinya otomatis disesuaikan dengan server.": "管理已安装的内容，一键全部更新，或在商店里直接从 Modrinth 搜索安装。版本会自动匹配服务器。",
+"Backup world kapan saja atau otomatis, unduh ke HP, lalu restore. Nyalakan backup lengkap di Pengaturan kalau mod dan config mau ikut tersimpan.": "随时或自动备份世界，下载到手机，然后恢复。想连模组和配置一起保存，就在设置里开启完整备份。",
+"Buat chunk di sekitar spawn duluan supaya pemain tidak lag saat menjelajah. Cukup sekali setelah server dibuat.": "提前生成出生点周围的区块，玩家探索时就不会卡。创建服务器后做一次就够了。",
+"Atur server": "服务器设置",
+"Atur maks pemain, view distance (chunk), dan simulation distance pakai slider. Tekan angkanya untuk mengetik manual. Di bawahnya ada difficulty, gamemode, online mode, dan whitelist. Simpan, lalu restart server.": "用滑块设置最大玩家数、视距（区块）和模拟距离。点数字可以手动输入。下面还有难度、游戏模式、正版验证和白名单。保存后重启服务器。",
+"Bahasa, PIN panel, notifikasi, backup lengkap, dan backup config ada di sini. Tutorial ini juga bisa diulang dari sini.": "语言、面板 PIN、通知、完整备份和配置备份都在这里。也可以在这里重新播放本教程。",
+"Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus.": "在这里创建其他版本或模组的服务器。同一时间只能运行一个。",
+"Biar teman bisa join dari internet": "让朋友通过互联网加入",
+"Terakhir: hubungkan playit.gg, gratis. Buat akun, salin perintah Docker dari playit, tempel di sini, lalu Start tunnel. Alamat untuk teman muncul di tab Server.": "最后一步：连接 playit.gg，免费。注册账号，从 playit 复制 Docker 命令，粘贴到这里，然后启动隧道。给朋友的地址会显示在服务器页。",
+"Buka panduan tunnel": "打开隧道指南"
 };
