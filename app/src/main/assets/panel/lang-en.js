@@ -890,5 +890,16 @@ window.EN = {
 "Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus.": "Make another server with a different version or mods here. Only one can run at a time.",
 "Biar teman bisa join dari internet": "So friends can join over the internet",
 "Terakhir: hubungkan playit.gg, gratis. Buat akun, salin perintah Docker dari playit, tempel di sini, lalu Start tunnel. Alamat untuk teman muncul di tab Server.": "Last step: connect playit.gg, it's free. Make an account, copy the Docker command from playit, paste it here, then Start tunnel. Your friends' address shows up on the Server tab.",
-"Buka panduan tunnel": "Open the tunnel guide"
+"Buka panduan tunnel": "Open the tunnel guide",
+"Buka {0}": "Open {0}",
+"Tekan menu {0} untuk lanjut.": "Tap {0} to continue.",
+"Modpack Seru": "Fun Modpack",
+"Survival Modded": "Modded Survival",
+"SMP Teman": "Friends SMP",
+"Survival Bareng": "Survival Together",
+"Minigame": "Minigames",
+"Dunia Kreatif": "Creative World",
+"Hardcore": "Hardcore",
+"Pindah ke tab {0}": "Open the {0} tab",
+"Tekan tab {0} di atas untuk lanjut.": "Tap the {0} tab above to continue."
 };

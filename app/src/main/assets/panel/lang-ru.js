@@ -859,5 +859,16 @@ window.RU = {
 "Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus.": "Здесь можно создать ещё сервер с другой версией или модами. Одновременно работает только один.",
 "Biar teman bisa join dari internet": "Чтобы друзья заходили через интернет",
 "Terakhir: hubungkan playit.gg, gratis. Buat akun, salin perintah Docker dari playit, tempel di sini, lalu Start tunnel. Alamat untuk teman muncul di tab Server.": "Последний шаг: подключите playit.gg, это бесплатно. Создайте аккаунт, скопируйте команду Docker из playit, вставьте сюда и запустите туннель. Адрес для друзей появится на вкладке Сервер.",
-"Buka panduan tunnel": "Открыть руководство по туннелю"
+"Buka panduan tunnel": "Открыть руководство по туннелю",
+"Buka {0}": "Откройте {0}",
+"Tekan menu {0} untuk lanjut.": "Нажмите «{0}», чтобы продолжить.",
+"Modpack Seru": "Весёлая сборка",
+"Survival Modded": "Выживание с модами",
+"SMP Teman": "SMP с друзьями",
+"Survival Bareng": "Совместное выживание",
+"Minigame": "Мини-игры",
+"Dunia Kreatif": "Творческий мир",
+"Hardcore": "Хардкор",
+"Pindah ke tab {0}": "Откройте вкладку «{0}»",
+"Tekan tab {0} di atas untuk lanjut.": "Нажмите вкладку «{0}» сверху, чтобы продолжить."
 };

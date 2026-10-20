@@ -859,5 +859,16 @@ window.ZH = {
 "Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus.": "在这里创建其他版本或模组的服务器。同一时间只能运行一个。",
 "Biar teman bisa join dari internet": "让朋友通过互联网加入",
 "Terakhir: hubungkan playit.gg, gratis. Buat akun, salin perintah Docker dari playit, tempel di sini, lalu Start tunnel. Alamat untuk teman muncul di tab Server.": "最后一步：连接 playit.gg，免费。注册账号，从 playit 复制 Docker 命令，粘贴到这里，然后启动隧道。给朋友的地址会显示在服务器页。",
-"Buka panduan tunnel": "打开隧道指南"
+"Buka panduan tunnel": "打开隧道指南",
+"Buka {0}": "打开{0}",
+"Tekan menu {0} untuk lanjut.": "点击“{0}”继续。",
+"Modpack Seru": "趣味整合包",
+"Survival Modded": "模组生存",
+"SMP Teman": "好友 SMP",
+"Survival Bareng": "一起生存",
+"Minigame": "小游戏",
+"Dunia Kreatif": "创造世界",
+"Hardcore": "极限模式",
+"Pindah ke tab {0}": "打开“{0}”标签",
+"Tekan tab {0} di atas untuk lanjut.": "点击上方的“{0}”标签继续。"
 };

@@ -142,7 +142,7 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .inote{font-size:12px;color:var(--muted);margin-top:18px!important}
 .idots{display:flex;gap:6px;justify-content:center}.idots i{width:7px;height:7px;border-radius:9px;background:var(--line2);transition:width .2s}.idots i.on{background:var(--accent);width:20px}
 .ibtns{display:flex;gap:10px}.ibtns .btn{flex:1;height:48px;justify-content:center}
-#tour{position:fixed;inset:0;z-index:95}
+#tour{position:fixed;inset:0;z-index:95}#tour.pass{pointer-events:none}#tour.pass .tbub{pointer-events:auto}
 .tspot{position:fixed;border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,.7);outline:2px solid var(--accent);transition:all .25s;pointer-events:none}
 .tbub{position:fixed;left:16px;right:16px;max-width:380px;margin:0 auto;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:14px 16px;box-shadow:0 12px 32px rgba(0,0,0,.45);transition:top .25s}
 .tbub .tn{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.06em}.tbub b{display:block;font-size:17px;margin:4px 0 6px}
@@ -949,7 +949,7 @@ nav .fab svg{width:26px;height:26px}
 
 <div id="intro" class="intro hide" role="dialog" aria-modal="true" aria-label="Tutorial">
   <div class="iwrap"><div class="islide" id="iSlide"></div><div class="idots" id="iDots"></div>
-    <div class="ibtns"><button class="btn" id="iSkip" type="button">Lewati</button><button class="btn primary" id="iNext" type="button">Lanjut</button></div></div>
+    <div class="ibtns"><button class="btn hide" id="iBack" type="button">Kembali</button><button class="btn" id="iSkip" type="button">Lewati</button><button class="btn primary" id="iNext" type="button">Lanjut</button></div></div>
 </div>
 <div id="tour" class="hide" role="dialog" aria-modal="true" aria-label="Tutorial"><div class="tspot" id="tSpot"></div>
   <div class="tbub" id="tBub"><div class="tn" id="tN"></div><b id="tT"></b><p id="tB"></p>
@@ -1386,7 +1386,7 @@ function renderWiz(){const [t,sub]=WSTEPS[W.step],b=$("#wizBody"),next=$("#wizNe
     loadVers(W.type).then(renderVers).catch(e=>{$("#wVers").innerHTML='<div class="empty">Gagal ambil daftar versi: '+esc(e.message)+'</div>'})}
   if(W.step===2){const sug=ADDON[W.type]==="mod"?["Modpack Seru","Survival Modded","Teknologi"]:ADDON[W.type]==="plugin"?["SMP Teman","Survival Bareng","Minigame"]:["Survival Bareng","Dunia Kreatif","Hardcore"];
     b.innerHTML='<label class="f"><span>Nama server</span><input type="text" id="wName" maxlength="40" placeholder="misal Survival Bareng" autocomplete="off" value="'+esc(W.name)+'"></label>'+
-      '<div class="chips" style="margin:-4px 0 16px">'+sug.map(x=>'<span class="chip" data-sug="'+esc(x)+'">'+esc(x)+'</span>').join("")+'</div>'+
+      '<div class="chips" style="margin:-4px 0 16px">'+sug.map(x=>tr(x)).map(x=>'<span class="chip" data-sug="'+esc(x)+'">'+esc(x)+'</span>').join("")+'</div>'+
       '<div class="small muted">RAM untuk server'+(deviceRam?' (HP: '+gb(deviceRam)+')':'')+'</div>'+
       '<div class="presets" id="wPre">'+[["Hemat",2048],["Disarankan",ramRec()],["Tinggi",ramTop()]].map(([k,v])=>'<button data-ram="'+v+'">'+k+'<small>'+gb(v)+'</small></button>').join("")+'</div>'+
       '<label class="f"><span>RAM: <b id="wRamLabel"></b></span><input type="range" id="wRam" min="512" max="'+(deviceRam||8192)+'" step="128" style="width:100%"></label>'+
@@ -1861,7 +1861,8 @@ function introRender(){const sl=INTRO[II];
     +(sl.pts?'<ul class="ipts">'+sl.pts.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>':"")
     +(sl.note?'<p class="inote">Bukan produk resmi Minecraft. Tidak terkait dengan Mojang atau Microsoft.</p>':"");
   $("#iDots").innerHTML=INTRO.map((_,i)=>'<i class="'+(i===II?"on":"")+'"></i>').join("");
-  $("#iNext").textContent=II===INTRO.length-1?"Mulai":"Lanjut";$("#iSkip").classList.toggle("hide",II===INTRO.length-1)}
+  $("#iNext").textContent=II===INTRO.length-1?"Mulai":"Lanjut";$("#iSkip").classList.toggle("hide",II===INTRO.length-1);$("#iBack").classList.toggle("hide",II===0)}
+$("#iBack").onclick=()=>{if(II>0){II--;lsSet("introStep",String(II));introRender()}};
 $("#iSlide").onclick=async e=>{const b=e.target.closest("[data-lang]");if(!b)return;const l=b.dataset.lang;
   if(l===LANG){II++;return introRender()}
   try{await api("/api/settings",{form:{lang:l}})}catch(err){}
@@ -1879,21 +1880,33 @@ const TOUR=[
   {tab:()=>PERF_DESK.matches?"home":"console",sel:"#lagCard",t:"Grafik performa",b:"RAM, CPU, suhu HP, dan lonjakan lag selama 1 jam terakhir. Kalau sering lag, turunkan view distance atau tambah RAM."},
   {tab:"console",sel:"#tab-console .logwrap",t:"Membaca konsol",b:"Server melapor di sini: pemain masuk dan keluar, world tersimpan, dan alasannya kalau ada error. Pakai filter level dan tombol cari."},
   {tab:"console",sel:"#cmdForm",t:"Mengirim perintah",b:"Perintah yang diketik di sini langsung dijalankan server dengan izin penuh. Chip di atasnya jalan pintas: siang, cerah, difficulty, whitelist."},
-  {tab:"mods",pre:()=>setModView("manage"),sel:"#modSeg",t:"Mod & plugin",b:"Kelola yang terpasang, update semua sekali tekan, atau cari dan pasang langsung dari Modrinth lewat Store. Versinya otomatis disesuaikan dengan server."},
-  {tab:"world",pre:()=>setWorldView("backup"),sel:"#wv-backup .card",t:"Dunia & backup",b:"Backup world kapan saja atau otomatis, unduh ke HP, lalu restore. Nyalakan backup lengkap di Pengaturan kalau mod dan config mau ikut tersimpan."},
-  {tab:"world",pre:()=>setWorldView("backup"),sel:"#pgCard",t:"Pre-generate world",b:"Buat chunk di sekitar spawn duluan supaya pemain tidak lag saat menjelajah. Cukup sekali setelah server dibuat."},
-  {tab:"world",pre:()=>setWorldView("props"),sel:"#wv-props .prange",t:"Atur server",b:"Atur maks pemain, view distance (chunk), dan simulation distance pakai slider. Tekan angkanya untuk mengetik manual. Di bawahnya ada difficulty, gamemode, online mode, dan whitelist. Simpan, lalu restart server."},
+  {tab:"mods",sel:"#modSeg",t:"Mod & plugin",b:"Kelola yang terpasang, update semua sekali tekan, atau cari dan pasang langsung dari Modrinth lewat Store. Versinya otomatis disesuaikan dengan server."},
+  {tab:"world",view:"backup",sel:"#wv-backup .card",t:"Dunia & backup",b:"Backup world kapan saja atau otomatis, unduh ke HP, lalu restore. Nyalakan backup lengkap di Pengaturan kalau mod dan config mau ikut tersimpan."},
+  {tab:"world",view:"backup",sel:"#pgCard",t:"Pre-generate world",b:"Buat chunk di sekitar spawn duluan supaya pemain tidak lag saat menjelajah. Cukup sekali setelah server dibuat."},
+  {tab:"world",view:"props",sel:"#wv-props .prange",t:"Atur server",b:"Atur maks pemain, view distance (chunk), dan simulation distance pakai slider. Tekan angkanya untuk mengetik manual. Di bawahnya ada difficulty, gamemode, online mode, dan whitelist. Simpan, lalu restart server."},
   {tab:"server",sel:"#tab-server .card",t:"Pengaturan",b:"Bahasa, PIN panel, notifikasi, backup lengkap, dan backup config ada di sini. Tutorial ini juga bisa diulang dari sini."},
   {tab:"home",sel:"#bNew,#bNewSide",t:"Server lain",b:"Bikin server lain dengan versi atau mod berbeda di sini. Cuma satu yang bisa jalan sekaligus."},
   {tab:"tunnel",sel:"#tab-tunnel .thero",t:"Biar teman bisa join dari internet",b:"Terakhir: hubungkan playit.gg, gratis. Buat akun, salin perintah Docker dari playit, tempel di sini, lalu Start tunnel. Alamat untuk teman muncul di tab Server.",
    fin:"Buka panduan tunnel",act:()=>{const h=$('[data-help="playit"]');if(h)h.click()}}];
 let TI=-1;
 function tourStart(){lsSet("tourPending",null);TI=0;$("#tour").classList.remove("hide");tourShow()}
-function tourEnd(stay){TI=-1;$("#tour").classList.add("hide");lsSet("tourDone","1");if(!stay)go("home")}
-function tourEl(){return TI<0?null:$$(TOUR[TI].sel).find(e=>e.offsetParent)}
+function tourEnd(stay){TI=-1;TNAV=null;clearInterval(TWAIT);$("#tour").classList.remove("pass");$("#tNext").classList.remove("hide");$("#tour").classList.add("hide");lsSet("tourDone","1");if(!stay)go("home")}
+let TNAV=null,TWAIT=0; // menu the user has to open for the next step
+function tourEl(){return TI<0?null:$$(TNAV||TOUR[TI].sel).find(e=>e.offsetParent)}
+// point at the menu (bottom bar, header icon or sidebar), let taps through, continue once it is open
+function tourNav(sel,ok,sub){TNAV=sel;const el=tourEl();if(!el){TNAV=null;return false}
+  const name=(el.textContent||"").trim()||el.getAttribute("aria-label")||"";
+  $("#tour").classList.add("pass");$("#tNext").classList.add("hide");el.scrollIntoView({block:"nearest"});
+  $("#tN").textContent=(TI+1)+" / "+TOUR.length;$("#tT").textContent=(sub?"Pindah ke tab ":"Buka ")+name;$("#tB").textContent=sub?"Tekan tab "+name+" di atas untuk lanjut.":"Tekan menu "+name+" untuk lanjut.";
+  clearInterval(TWAIT);TWAIT=setInterval(()=>{if(TI<0||!TNAV)return clearInterval(TWAIT);if(ok()){clearInterval(TWAIT);TNAV=null;tourShow()}},250);
+  setTimeout(tourPlace,100);return true}
 // some targets load from the server (properties form, backups), so wait up to ~3 s before skipping a step
 function tourShow(tries){const st=TOUR[TI],t=typeof st.tab==="function"?st.tab():st.tab;
-  if(!tries){if(tab!==t)go(t);if(st.pre)st.pre()}
+  if(!tries){
+    if(tab!==t&&tourNav('nav button[data-tab="'+t+'"],.hbtn[data-go="'+t+'"]',()=>tab===t))return;
+    if(st.view&&worldView!==st.view&&tourNav('#worldSeg [data-wv="'+st.view+'"]',()=>worldView===st.view,true))return;
+    if(tab!==t)go(t); // no visible menu button for it: fall back to switching
+    $("#tour").classList.remove("pass");$("#tNext").classList.remove("hide")}
   setTimeout(()=>{if(TI<0)return;const el=tourEl();
     if(!el){if((tries||0)<20)return tourShow((tries||0)+1);if(++TI>=TOUR.length)return tourEnd();return tourShow()}
     el.scrollIntoView({block:"center"});
