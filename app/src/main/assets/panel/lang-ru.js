@@ -836,5 +836,8 @@ window.RU = {
 "Fitur tambahan": "Дополнительно",
 "Cara lain supaya teman bisa join. playit.gg sudah cukup untuk kebanyakan orang.": "Другие способы подключить друзей. Большинству хватает playit.gg.",
 "Teman join pakai domain sendiri, misal mc.domainkamu.com.": "Друзья подключаются по вашему домену, например mc.yourdomain.com.",
-"Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "Отключить домен Cloudflare? {0} будет убран из панели, запись в Cloudflare останется."
+"Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "Отключить домен Cloudflare? {0} будет убран из панели, запись в Cloudflare останется.",
+"Ketik angka": "Ввести число",
+"Minimal {0}": "Минимум {0}",
+"HP: 4 sampai 6.": "Телефон: от 4 до 6."
 };

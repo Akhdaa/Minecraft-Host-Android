@@ -87,6 +87,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent2)}
 textarea{font-family:var(--mono);font-size:13px;min-height:260px;resize:vertical}
 label.f{display:block;margin-bottom:12px}
 label.f>span{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+.prange{margin-bottom:12px}.prange input[type=range]{width:100%}
+.pr-h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-bottom:5px}
+.pr-v{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:3px 12px;min-width:48px;font:inherit;font-weight:700;color:var(--text);cursor:pointer}
 .sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .sw:last-child{border-bottom:0}
 .sw .t{font-weight:600}.sw .d{font-size:12.5px;color:var(--muted)}
@@ -1793,7 +1796,7 @@ $("#edText").addEventListener("keydown",e=>{if(e.key==="Tab"&&!e.target.readOnly
 $("#edClose").onclick=closeEditor;$("#edSave").onclick=saveEditor;
 $("#editModal").onclick=e=>{if(e.target.id==="editModal")closeEditor()};
 
-const PROPS=[["motd","Nama server (MOTD)","text"],["max-players","Maks pemain","number"],["view-distance","View distance (chunk)","number","HP: 5 sampai 8. Makin besar makin berat."],["simulation-distance","Simulation distance","number","HP: 4 sampai 6."],
+const PROPS=[["motd","Nama server (MOTD)","text"],["max-players","Maks pemain","range:1:100"],["view-distance","View distance (chunk)","range:3:32","HP: 5 sampai 8. Makin besar makin berat."],["simulation-distance","Simulation distance","range:3:32","HP: 4 sampai 6."],
   ["difficulty","Kesulitan","select:peaceful,easy,normal,hard"],["gamemode","Gamemode default","select:survival,creative,adventure,spectator"],["online-mode","Online mode (akun premium)","bool","Nyala: cuma akun Minecraft asli (premium) yang bisa join. Kalau ada teman pakai Minecraft crack / non-premium (TLauncher dan sejenisnya), <b>matikan</b> ini. Saat mati, wajib nyalakan Whitelist, karena siapa pun bisa masuk pakai nama orang lain."],
   ["white-list","Whitelist","bool","Cuma pemain yang ditambahkan di Konsol &gt; Pemain yang bisa masuk."],["pvp","PvP","bool"],["allow-flight","Izinkan terbang (mod)","bool"],["spawn-protection","Spawn protection","number"],["level-seed","Seed world baru","text"],["server-port","Port","number"]];
 let propLines=[];
@@ -1808,11 +1811,18 @@ async function loadProps(){try{const t=await api("/api/properties");$("#propRaw"
 function propGet(k){for(const l of propLines){if(l.startsWith(k+"="))return l.slice(k.length+1)}return""}
 function renderPropForm(){$("#propForm").innerHTML='<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))">'+PROPS.map(([k,l,t,d])=>{const raw=propGet(k),v=raw!==""?raw:(t==="text"||t==="number"?"":(PROP_DEF[k]||""));const dd=d?'<div class="d">'+d+'</div>':"";
   if(t==="bool")return '<div class="sw"'+(d?' style="grid-column:1/-1"':'')+'><div><div class="t" style="font-weight:500">'+l+'</div>'+dd+'</div><input type="checkbox" class="toggle" data-prop="'+k+'"'+(v==="true"?" checked":"")+'></div>';
+  if(t.startsWith("range:")){const [mn,mx]=t.slice(6).split(":").map(Number),n=Math.round(Number(v)||mn);
+    return '<div class="prange"><div class="pr-h"><span>'+l+'</span><button type="button" class="pr-v" data-prv="'+k+'" title="Ketik angka">'+n+'</button></div>'+
+      '<input type="range" min="'+mn+'" max="'+Math.max(mx,n)+'" value="'+n+'" data-prop="'+k+'" aria-label="'+l+'">'+(d?'<span class="small muted" style="display:block;margin-top:4px">'+d+'</span>':'')+'</div>'}
   if(t.startsWith("select:"))return '<label class="f"><span>'+l+'</span><select data-prop="'+k+'">'+t.slice(7).split(",").map(o=>'<option'+(o===v?" selected":"")+'>'+o+'</option>').join("")+'</select></label>';
   return '<label class="f"><span>'+l+'</span><input type="'+t+'" data-prop="'+k+'" value="'+esc(v)+'" placeholder="'+esc(PROP_DEF[k]||"")+'">'+(d?'<span class="small muted" style="display:block;margin-top:4px">'+d+'</span>':'')+'</label>'}).join("")+'</div><div id="crackWarn" class="banner err hide" style="margin:12px 0 0">Online mode mati dan Whitelist mati: siapa pun yang tahu alamat server bisa masuk, termasuk pakai nama kamu. Nyalakan Whitelist lalu tambahkan nama teman di Konsol.</div>';
   checkCrack();
   if(!propLines.join("").trim())$("#propForm").insertAdjacentHTML("afterbegin",'<p class="small muted">server.properties dibuat saat Install Fabric. Isi form lalu simpan juga bisa.</p>');$$("#propForm select").forEach(dropdown)}
-$("#propForm").addEventListener("input",e=>syncPropsToRaw(e.target));$("#propForm").addEventListener("change",e=>syncPropsToRaw(e.target));
+$("#propForm").addEventListener("input",e=>{if(e.target.type==="range"){const b=$('[data-prv="'+e.target.dataset.prop+'"]');if(b)b.textContent=e.target.value}syncPropsToRaw(e.target)});
+// angka di samping slider bisa ditekan untuk diketik manual
+$("#propForm").addEventListener("click",async e=>{const b=e.target.closest("[data-prv]");if(!b)return;const r=$('[data-prop="'+b.dataset.prv+'"]');
+  const v=await askText(b.previousElementSibling.textContent,r.value);if(v===null||!v.trim())return;const n=parseInt(v,10);
+  if(!(n>=+r.min))return toast("Minimal "+r.min,true);if(n>+r.max)r.max=n;r.value=n;b.textContent=n;syncPropsToRaw(r)});$("#propForm").addEventListener("change",e=>syncPropsToRaw(e.target));
 function checkCrack(){const om=$('[data-prop="online-mode"]'),wl=$('[data-prop="white-list"]');if(!om||!wl)return;$("#crackWarn").classList.toggle("hide",om.checked||wl.checked)}
 function syncPropsToRaw(el){checkCrack();if(!el||!el.dataset||!el.dataset.prop)return;
   const lines=$("#propRaw").value.split("\n"),k=el.dataset.prop,v=el.type==="checkbox"?String(el.checked):el.value.replace(/\n/g," ");
@@ -1900,6 +1910,17 @@ $("#askModal").onclick=e=>{if(e.target.id==="askModal"&&askDone)askDone(null)};
 $("#askIn").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$("#askOk").click()}};
 document.addEventListener("keydown",e=>{if(askDone&&e.key==="Escape"){e.stopImmediatePropagation();askDone(null)}},true);
 
+// ---- tombol back Android (MainActivity memanggil ini): tutup lapisan paling atas dulu, lalu kembali ke tab Server.
+// false = tidak ada yang ditutup, app pindah ke background (server tetap jalan)
+window.mcBack=()=>{
+  if(askDone){askDone(null);return true}
+  if($$(".dd-menu").length){ddClose();return true}
+  // #histMenu is a static .menu that is only hidden; the player/file menus are created per tap and removed
+  const menu=document.querySelector(".menu:not(.hide)");if(menu){if(menu.id==="histMenu")menu.classList.add("hide");else{menu.remove();plMenu=null}return true}
+  const open=[...document.querySelectorAll(".modal:not(.hide)")].pop();
+  if(open){const c=open.querySelector("[data-close]");if(c)c.click();else open.classList.add("hide");return true}
+  if(tab!=="home"){go("home");return true}
+  return false};
 // ---- sheet bisa ditutup dengan digeser ke bawah (HP); menekan tombol [data-close] milik sheet itu
 $$(".modal>.sheet").forEach(sh=>{let y0=null,dy=0,t0=0;
   sh.addEventListener("touchstart",e=>{if(sh.scrollTop>0||e.target.closest("textarea,input,select,.dd-menu"))return;y0=e.touches[0].clientY;dy=0;t0=Date.now()},{passive:true});

@@ -151,8 +151,14 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (web != null && web.canGoBack()) web.goBack();
-        else moveTaskToBack(true); // keep the server running
+        if (web == null) {
+            moveTaskToBack(true);
+            return;
+        }
+        // the panel is one page: it closes its top sheet or returns to the Server tab; only "false" leaves (server keeps running)
+        web.evaluateJavascript("window.mcBack?mcBack():false", v -> {
+            if (!"true".equals(v)) moveTaskToBack(true);
+        });
     }
 
     @Override

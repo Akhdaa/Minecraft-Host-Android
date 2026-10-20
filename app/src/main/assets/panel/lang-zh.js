@@ -836,5 +836,8 @@ window.ZH = {
 "Fitur tambahan": "附加功能",
 "Cara lain supaya teman bisa join. playit.gg sudah cukup untuk kebanyakan orang.": "让朋友加入的其他方式。大多数人用 playit.gg 就够了。",
 "Teman join pakai domain sendiri, misal mc.domainkamu.com.": "朋友用你自己的域名加入，例如 mc.yourdomain.com。",
-"Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "关闭 Cloudflare 域名？{0} 会从面板移除，Cloudflare 上的记录不会删除。"
+"Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "关闭 Cloudflare 域名？{0} 会从面板移除，Cloudflare 上的记录不会删除。",
+"Ketik angka": "输入数字",
+"Minimal {0}": "最小 {0}",
+"HP: 4 sampai 6.": "手机：4 到 6。"
 };

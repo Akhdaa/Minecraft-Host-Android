@@ -867,5 +867,8 @@ window.EN = {
 "Fitur tambahan": "Extra features",
 "Cara lain supaya teman bisa join. playit.gg sudah cukup untuk kebanyakan orang.": "Other ways for friends to join. playit.gg is enough for most people.",
 "Teman join pakai domain sendiri, misal mc.domainkamu.com.": "Friends join with your own domain, e.g. mc.yourdomain.com.",
-"Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "Turn off the Cloudflare domain? {0} is removed from the panel; the record at Cloudflare stays."
+"Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "Turn off the Cloudflare domain? {0} is removed from the panel; the record at Cloudflare stays.",
+"Ketik angka": "Type a number",
+"Minimal {0}": "Minimum {0}",
+"HP: 4 sampai 6.": "Phone: 4 to 6."
 };
