@@ -839,5 +839,11 @@ window.ZH = {
 "Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "关闭 Cloudflare 域名？{0} 会从面板移除，Cloudflare 上的记录不会删除。",
 "Ketik angka": "输入数字",
 "Minimal {0}": "最小 {0}",
-"HP: 4 sampai 6.": "手机：4 到 6。"
+"HP: 4 sampai 6.": "手机：4 到 6。",
+"Salin perintah Docker dari playit (docker run atau compose), tempel semuanya di bawah. Secret key diambil otomatis.": "从 playit 复制 Docker 命令（docker run 或 compose），整段粘贴到下面。密钥会自动提取。",
+"tempel perintah Docker atau SECRET_KEY dari playit.gg": "粘贴 playit.gg 的 Docker 命令或 SECRET_KEY",
+"tempel perintah Docker atau SECRET_KEY baru": "粘贴新的 Docker 命令或 SECRET_KEY",
+"Salin perintah Docker.": "复制 Docker 命令。",
+"Playit menampilkan perintah docker run atau docker compose berisi SECRET_KEY. Salin semuanya, app mengambil key-nya sendiri.": "playit 会显示包含 SECRET_KEY 的 docker run 或 docker compose 命令。全部复制，应用会自己提取密钥。",
+"Secret key diambil dari perintah Docker": "已从 Docker 命令中提取密钥"
 };

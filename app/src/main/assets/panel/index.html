@@ -682,11 +682,11 @@ nav .fab svg{width:26px;height:26px}
         <p class="small muted" style="margin:0 0 10px">Hubungkan akun playit.gg (gratis) supaya teman di luar WiFi bisa join. Cukup sekali, sekitar 3 menit.</p>
         <ol class="msteps">
           <li>Buat akun dan agent tipe <b>Docker</b> di <a href="https://playit.gg/account/agents" target="_blank" rel="noopener">playit.gg</a></li>
-          <li>Tempel <b>secret key</b> agent di bawah</li>
+          <li>Salin perintah Docker dari playit (docker run atau compose), tempel semuanya di bawah. Secret key diambil otomatis.</li>
           <li>Buat tunnel <b>Minecraft Java</b> ke <code>127.0.0.1:<span class="mcport">25565</span></code></li>
         </ol>
         <label class="f"><span>Secret key agent</span>
-          <input type="password" id="playitSecret" placeholder="tempel SECRET_KEY dari playit.gg" autocomplete="off"></label>
+          <input type="password" id="playitSecret" placeholder="tempel perintah Docker atau SECRET_KEY dari playit.gg" autocomplete="off"></label>
         <div class="row"><button class="btn primary" id="bSaveSecret">Simpan &amp; hubungkan</button><button class="btn" data-help="playit">Lihat panduan</button></div>
       </div>
 
@@ -706,7 +706,7 @@ nav .fab svg{width:26px;height:26px}
       <div class="sw"><div><div class="t">Nyalakan saat aplikasi dibuka</div><div class="d">Tunnel langsung hidup walau server belum di-Start</div></div><input type="checkbox" class="toggle" id="playitAutostart"></div>
       <div class="sw"><div><div class="t">Secret key</div><div class="d">Tersimpan di HP ini</div></div><button class="btn small" id="bEditSecret">Ganti key</button></div>
       <div id="secretForm" class="hide" style="padding-top:4px">
-        <label class="f"><span>Secret key baru</span><input type="password" id="playitSecretNew" placeholder="tempel SECRET_KEY baru" autocomplete="off"></label>
+        <label class="f"><span>Secret key baru</span><input type="password" id="playitSecretNew" placeholder="tempel perintah Docker atau SECRET_KEY baru" autocomplete="off"></label>
         <div class="row"><button class="btn primary" id="bSaveSecret2">Simpan</button><button class="btn" id="bCancelSecret">Batal</button><button class="btn danger" id="bClearSecret">Putuskan playit</button></div>
       </div>
     </div>
@@ -890,7 +890,7 @@ nav .fab svg{width:26px;height:26px}
    <ol class="steps">
     <li><b>Buat akun.</b> Buka <a href="https://playit.gg/login" target="_blank" rel="noopener">playit.gg</a>, pilih <b>Create account</b>, daftar pakai email, lalu verifikasi email dari inbox.</li>
     <li><b>Tambah agent.</b> Di dashboard buka <b>Agents</b> &gt; <b>Add Agent</b>, pilih tipe <b>Docker</b>. Beri nama, misal <code>hp-server</code>.</li>
-    <li><b>Salin secret key.</b> Playit menampilkan perintah docker berisi <code>SECRET_KEY=...</code>. Salin <b>isi setelah tanda sama dengan</b> saja.</li>
+    <li><b>Salin perintah Docker.</b> Playit menampilkan perintah docker run atau docker compose berisi SECRET_KEY. Salin semuanya, app mengambil key-nya sendiri.</li>
     <li><b>Tempel di app.</b> Tab <b>Tunnel</b> &gt; kolom <b>Secret key agent</b> &gt; <b>Simpan key</b> &gt; <b>Start tunnel</b>. Tunggu sampai status <b>Aktif</b> dan agent di dashboard jadi online.</li>
     <li><b>Buat tunnel.</b> Dashboard playit &gt; <b>Tunnels</b> &gt; <b>Add Tunnel</b>:
       <div class="kv"><span>Tunnel type</span><b>Minecraft Java</b></div>
@@ -2052,7 +2052,12 @@ $("#bSavePin").onclick=()=>{const p=$("#newPin").value.trim();act("/api/settings
 $("#bLogout").onclick=async()=>{await api("/api/logout",{post:true}).catch(()=>{});location.reload()};
 $("#bBattery").onclick=()=>bridge&&bridge.requestIgnoreBattery();
 $("#bAppInfo").onclick=()=>bridge&&bridge.openAppInfo();
-async function saveSecret(inp){const v=inp.value.trim();if(!v)return toast("Secret key kosong",true);
+// playit shows "docker run ... -e SECRET_KEY=..." or a compose file with "- SECRET_KEY=..." / "SECRET_KEY: ...".
+// Password fields drop line breaks, so the next YAML line can stick to the key: prefer the 64-hex key playit issues.
+function secretFrom(t){const m=/SECRET_KEY["']?\s*[=:]\s*["']?([0-9a-f]{64})/i.exec(t)||/SECRET_KEY["']?\s*[=:]\s*["']?([A-Za-z0-9_-]{16,200})/.exec(t);return m?m[1]:t.trim()}
+for(const id of ["#playitSecret","#playitSecretNew"])$(id).addEventListener("input",e=>{const v=e.target.value;
+  if(/SECRET_KEY/.test(v)){const k=secretFrom(v);if(k!==v.trim()){e.target.value=k;toast("Secret key diambil dari perintah Docker")}}});
+async function saveSecret(inp){const v=secretFrom(inp.value);if(!v)return toast("Secret key kosong",true);
   try{await api("/api/settings",{form:{playitSecret:v}});inp.value="";editSecret=false;toast("Secret key disimpan");await refresh();tunnels=null;await loadTunnels(true);
     if(S.playit.available&&S.playit.state!=="running"&&await ask("Nyalakan tunnel sekarang?"))tunnelToggle()}catch(e){toast(e.message,true)}}
 $("#bSaveSecret").onclick=()=>saveSecret($("#playitSecret"));

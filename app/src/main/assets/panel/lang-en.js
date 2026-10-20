@@ -870,5 +870,11 @@ window.EN = {
 "Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "Turn off the Cloudflare domain? {0} is removed from the panel; the record at Cloudflare stays.",
 "Ketik angka": "Type a number",
 "Minimal {0}": "Minimum {0}",
-"HP: 4 sampai 6.": "Phone: 4 to 6."
+"HP: 4 sampai 6.": "Phone: 4 to 6.",
+"Salin perintah Docker dari playit (docker run atau compose), tempel semuanya di bawah. Secret key diambil otomatis.": "Copy the Docker command from playit (docker run or compose) and paste all of it below. The secret key is picked out automatically.",
+"tempel perintah Docker atau SECRET_KEY dari playit.gg": "paste the Docker command or SECRET_KEY from playit.gg",
+"tempel perintah Docker atau SECRET_KEY baru": "paste the new Docker command or SECRET_KEY",
+"Salin perintah Docker.": "Copy the Docker command.",
+"Playit menampilkan perintah docker run atau docker compose berisi SECRET_KEY. Salin semuanya, app mengambil key-nya sendiri.": "Playit shows a docker run or docker compose command containing SECRET_KEY. Copy all of it; the app picks out the key itself.",
+"Secret key diambil dari perintah Docker": "Secret key taken from the Docker command"
 };

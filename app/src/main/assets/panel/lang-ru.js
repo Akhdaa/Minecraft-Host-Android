@@ -839,5 +839,11 @@ window.RU = {
 "Matikan domain Cloudflare? Domain {0} dihapus dari panel, record di Cloudflare tidak dihapus.": "Отключить домен Cloudflare? {0} будет убран из панели, запись в Cloudflare останется.",
 "Ketik angka": "Ввести число",
 "Minimal {0}": "Минимум {0}",
-"HP: 4 sampai 6.": "Телефон: от 4 до 6."
+"HP: 4 sampai 6.": "Телефон: от 4 до 6.",
+"Salin perintah Docker dari playit (docker run atau compose), tempel semuanya di bawah. Secret key diambil otomatis.": "Скопируйте команду Docker из playit (docker run или compose) и вставьте её целиком ниже. Секретный ключ извлечётся сам.",
+"tempel perintah Docker atau SECRET_KEY dari playit.gg": "вставьте команду Docker или SECRET_KEY из playit.gg",
+"tempel perintah Docker atau SECRET_KEY baru": "вставьте новую команду Docker или SECRET_KEY",
+"Salin perintah Docker.": "Скопируйте команду Docker.",
+"Playit menampilkan perintah docker run atau docker compose berisi SECRET_KEY. Salin semuanya, app mengambil key-nya sendiri.": "playit показывает команду docker run или docker compose с SECRET_KEY. Скопируйте её целиком, приложение само найдёт ключ.",
+"Secret key diambil dari perintah Docker": "Секретный ключ взят из команды Docker"
 };
