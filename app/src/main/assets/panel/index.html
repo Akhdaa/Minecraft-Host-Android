@@ -1014,7 +1014,12 @@ if(LANG!=="id"){
 function setLang(l){try{localStorage.setItem("lang",l);if(localStorage.getItem("lang")===l&&l!==LANG)location.reload()}catch(e){}}
 let S={}, tab="home", logSince=0, tunnelSince=0, installedMods=[], installedPacks=[], loggingIn=false;
 
-function toast(msg,err){const d=document.createElement("div");if(err)d.className="err";d.textContent=msg;$("#toast").appendChild(d);setTimeout(()=>d.remove(),err?5200:2800)}
+// the same message again (a switch tapped repeatedly) extends the one toast; at most 3 different ones at a time
+function toast(msg,err){const box=$("#toast"),last=box.lastElementChild,ms=err?5200:2800;
+  if(last&&last._msg===msg){clearTimeout(last._t);last._t=setTimeout(()=>last.remove(),ms);return}
+  const d=document.createElement("div");if(err)d.className="err";d.textContent=msg;d._msg=msg;box.appendChild(d);
+  while(box.childElementCount>3)box.firstElementChild.remove();
+  d._t=setTimeout(()=>d.remove(),ms)}
 
 async function api(path,o={}){
   const opt={method:o.method||"GET",headers:{"X-Panel":"1"}};
