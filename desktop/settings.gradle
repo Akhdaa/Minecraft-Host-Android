@@ -1,0 +1,2 @@
+// Standalone build for the Windows app, so it never has to configure the Android plugin.
+rootProject.name = 'mchost-desktop'
