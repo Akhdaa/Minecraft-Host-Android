@@ -117,7 +117,7 @@ adb shell dumpsys deviceidle whitelist +com.minecrafthost.id
 
 Update selalu aman: world, mod, dan pengaturan tidak hilang karena semua build ditandatangani dengan kunci yang sama.
 
-**Pasang di Windows:** unduh `MCHost-1.0.x.msi` dari halaman [Releases](../../releases/latest) yang sama, lalu jalankan. Terpasang hanya untuk akun kamu, jadi tidak perlu hak admin. Tidak mau installer? Ekstrak `MCHost-1.0.x-portable.zip` di mana saja dan jalankan `MC Host.exe`.
+**Pasang di Windows:** unduh `MCHost-1.0.x-win.msi` dari halaman [Releases](../../releases/latest) yang sama, lalu jalankan. Terpasang hanya untuk akun kamu, jadi tidak perlu hak admin. Tidak mau installer? Ekstrak `MCHost-1.0.x-win-portable.zip` di mana saja dan jalankan `MC Host.exe`.
 
 - Windows 10 atau 11, 64-bit. Panel terbuka di jendelanya sendiri (memakai WebView2, bawaan Windows 11 dan Windows 10 yang terbaru).
 - Menutup jendela tidak mematikan server, MC Host tetap jalan di tray. Klik kanan ikon tray untuk keluar; server dimatikan dengan rapi dulu.

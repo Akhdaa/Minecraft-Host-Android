@@ -117,7 +117,7 @@ adb shell dumpsys deviceidle whitelist +com.minecrafthost.id
 
 更新总是安全的：所有版本都使用同一个密钥签名，世界、模组和设置都会保留。
 
-**在 Windows 上安装：** 在同一个 [Releases](../../releases/latest) 页面下载 `MCHost-1.0.x.msi` 并运行。它只为当前用户安装，不需要管理员权限。不想安装？把 `MCHost-1.0.x-portable.zip` 解压到任意位置，运行 `MC Host.exe` 即可。
+**在 Windows 上安装：** 在同一个 [Releases](../../releases/latest) 页面下载 `MCHost-1.0.x-win.msi` 并运行。它只为当前用户安装，不需要管理员权限。不想安装？把 `MCHost-1.0.x-win-portable.zip` 解压到任意位置，运行 `MC Host.exe` 即可。
 
 - 需要 64 位 Windows 10 或 11。面板在独立窗口中打开（使用 WebView2，Windows 11 和较新的 Windows 10 已自带）。
 - 关闭窗口不会停止服务器，MC Host 会留在托盘继续运行。右键托盘图标可退出，退出前会先正常关闭服务器。

@@ -179,11 +179,11 @@ jobs:
           New-Item -ItemType Directory -Force out | Out-Null
           jpackage --type app-image @common --dest out/image
           if ($LASTEXITCODE -ne 0) { throw "jpackage app-image gagal" }
-          Compress-Archive -Path "out/image/MC Host" -DestinationPath "out/MCHost-$ver-portable.zip"
+          Compress-Archive -Path "out/image/MC Host" -DestinationPath "out/MCHost-$ver-win-portable.zip"
           jpackage --type msi @common --dest out/msi --win-per-user-install --win-menu --win-menu-group "MC Host" --win-shortcut `
             --win-upgrade-uuid e82d034a-6c92-433d-9431-0f2ddbf5b31b
           if ($LASTEXITCODE -ne 0) { throw "jpackage msi gagal" }
-          Move-Item "out/msi/MC Host-$ver.msi" "out/MCHost-$ver.msi"
+          Move-Item "out/msi/MC Host-$ver.msi" "out/MCHost-$ver-win.msi"
           Get-ChildItem out -File | Format-Table Name, @{n='MB';e={[math]::Round($_.Length/1MB,1)}}
 
       - uses: actions/upload-artifact@v4

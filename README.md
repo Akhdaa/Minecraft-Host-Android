@@ -117,7 +117,7 @@ adb shell dumpsys deviceidle whitelist +com.minecrafthost.id
 
 Updates are always safe: worlds, mods and settings are kept because every build is signed with the same key.
 
-**Install on Windows:** download `MCHost-1.0.x.msi` from the same [Releases](../../releases/latest) page and run it. It installs for your user only, so no admin rights are needed. Prefer no installer? Unzip `MCHost-1.0.x-portable.zip` anywhere and run `MC Host.exe`.
+**Install on Windows:** download `MCHost-1.0.x-win.msi` from the same [Releases](../../releases/latest) page and run it. It installs for your user only, so no admin rights are needed. Prefer no installer? Unzip `MCHost-1.0.x-win-portable.zip` anywhere and run `MC Host.exe`.
 
 - Windows 10 or 11, 64-bit. The panel opens in its own window (it uses WebView2, which ships with Windows 11 and current Windows 10).
 - Closing the window keeps the server running in the tray. Right-click the tray icon to quit; MC Host stops the server cleanly first.
