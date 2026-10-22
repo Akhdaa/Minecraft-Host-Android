@@ -9,6 +9,8 @@ import id.mchost.core.PanelApi;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.LocationListener;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
@@ -23,6 +25,9 @@ import org.eclipse.swt.widgets.TrayItem;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -46,6 +51,7 @@ public final class DesktopMain {
     private TrayItem trayItem;
     private ToolTip balloon;
     private boolean trayHintShown;
+    private Boolean autostart; // what the Run key was last set to
 
     public static void main(String[] args) {
         WindowsPlatform platform = new WindowsPlatform();
@@ -79,11 +85,35 @@ public final class DesktopMain {
         shell.setText("MC Host");
         shell.setImage(logo);
         shell.setLayout(new FillLayout());
-        shell.setSize(1280, 820);
+        // always wide enough for the desktop layout: under 1024 px the panel switches to its phone layout
+        shell.setMinimumSize(1100, 700);
+        Rectangle screen = display.getPrimaryMonitor().getClientArea();
+        int w = Math.max(1100, Math.min(1440, screen.width * 85 / 100)), h = Math.max(700, Math.min(920, screen.height * 85 / 100));
+        shell.setBounds(screen.x + (screen.width - w) / 2, screen.y + (screen.height - h) / 2, w, h);
         try {
             web = new Browser(shell, SWT.EDGE);
         } catch (SWTError noWebView2) {
             web = null;
+        }
+        if (web != null) {
+            // only the panel loads in this window; playit, Modrinth and guide links open in the normal browser
+            web.addLocationListener(LocationListener.changingAdapter(e -> {
+                if (!isPanel(e.location) && !e.location.startsWith("about:")) {
+                    e.doit = false;
+                    Program.launch(e.location);
+                }
+            }));
+            web.addOpenWindowListener(e -> { // target=_blank: take the address, never open a second window
+                Shell hidden = new Shell(display);
+                Browser popup = new Browser(hidden, SWT.EDGE);
+                popup.addLocationListener(LocationListener.changingAdapter(ev -> {
+                    ev.doit = false;
+                    if (isPanel(ev.location)) web.setUrl(ev.location);
+                    else Program.launch(ev.location);
+                    display.asyncExec(hidden::dispose);
+                }));
+                e.browser = popup;
+            });
         }
         shell.addListener(SWT.Close, e -> {
             e.doit = false; // closing the window keeps the server running, like leaving the app on the phone
@@ -96,6 +126,7 @@ public final class DesktopMain {
         });
         setUpTray(logo);
         listenForShow();
+        syncAutostart();
         if (portError != null) message(SWT.ICON_ERROR, portError);
         if (showWindow) show();
         while (!display.isDisposed()) {
@@ -109,8 +140,7 @@ public final class DesktopMain {
             Program.launch(link);
             return;
         }
-        String now = web.getUrl();
-        if (now == null || !now.startsWith("http://127.0.0.1:" + port)) web.setUrl(link);
+        if (!isPanel(web.getUrl())) web.setUrl(link);
         shell.setVisible(true);
         shell.setMinimized(false);
         shell.forceActive();
@@ -166,6 +196,43 @@ public final class DesktopMain {
         if (!stopping.compareAndSet(false, true)) return;
         host.shutdown(60_000);
         http.stop();
+    }
+
+    /** True for this app's own panel origin; parsed, so tricks like http://127.0.0.1:8080@other/ don't pass. */
+    private boolean isPanel(String url) {
+        try {
+            URI u = new URI(url);
+            return "http".equals(u.getScheme()) && u.getRawUserInfo() == null && "127.0.0.1".equals(u.getHost()) && u.getPort() == port;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Mirrors the panel's "start with Windows" switch into the user's Run key (installed exe only). Written through
+     * reg import, because a quoted path inside a ProcessBuilder argument doesn't reach reg.exe intact.
+     */
+    private void syncAutostart() {
+        String exe = System.getProperty("jpackage.app-path");
+        boolean want = host.cfg.getBool(Config.BOOT_START);
+        if (exe != null && (autostart == null || autostart != want)) {
+            autostart = want;
+            String key = "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+            try {
+                if (want) {
+                    String value = ("\"" + exe + "\" --tray").replace("\\", "\\\\").replace("\"", "\\\"");
+                    File reg = new File(platform.baseDir(), "autostart.reg");
+                    Files.write(reg.toPath(), ("\uFEFFWindows Registry Editor Version 5.00\r\n\r\n[" + key + "]\r\n\"MC Host\"=\"" + value + "\"\r\n")
+                            .getBytes(StandardCharsets.UTF_16LE));
+                    new ProcessBuilder(WindowsPlatform.system32("reg.exe"), "import", reg.getPath()).redirectErrorStream(true).start();
+                } else {
+                    new ProcessBuilder(WindowsPlatform.system32("reg.exe"), "delete", key, "/v", "MC Host", "/f").redirectErrorStream(true).start();
+                }
+            } catch (IOException e) {
+                host.mcLog.panel("autostart: " + e.getMessage());
+            }
+        }
+        display.timerExec(5000, this::syncAutostart);
     }
 
     private int message(int style, String text) {

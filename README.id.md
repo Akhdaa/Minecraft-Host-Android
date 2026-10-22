@@ -117,6 +117,16 @@ adb shell dumpsys deviceidle whitelist +com.minecrafthost.id
 
 Update selalu aman: world, mod, dan pengaturan tidak hilang karena semua build ditandatangani dengan kunci yang sama.
 
+**Pasang di Windows:** unduh `MCHost-1.0.x.msi` dari halaman [Releases](../../releases/latest) yang sama, lalu jalankan. Terpasang hanya untuk akun kamu, jadi tidak perlu hak admin. Tidak mau installer? Ekstrak `MCHost-1.0.x-portable.zip` di mana saja dan jalankan `MC Host.exe`.
+
+- Windows 10 atau 11, 64-bit. Panel terbuka di jendelanya sendiri (memakai WebView2, bawaan Windows 11 dan Windows 10 yang terbaru).
+- Menutup jendela tidak mematikan server, MC Host tetap jalan di tray. Klik kanan ikon tray untuk keluar; server dimatikan dengan rapi dulu.
+- Java diunduh saat pertama kali server membutuhkannya, jadi tidak ada yang perlu dipasang lagi. Data tersimpan di `%LOCALAPPDATA%\MCHost`.
+- Windows SmartScreen bisa memperingatkan installer karena belum bertanda tangan: klik **More info**, lalu **Run anyway**.
+- Saat server pertama kali jalan, Windows Firewall menanyakan `java.exe`. Izinkan **Private networks** supaya teman di WiFi yang sama bisa join.
+- Pindah antara HP dan PC: nyalakan backup server lengkap di Pengaturan, lalu pakai **Import server** di perangkat satunya.
+- Seret file `.jar` ke panel untuk memasangnya sebagai mod atau plugin, atau `.zip` untuk impor server atau restore backup world.
+
 ---
 
 <div align="center">

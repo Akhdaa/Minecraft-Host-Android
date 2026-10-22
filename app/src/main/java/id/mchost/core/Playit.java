@@ -36,7 +36,8 @@ public class Playit extends ManagedProcess {
         cmd.add("--secret");
         cmd.add(secret);
         cmd.add("--socket-path");
-        cmd.add(new File(dir, "playitd.sock").getAbsolutePath());
+        cmd.add(File.separatorChar == '\\' ? "\\\\.\\pipe\\mchost-playitd" // Windows takes a named pipe here
+                : new File(dir, "playitd.sock").getAbsolutePath());
         cmd.add("--platform-docker");
         log.panel("Menyalakan tunnel playit...");
         launch(cmd, dir, host.platform.childEnv(null), "playitd");

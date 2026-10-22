@@ -908,6 +908,11 @@ public class PanelApi implements MiniHttp.Handler {
     private void serveStatic(String path, MiniHttp.Res res) throws IOException {
         if (path.equals("/") || path.isEmpty()) path = "/index.html";
         String rel = path.substring(1);
+        if (rel.equals("platform.js")) { // lets the panel word itself for the device before it renders
+            res.send(200, "application/javascript; charset=utf-8",
+                    ("window.PLAT=" + Json.str(host.platform.name()) + ";").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return;
+        }
         if (rel.contains("..") || rel.contains("\\")) {
             res.error(400, "bad path");
             return;

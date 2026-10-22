@@ -173,6 +173,9 @@ code,.code{font-family:var(--mono);background:var(--bg2);border:1px solid var(--
 .pl{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:6px}
 .pl b{color:var(--text);font-size:14px;white-space:nowrap}.pchart svg{width:100%;height:44px;display:block;overflow:visible}
 #rightCol{display:contents}
+html.pc .hp-only{display:none!important}html.pc .usage{grid-template-columns:repeat(2,minmax(0,1fr))}html.pc #rightCol .perfgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#dropZone{position:fixed;inset:10px;z-index:120;border:2px dashed var(--accent);border-radius:18px;background:rgba(10,16,12,.86);display:grid;place-items:center;pointer-events:none;text-align:center;padding:20px}
+#dropZone b{display:block;font-size:22px;margin-bottom:6px}#dropZone span{color:var(--muted);font-size:14px}
 .hide{display:none!important}
 .players{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .players span{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px}
@@ -440,7 +443,7 @@ nav .fab svg{width:26px;height:26px}
     <div class="usage">
       <div><span>RAM</span><b id="sRam">-</b><div class="bar"><i id="sRamBar" style="width:0"></i></div></div>
       <div><span>Uptime</span><b id="sUptime">-</b></div>
-      <div><span>Baterai HP</span><b id="sBatt">-</b></div>
+      <div class="hp-only"><span>Baterai HP</span><b id="sBatt">-</b></div>
     </div>
     <div class="sbtns">
       <button class="btn primary" id="bStart"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg> Start</button>
@@ -454,7 +457,7 @@ nav .fab svg{width:26px;height:26px}
     <div class="perfgrid">
       <div class="pchart" id="pv-ram"><div class="pl"><span>RAM</span><b>-</b></div><svg viewBox="0 0 100 32" preserveAspectRatio="none"></svg></div>
       <div class="pchart" id="pv-cpu"><div class="pl"><span>CPU</span><b>-</b></div><svg viewBox="0 0 100 32" preserveAspectRatio="none"></svg></div>
-      <div class="pchart" id="pv-temp"><div class="pl"><span>Suhu</span><b>-</b></div><svg viewBox="0 0 100 32" preserveAspectRatio="none"></svg></div>
+      <div class="pchart hp-only" id="pv-temp"><div class="pl"><span>Suhu</span><b>-</b></div><svg viewBox="0 0 100 32" preserveAspectRatio="none"></svg></div>
       <div class="pchart" id="pv-lag"><div class="pl"><span>Lag</span><b>-</b></div><svg viewBox="0 0 100 32" preserveAspectRatio="none"></svg></div>
     </div>
     <p class="small muted" id="perfEmpty" style="margin:10px 0 0">Grafik muncul setelah server jalan beberapa saat.</p>
@@ -808,7 +811,7 @@ nav .fab svg{width:26px;height:26px}
     <h2>Notifikasi</h2>
     <div class="sw"><div><div class="t">Status server</div><div class="d">Server siap, crash, tidur, dan bangun</div></div><input type="checkbox" class="toggle" id="notifyServer"></div>
     <div class="sw"><div><div class="t">Pemain masuk dan keluar</div></div><input type="checkbox" class="toggle" id="notifyPlayers"></div>
-    <div class="sw"><div><div class="t">HP kepanasan</div><div class="d">Baterai di atas 45°C</div></div><input type="checkbox" class="toggle" id="notifyHeat"></div>
+    <div class="sw hp-only"><div><div class="t">HP kepanasan</div><div class="d">Baterai di atas 45°C</div></div><input type="checkbox" class="toggle" id="notifyHeat"></div>
   </div>
 
   <div class="card" id="fullCard">
@@ -951,6 +954,7 @@ nav .fab svg{width:26px;height:26px}
   <div class="iwrap"><div class="islide" id="iSlide"></div><div class="idots" id="iDots"></div>
     <div class="ibtns"><button class="btn hide" id="iBack" type="button">Kembali</button><button class="btn" id="iSkip" type="button">Lewati</button><button class="btn primary" id="iNext" type="button">Lanjut</button></div></div>
 </div>
+<div id="dropZone" class="hide"><div><b>Lepas file di sini</b><span id="dropHint"></span></div></div>
 <div id="tour" class="hide" role="dialog" aria-modal="true" aria-label="Tutorial"><div class="tspot" id="tSpot"></div>
   <div class="tbub" id="tBub"><div class="tn" id="tN"></div><b id="tT"></b><p id="tB"></p>
     <div class="row"><button class="btn small" id="tSkip" type="button">Lewati tur</button><span class="grow"></span><button class="btn small primary" id="tNext" type="button">Lanjut</button></div></div>
@@ -975,6 +979,7 @@ nav .fab svg{width:26px;height:26px}
  </div>
 </div>
 <input type="file" id="importZip" accept=".zip" hidden>
+<script src="platform.js"></script>
 <script src="lang-en.js"></script>
 <script src="lang-zh.js"></script>
 <script src="lang-ru.js"></script>
@@ -988,10 +993,13 @@ const bridge=window.AndroidHost||null;
 // menerjemahkan teks statis, hasil render JS, toast, dan pesan dari server; ganti bahasa = reload.
 let LANG="en";try{LANG=localStorage.getItem("lang")||"en"}catch(e){}
 document.documentElement.lang=LANG;
+// which device hosts this panel (served as platform.js); on a PC, phone wording is swapped before translation
+const PLAT=window.PLAT||"android",ONPC=PLAT==="windows",DEV=ONPC?"PC":"HP";if(ONPC)document.documentElement.classList.add("pc");
+const PCMAP=ONPC?{"Server Minecraft di HP":"Server Minecraft di PC","Paket optimasi HP":"Paket optimasi","Buat chunk di sekitar spawn duluan supaya main lebih lancar di HP. Memakai Chunky; server harus jalan.":"Buat chunk di sekitar spawn duluan supaya main lebih lancar. Memakai Chunky; server harus jalan.","Build APK ini tidak membawa playitd (step build di GitHub Actions gagal). Main lewat LAN tetap jalan normal.":"playit belum terunduh. Pastikan PC tersambung ke internet, lalu buka ulang MC Host. Main lewat LAN tetap jalan normal.","Tersimpan di HP ini":"Tersimpan di PC ini","Token hanya disimpan di HP ini dan cuma dipakai ke api.cloudflare.com.":"Token hanya disimpan di PC ini dan cuma dipakai ke api.cloudflare.com.","Jalan saat HP dinyalakan":"Jalan saat Windows dinyalakan","Simpan pengaturan aplikasi: bahasa, PIN, secret playit, domain dan token Cloudflare. Berguna saat install ulang atau pindah HP. Filenya berisi secret, jangan dibagikan.":"Simpan pengaturan aplikasi: bahasa, PIN, secret playit, domain dan token Cloudflare. Berguna saat install ulang atau pindah PC. Filenya berisi secret, jangan dibagikan.","Backup dan restore config cuma bisa dari aplikasi di HP server.":"Backup dan restore config cuma bisa dari aplikasi MC Host di PC server.","PIN ada di aplikasi MC Host di HP server, tab":"PIN ada di aplikasi MC Host di PC server, tab","Hapus token Cloudflare dari HP ini?":"Hapus token Cloudflare dari PC ini?","Putuskan akun playit dari HP ini? Tunnel dimatikan dan secret key dihapus.":"Putuskan akun playit dari PC ini? Tunnel dimatikan dan secret key dihapus.","Buat aturan ke IP HP ini dengan port di bawah (TCP, plus UDP kalau Bedrock aktif).":"Buat aturan ke IP PC ini dengan port di bawah (TCP, plus UDP kalau Bedrock aktif).","Pasang DHCP reservation untuk HP ini supaya IP-nya tidak berubah.":"Pasang DHCP reservation untuk PC ini supaya IP-nya tidak berubah.","IP HP (tujuan aturan)":"IP PC (tujuan aturan)","Lebih dari 60% RAM HP. Android bisa mematikan server saat memori penuh.":"Lebih dari 60% RAM PC. Windows bisa melambat atau kehabisan memori.","Lebih dari 60% RAM HP. Bisa jalan, tapi Android mungkin membunuh server saat memori penuh.":"Lebih dari 60% RAM PC. Bisa jalan, tapi Windows bisa melambat saat memori penuh.","HP 8 GB: 3 sampai 4 GB paling aman, modpack besar 4 sampai 6 GB.":"PC 16 GB: 4 sampai 6 GB cukup, modpack besar 6 sampai 8 GB.","HP: 5 sampai 8. Makin besar makin berat.":"PC: 10 sampai 16. Makin besar makin berat.","HP: 4 sampai 6.":"PC: 6 sampai 10.","Server Minecraft, langsung dari HP":"Server Minecraft, langsung dari PC","Tanpa PC, tanpa VPS. HP di tanganmu yang jadi server.":"Tanpa sewa hosting, tanpa VPS. PC kamu sendiri yang jadi server.","World tersimpan di HP kamu sendiri.":"World tersimpan di PC kamu sendiri.","Panel juga bisa dibuka dari laptop di WiFi yang sama.":"Panel juga bisa dibuka dari HP di WiFi yang sama.","RAM, CPU, suhu HP, dan lonjakan lag selama 1 jam terakhir. Kalau sering lag, turunkan view distance atau tambah RAM.":"RAM, CPU, dan lonjakan lag selama 1 jam terakhir. Kalau sering lag, turunkan view distance atau tambah RAM.","Backup world kapan saja atau otomatis, unduh ke HP, lalu restore. Nyalakan backup lengkap di Pengaturan kalau mod dan config mau ikut tersimpan.":"Backup world kapan saja atau otomatis, unduh ke PC, lalu restore. Nyalakan backup lengkap di Pengaturan kalau mod dan config mau ikut tersimpan."}:null;
 const EN=window[{en:"EN",zh:"ZH",ru:"RU"}[LANG]]||{},ENP=[],ENS=Object.keys(EN).filter(k=>!k.includes("{0}")&&k.includes(" ")&&k.length>5).sort((a,b)=>b.length-a.length);
 for(const k of Object.keys(EN))if(k.includes("{0}")){const ids=[];
   const rx=k.replace(/[.*+?^$()|[\]\\]/g,"\\$&").replace(/\{(\d)\}/g,(_,d)=>{ids.push(+d);return"(.+?)"});ENP.push([new RegExp("^"+rx+"$"),ids,EN[k]])}
-function tr(s){if(LANG==="id"||!s)return s;const k=String(s).trim();if(!k||k.length>400||!/[a-z]/i.test(k))return s;
+function tr(s){if(!s)return s;if(PCMAP){const k0=String(s).trim(),p=PCMAP[k0];if(p)s=String(s).replace(k0,p)}if(LANG==="id")return s;const k=String(s).trim();if(!k||k.length>400||!/[a-z]/i.test(k))return s;
   let v=EN[k];
   if(v==null)for(const [rx,ids,val] of ENP){const m=rx.exec(k);if(m){v=val.replace(/\{(\d)\}/g,(_,d)=>tr(m[ids.indexOf(+d)+1]));break}}
   // ponytail: ganti potongan multi-kata (pesan gabungan dari JS/Java); kamus kalimat utuh kalau hasilnya janggal
@@ -1003,7 +1011,7 @@ function trNode(n){const p=n.parentElement;if(!p||p.closest(I18N_SKIP))return;co
 function trEl(el){if(el.closest(I18N_SKIP))return;I18N_ATTR.forEach(a=>trAttr(el,a));
   const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);let n;
   while((n=w.nextNode()))n.nodeType===3?trNode(n):I18N_ATTR.forEach(a=>trAttr(n,a))}
-if(LANG!=="id"){
+if(LANG!=="id"||PCMAP){
   trEl(document.body);
   new MutationObserver(ms=>{for(const m of ms){
     if(m.type==="characterData")trNode(m.target);
@@ -1387,7 +1395,7 @@ function renderWiz(){const [t,sub]=WSTEPS[W.step],b=$("#wizBody"),next=$("#wizNe
   if(W.step===2){const sug=ADDON[W.type]==="mod"?["Modpack Seru","Survival Modded","Teknologi"]:ADDON[W.type]==="plugin"?["SMP Teman","Survival Bareng","Minigame"]:["Survival Bareng","Dunia Kreatif","Hardcore"];
     b.innerHTML='<label class="f"><span>Nama server</span><input type="text" id="wName" maxlength="40" placeholder="misal Survival Bareng" autocomplete="off" value="'+esc(W.name)+'"></label>'+
       '<div class="chips" style="margin:-4px 0 16px">'+sug.map(x=>tr(x)).map(x=>'<span class="chip" data-sug="'+esc(x)+'">'+esc(x)+'</span>').join("")+'</div>'+
-      '<div class="small muted">RAM untuk server'+(deviceRam?' (HP: '+gb(deviceRam)+')':'')+'</div>'+
+      '<div class="small muted">RAM untuk server'+(deviceRam?' ('+DEV+': '+gb(deviceRam)+')':'')+'</div>'+
       '<div class="presets" id="wPre">'+[["Hemat",2048],["Disarankan",ramRec()],["Tinggi",ramTop()]].map(([k,v])=>'<button data-ram="'+v+'">'+k+'<small>'+gb(v)+'</small></button>').join("")+'</div>'+
       '<label class="f"><span>RAM: <b id="wRamLabel"></b></span><input type="range" id="wRam" min="512" max="'+(deviceRam||8192)+'" step="128" style="width:100%"></label>'+
       '<p class="small muted" id="wRamWarn" style="margin:0"></p>'+
@@ -1429,7 +1437,7 @@ let SS=null;
 async function openSrvSheet(){if(!SV)await loadServers();const x=SV&&SV.servers.find(y=>y.active);if(!x)return;SS=x;const ti=tinfo(x.type);
   $("#srvTitle").textContent=x.name;$("#srvSoft").textContent=ti.n+" "+x.mcVersion+(x.loader?" ("+x.loader+")":"")+(x.java?" · Java "+x.java:"");
   $("#srvName").value=x.name;$("#srvJvm").value=x.jvmArgs||"";
-  const max=deviceRam||8192;$("#srvRam").max=max;$("#srvRamNum").max=max;$$(".ramdev").forEach(e=>e.textContent=deviceRam?"(HP: "+gb(deviceRam)+")":"");setSrvRam(x.ramMb);
+  const max=deviceRam||8192;$("#srvRam").max=max;$("#srvRamNum").max=max;$$(".ramdev").forEach(e=>e.textContent=deviceRam?"("+DEV+": "+gb(deviceRam)+")":"");setSrvRam(x.ramMb);
   const sel=$("#srvVer");sel.innerHTML="<option>memuat…</option>";
   loadVers(x.type).then(L=>{sel.innerHTML=L.map(v=>'<option'+(v===x.mcVersion?" selected":"")+'>'+esc(v)+'</option>').join("")}).catch(e=>{sel.innerHTML='<option value="">gagal ambil versi: '+esc(e.message)+'</option>'});
   $("#srvSleep").value=String(x.sleepMin||0);$("#srvDaily").value=x.dailyRestart||"";$("#srvBedrock").checked=!!x.bedrock;
@@ -1993,7 +2001,7 @@ function sparkBars(vals,max,color){const n=vals.length,w=100/Math.max(n,1);
   return vals.map((x,i)=>x>0?'<rect x="'+(i*w).toFixed(2)+'" y="'+(32-Math.min(1,x/max)*30).toFixed(2)+'" width="'+Math.max(w,.8).toFixed(2)+'" height="'+(Math.min(1,x/max)*30).toFixed(2)+'" fill="'+color+'"/>':"").join("")}
 const lastOk=a=>{for(let i=a.length-1;i>=0;i--)if(a[i]>=0)return a[i];return -1};
 async function loadPerf(){const c=$("#lagCard");if(!c||!c.offsetParent)return;
-  try{const p=await api("/api/perf"),n=p.t.length;$("#perfEmpty").classList.toggle("hide",n>=2);
+  try{const p=await api("/api/perf"),n=p.t.length;$("#perfEmpty").classList.toggle("hide",n>=2);$("#lagCard .perfgrid").classList.toggle("hide",n<2);
     const set=(id,html,val)=>{$("#"+id+" svg").innerHTML=html;$("#"+id+" b").textContent=val};
     const ramMax=Math.max(p.ramMax,...p.ram,1),r=lastOk(p.ram),cpu=lastOk(p.cpu),tmp=lastOk(p.temp),spikes=p.lag.filter(x=>x>0).length;
     set("pv-ram",sparkLine(p.ram,ramMax,"var(--accent)"),r>=0?(r/1024).toFixed(1)+" / "+(p.ramMax/1024).toFixed(1)+" GB":"-");
@@ -2066,6 +2074,25 @@ $("#mpCreate").onclick=async()=>{const v=mpVers[+$("#mpVer").value];if(!v)return
     await api("/api/servers/create-modpack",{form:{url:f.url,name:$("#mpSrvName").value,ram:$("#mpRam").value}});
     $("#mpModal").classList.add("hide");toast("Modpack sedang dipasang, pantau di Konsol");await refresh();go("console")}catch(e){toast(e.message,true)}};
 document.addEventListener("click",e=>{if(e.target.closest("[data-modpack]")){e.preventDefault();mpOpen()}});
+
+// ---- drag & drop: file diseret ke panel diteruskan ke handler upload yang sudah ada.
+// .jar = mod/plugin, File world = upload ke folder itu, .zip di Dunia = backup, .zip di tempat lain = impor server
+let dragDepth=0;
+const dragHasFiles=e=>!!e.dataTransfer&&[...e.dataTransfer.types].includes("Files");
+function dropHintText(){if(tab==="world"&&worldView==="files")return "Upload ke folder yang sedang dibuka";
+  if(tab==="world")return "File .zip jadi backup world";return ".jar dipasang sebagai mod atau plugin, .zip diimpor sebagai server baru"}
+function dropTarget(files){const names=[...files].map(f=>f.name.toLowerCase());
+  if(tab==="world"&&worldView==="files")return "#fUpload";
+  if(names.every(n=>n.endsWith(".jar")))return S.serverId&&addonKind()?"#modUpload":null;
+  if(names.length===1&&names[0].endsWith(".zip"))return tab==="world"?"#worldUpload":"#importZip";
+  return null}
+addEventListener("dragenter",e=>{if(!dragHasFiles(e))return;e.preventDefault();dragDepth++;$("#dropHint").textContent=dropHintText();$("#dropZone").classList.remove("hide")});
+addEventListener("dragleave",e=>{if(dragHasFiles(e)&&--dragDepth<=0){dragDepth=0;$("#dropZone").classList.add("hide")}});
+addEventListener("dragover",e=>{if(dragHasFiles(e)){e.preventDefault();e.dataTransfer.dropEffect="copy"}});
+addEventListener("drop",e=>{if(!dragHasFiles(e))return;e.preventDefault();dragDepth=0;$("#dropZone").classList.add("hide");
+  const files=e.dataTransfer.files;if(!files.length)return;const to=dropTarget(files);
+  if(!to)return toast("File ini tidak bisa dipasang di sini. Seret .jar untuk mod/plugin, atau .zip untuk backup/server.",true);
+  $(to).onchange({target:{files,value:""}})});
 // ---- import server dari backup lengkap / zip folder server
 document.addEventListener("click",e=>{if(e.target.closest("[data-import]")){e.preventDefault();$("#importZip").click()}});
 $("#importZip").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;

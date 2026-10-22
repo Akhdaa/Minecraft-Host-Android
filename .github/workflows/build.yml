@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK and Windows app
 
 on:
   push:
@@ -126,3 +126,72 @@ jobs:
             gh release create latest "${{ steps.apk.outputs.name }}" --target "$GITHUB_SHA" --title "MC Host 1.0.$APP_PATCH" --notes "$NOTES" --latest
           fi
 
+  # Windows app: same core and panel as the APK, in a WebView2 window. Runs after the APK job created the release.
+  windows:
+    needs: apk
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Nomor versi (sama dengan rilis APK)
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then NAME="$GITHUB_REF_NAME"; else NAME=$(gh release view latest --json name -q .name 2>/dev/null || true); fi
+          PATCH=$(echo "$NAME" | grep -oE '[0-9]+$' || true)
+          echo "APP_PATCH=${PATCH:-0}" >> "$GITHUB_ENV"
+          echo "REL_TAG=$([[ "$GITHUB_REF" == refs/tags/* ]] && echo "$GITHUB_REF_NAME" || echo latest)" >> "$GITHUB_ENV"
+
+      - name: Build desktop jars
+        run: gradle --no-daemon --stacktrace -p desktop installDist
+
+      - name: WiX Toolset (untuk .msi)
+        shell: pwsh
+        run: |
+          if (-not (Get-Command candle.exe -ErrorAction SilentlyContinue)) {
+            choco install wixtoolset --no-progress -y
+            $wix = Get-ChildItem "C:\Program Files (x86)" -Filter "WiX Toolset*" -Directory | Select-Object -First 1
+            "$($wix.FullName)\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          }
+
+      - name: Paket portable dan installer
+        shell: pwsh
+        run: |
+          $ver = "1.0.$env:APP_PATCH"
+          $common = @(
+            '--name', 'MC Host', '--app-version', $ver, '--vendor', 'Akhdaa', '--description', 'Minecraft server host',
+            '--input', 'desktop/build/install/mchost-desktop/lib', '--main-jar', 'mchost-desktop.jar',
+            '--main-class', 'id.mchost.desktop.DesktopMain', '--icon', 'desktop/icon.ico',
+            '--add-modules', 'java.base,java.desktop,java.logging,java.management,jdk.management,java.naming,jdk.crypto.ec,jdk.crypto.cryptoki,jdk.unsupported',
+            '--java-options', '-Dfile.encoding=UTF-8', '--java-options', '--enable-native-access=ALL-UNNAMED'
+          )
+          New-Item -ItemType Directory -Force out | Out-Null
+          jpackage --type app-image @common --dest out/image
+          if ($LASTEXITCODE -ne 0) { throw "jpackage app-image gagal" }
+          Compress-Archive -Path "out/image/MC Host" -DestinationPath "out/MCHost-$ver-portable.zip"
+          jpackage --type msi @common --dest out/msi --win-per-user-install --win-menu --win-menu-group "MC Host" --win-shortcut `
+            --win-upgrade-uuid e82d034a-6c92-433d-9431-0f2ddbf5b31b
+          if ($LASTEXITCODE -ne 0) { throw "jpackage msi gagal" }
+          Move-Item "out/msi/MC Host-$ver.msi" "out/MCHost-$ver.msi"
+          Get-ChildItem out -File | Format-Table Name, @{n='MB';e={[math]::Round($_.Length/1MB,1)}}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MCHost-windows
+          path: out/*.*
+
+      - name: Lampirkan ke rilis
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: gh release upload "$REL_TAG" out/MCHost-*.msi out/MCHost-*-portable.zip --clobber

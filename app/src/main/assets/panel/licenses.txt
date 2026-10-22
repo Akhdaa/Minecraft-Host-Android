@@ -50,3 +50,19 @@ None of it is modified by this project.
    maven.neoforged.net). Running
    the server requires accepting the Minecraft EULA: https://aka.ms/MinecraftEULA
    Mods and plugins installed from Modrinth keep their own licenses.
+
+Windows app (MCHost.exe, built by CI from the desktop/ folder)
+--------------------------------------------------------------
+
+5. Eclipse SWT 3.135 (org.eclipse.swt, org.eclipse.swt.win32.win32.x86_64), bundled in the installer.
+   License: Eclipse Public License 2.0, with GPL-2.0-with-classpath-exception as a Secondary License.
+   Source and license text: https://github.com/eclipse-platform/eclipse.platform.swt
+   SWT shows the panel through Microsoft Edge WebView2, which is a Windows component, not part of this package.
+
+6. OpenJDK runtime (jlink image made by jpackage from Eclipse Temurin), bundled in the installer.
+   License: GNU General Public License v2 with the Classpath Exception.
+   Source: https://github.com/openjdk/jdk
+
+7. Eclipse Temurin JRE 17, 21 and 25 for Windows are downloaded from https://api.adoptium.net the first time
+   a server needs them, and the playit.gg agent (signed Windows build, BSD 2-Clause, see item 2) is downloaded
+   from https://github.com/playit-cloud/playit-agent/releases. Neither is redistributed in the installer.

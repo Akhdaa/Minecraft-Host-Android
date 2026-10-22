@@ -117,6 +117,16 @@ adb shell dumpsys deviceidle whitelist +com.minecrafthost.id
 
 Updates are always safe: worlds, mods and settings are kept because every build is signed with the same key.
 
+**Install on Windows:** download `MCHost-1.0.x.msi` from the same [Releases](../../releases/latest) page and run it. It installs for your user only, so no admin rights are needed. Prefer no installer? Unzip `MCHost-1.0.x-portable.zip` anywhere and run `MC Host.exe`.
+
+- Windows 10 or 11, 64-bit. The panel opens in its own window (it uses WebView2, which ships with Windows 11 and current Windows 10).
+- Closing the window keeps the server running in the tray. Right-click the tray icon to quit; MC Host stops the server cleanly first.
+- Java is downloaded the first time a server needs it, so you don't install anything else. Your data lives in `%LOCALAPPDATA%\MCHost`.
+- Windows SmartScreen may warn about the installer because it isn't code-signed yet: click **More info**, then **Run anyway**.
+- The first time a server starts, Windows Firewall asks about `java.exe`. Allow **Private networks** so friends on your Wi-Fi can join.
+- Moving between phone and PC: turn on the full server backup in Settings, then use **Import server** on the other device.
+- Drag a `.jar` onto the panel to install it as a mod or plugin, or a `.zip` to import a server or restore a world backup.
+
 ---
 
 <div align="center">

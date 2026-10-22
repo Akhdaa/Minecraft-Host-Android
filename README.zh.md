@@ -117,6 +117,16 @@ adb shell dumpsys deviceidle whitelist +com.minecrafthost.id
 
 更新总是安全的：所有版本都使用同一个密钥签名，世界、模组和设置都会保留。
 
+**在 Windows 上安装：** 在同一个 [Releases](../../releases/latest) 页面下载 `MCHost-1.0.x.msi` 并运行。它只为当前用户安装，不需要管理员权限。不想安装？把 `MCHost-1.0.x-portable.zip` 解压到任意位置，运行 `MC Host.exe` 即可。
+
+- 需要 64 位 Windows 10 或 11。面板在独立窗口中打开（使用 WebView2，Windows 11 和较新的 Windows 10 已自带）。
+- 关闭窗口不会停止服务器，MC Host 会留在托盘继续运行。右键托盘图标可退出，退出前会先正常关闭服务器。
+- 服务器第一次需要 Java 时会自动下载，不用另外安装。数据保存在 `%LOCALAPPDATA%\MCHost`。
+- 因为安装包还没有代码签名，Windows SmartScreen 可能会提示：点 **More info**，再点 **Run anyway**。
+- 服务器第一次启动时，Windows 防火墙会询问 `java.exe`。请允许 **专用网络**，同一 Wi-Fi 的好友才能加入。
+- 在手机和电脑之间迁移：先在设置里开启完整服务器备份，然后在另一台设备上用 **导入服务器**。
+- 把 `.jar` 拖到面板上可安装为模组或插件，拖入 `.zip` 可导入服务器或恢复世界备份。
+
 ---
 
 <div align="center">

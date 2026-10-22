@@ -12,6 +12,7 @@ import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -84,8 +85,23 @@ final class WindowsPlatform implements Platform {
         return p.isFile() ? p : null;
     }
 
+    /** Downloads the official, signed playit agent once (same CLI as Android's playitd); without it LAN play still works. */
     @Override
     public void prepareRuntime(LogBuffer log) {
+        File exe = new File(runtime(), "playit.exe");
+        if (exe.isFile()) return;
+        runtime().mkdirs();
+        File part = new File(runtime(), "playit.exe.part");
+        try {
+            log.panel(Host.tr("Downloading the playit.gg agent (once)...", "Mengunduh agent playit.gg (sekali saja)..."));
+            IO.download("https://github.com/playit-cloud/playit-agent/releases/latest/download/playit-windows-x86_64-signed.exe", part, log);
+            if (!part.renameTo(exe)) throw new IOException("rename " + part);
+        } catch (IOException e) {
+            //noinspection ResultOfMethodCallIgnored
+            part.delete();
+            log.panel(Host.tr("Couldn't download playit, the tunnel stays off until MC Host is reopened: ",
+                    "Gagal mengunduh playit, tunnel belum bisa dipakai sampai MC Host dibuka lagi: ") + e.getMessage());
+        }
     }
 
     @Override
@@ -124,9 +140,12 @@ final class WindowsPlatform implements Platform {
     public long processRssMb(int pid) {
         if (pid <= 0) return -1;
         try {
-            Process t = new ProcessBuilder("tasklist", "/FI", "PID eq " + pid, "/FO", "CSV", "/NH").redirectErrorStream(true).start();
+            Process t = new ProcessBuilder(system32("tasklist.exe"), "/FI", "PID eq " + pid, "/FO", "CSV", "/NH").redirectErrorStream(true).start();
+            if (!t.waitFor(5, TimeUnit.SECONDS)) {
+                t.destroyForcibly();
+                return -1;
+            }
             String out = new String(t.getInputStream().readAllBytes()).trim();
-            t.waitFor();
             String[] f = out.split("\",\"");
             if (f.length < 5) return -1;
             String kb = f[f.length - 1].replaceAll("[^0-9]", "");
@@ -134,6 +153,12 @@ final class WindowsPlatform implements Platform {
         } catch (Exception e) {
             return -1;
         }
+    }
+
+    /** Absolute path of a Windows tool, so a same-named file elsewhere on PATH is never run. */
+    static String system32(String exe) {
+        String root = System.getenv("SystemRoot");
+        return new File(root != null ? root : "C:\\Windows", "System32\\" + exe).getPath();
     }
 
     @Override
