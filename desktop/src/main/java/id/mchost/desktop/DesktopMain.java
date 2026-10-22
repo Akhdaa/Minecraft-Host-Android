@@ -100,7 +100,7 @@ public final class DesktopMain {
             web.addLocationListener(LocationListener.changingAdapter(e -> {
                 if (!isPanel(e.location) && !e.location.startsWith("about:")) {
                     e.doit = false;
-                    Program.launch(e.location);
+                    openExternal(e.location);
                 }
             }));
             web.addOpenWindowListener(e -> { // target=_blank: take the address, never open a second window
@@ -109,7 +109,7 @@ public final class DesktopMain {
                 popup.addLocationListener(LocationListener.changingAdapter(ev -> {
                     ev.doit = false;
                     if (isPanel(ev.location)) web.setUrl(ev.location);
-                    else Program.launch(ev.location);
+                    else openExternal(ev.location);
                     display.asyncExec(hidden::dispose);
                 }));
                 e.browser = popup;
@@ -196,6 +196,18 @@ public final class DesktopMain {
         if (!stopping.compareAndSet(false, true)) return;
         host.shutdown(60_000);
         http.stop();
+    }
+
+    /** Hands a link to the default browser, but only plain http(s): never file:, ms-*: or other handlers the OS would run. */
+    private static void openExternal(String url) {
+        try {
+            URI u = new URI(url);
+            String scheme = u.getScheme();
+            if (("https".equalsIgnoreCase(scheme) || "http".equalsIgnoreCase(scheme)) && u.getHost() != null && u.getRawUserInfo() == null) {
+                Program.launch(u.toASCIIString());
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     /** True for this app's own panel origin; parsed, so tricks like http://127.0.0.1:8080@other/ don't pass. */
