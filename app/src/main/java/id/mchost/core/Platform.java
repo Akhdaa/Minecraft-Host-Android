@@ -40,4 +40,44 @@ public interface Platform {
     /** One-off notification (server ready, crash, player joined, phone hot); desktop builds ignore it. */
     default void notify(String title, String text) {
     }
+
+    /** "android", "windows", ...: tells the panel which device it runs on, so it can word things for it. */
+    default String name() {
+        return "android";
+    }
+
+    /** Resident memory of a child process in MB, or -1. Default: /proc/<pid>/status (Android, Linux). */
+    default long processRssMb(int pid) {
+        if (pid <= 0) return -1;
+        try {
+            for (String l : IO.readText(new File("/proc/" + pid + "/status")).split("\n")) {
+                if (l.startsWith("VmRSS:")) return Long.parseLong(l.replaceAll("[^0-9]", "")) / 1024;
+            }
+        } catch (Exception ignored) {
+        }
+        return -1;
+    }
+
+    /** CPU time a child process has used so far in ms, or -1. Default: utime + stime from /proc/<pid>/stat (10 ms ticks). */
+    default long processCpuMs(int pid) {
+        if (pid <= 0) return -1;
+        try {
+            String s = IO.readText(new File("/proc/" + pid + "/stat"));
+            String[] f = s.substring(s.lastIndexOf(')') + 2).trim().split("\\s+"); // f[0] is field 3 (state)
+            return (Long.parseLong(f[11]) + Long.parseLong(f[12])) * 10;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    /** Total physical RAM in MB, or -1. Default: /proc/meminfo. */
+    default long totalRamMb() {
+        try {
+            for (String l : IO.readText(new File("/proc/meminfo")).split("\n")) {
+                if (l.startsWith("MemTotal:")) return Long.parseLong(l.replaceAll("[^0-9]", "")) / 1024;
+            }
+        } catch (Exception ignored) {
+        }
+        return -1;
+    }
 }

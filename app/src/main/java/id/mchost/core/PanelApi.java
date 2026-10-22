@@ -53,6 +53,10 @@ public class PanelApi implements MiniHttp.Handler {
             res.error(403, Host.tr("The panel only opens from the same Wi-Fi/hotspot or a VPN", "Panel cuma bisa dibuka dari WiFi/hotspot yang sama atau VPN"));
             return;
         }
+        if (p.equals("/local")) {
+            localLink(req, res);
+            return;
+        }
         if (!p.startsWith("/api/")) {
             serveStatic(p, res);
             return;
@@ -161,6 +165,24 @@ public class PanelApi implements MiniHttp.Handler {
         byte[] b = a.getAddress();
         if (b.length == 4) return (b[0] & 0xff) == 100 && (b[1] & 0xc0) == 64;
         return (b[0] & 0xfe) == 0xfc;
+    }
+
+    private static final java.util.Map<String, Long> localCodes = new ConcurrentHashMap<>();
+
+    /** One-time link for a desktop app window: /local?code=... opened on this machine within a minute sets the local cookie. */
+    public static String newLocalCode() {
+        String c = hex(new SecureRandom(), 16);
+        localCodes.put(c, System.currentTimeMillis() + 60_000);
+        return c;
+    }
+
+    private void localLink(MiniHttp.Req req, MiniHttp.Res res) throws IOException {
+        Long until = localCodes.remove(req.param("code", "")); // used once
+        if (req.isLocal() && until != null && until > System.currentTimeMillis()) {
+            res.header("Set-Cookie", LOCAL_COOKIE + "=" + LOCAL_TOKEN + "; Path=/; HttpOnly; SameSite=Strict");
+        }
+        res.header("Location", "/");
+        res.send(302, "text/plain; charset=utf-8", new byte[0]);
     }
 
     private static boolean local(MiniHttp.Req req) {
@@ -289,7 +311,7 @@ public class PanelApi implements MiniHttp.Handler {
                 .put("java", host.javaMajor())
                 .raw("players", Json.strArray(host.mc.players()))
                 .put("uptime", host.mc.uptimeSec())
-                .put("rssMb", host.mc.rssMb())
+                .put("rssMb", host.platform.processRssMb(host.mc.pid()))
                 .put("ramMb", host.srv.getInt(Config.RAM_MB, 3072))
                 .put("deviceRamMb", deviceRamMb())
                 .put("eula", host.cfg.getBool(Config.EULA))
@@ -306,7 +328,8 @@ public class PanelApi implements MiniHttp.Handler {
                 .raw("playit", Json.obj().put("available", host.playit.available())
                         .put("state", host.playit.alive() ? "running" : host.playit.state())
                         .put("hasSecret", !host.cfg.get(Config.PLAYIT_SECRET, "").isEmpty()).toString())
-                .put("local", local(req));
+                .put("local", local(req))
+                .put("platform", host.platform.name());
         if (local(req)) j.put("pin", host.cfg.get(Config.PIN, ""));
         res.json(200, j.toString());
     }
@@ -495,7 +518,7 @@ public class PanelApi implements MiniHttp.Handler {
 
     // ------------------------------------------------------------ servers
 
-    private static int parseRam(String ram) {
+    private int parseRam(String ram) {
         int r;
         try {
             r = Integer.parseInt(ram.trim());
@@ -913,15 +936,9 @@ public class PanelApi implements MiniHttp.Handler {
         return "application/octet-stream";
     }
 
-    /** Total physical RAM in MB from /proc/meminfo, or -1 if unknown. */
-    public static long deviceRamMb() {
-        try {
-            for (String l : IO.readText(new java.io.File("/proc/meminfo")).split("\n")) {
-                if (l.startsWith("MemTotal:")) return Long.parseLong(l.replaceAll("[^0-9]", "")) / 1024;
-            }
-        } catch (Exception ignored) {
-        }
-        return -1;
+    /** Total physical RAM in MB, or -1 if unknown. */
+    private long deviceRamMb() {
+        return host.platform.totalRamMb();
     }
 
     // ------------------------------------------------------------ network

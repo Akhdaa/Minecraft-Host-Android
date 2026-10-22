@@ -208,7 +208,7 @@ public final class Software {
             File[] vers = new File(dir, base).listFiles();
             if (vers == null) continue;
             for (File v : vers) {
-                File args = new File(v, "unix_args.txt");
+                File args = new File(v, File.separatorChar == '\\' ? "win_args.txt" : "unix_args.txt"); // Windows classpath uses ;
                 if (args.isFile() && (best == null || args.lastModified() > best.lastModified())) best = args;
             }
         }

@@ -457,7 +457,7 @@ public class Host {
     /** Ring buffer rows: time ms, RSS MB, CPU % of all cores, battery °C x10, ms behind ("Can't keep up") in the interval. */
     private final long[][] perf = new long[SAMPLES][5];
     private int perfCount, perfHead;
-    private long lastCpuTicks = -1, lastCpuAt;
+    private long lastCpuMs = -1, lastCpuAt;
     private final java.util.concurrent.atomic.AtomicLong lagMs = new java.util.concurrent.atomic.AtomicLong();
 
     void recordLag(long ms) {
@@ -467,15 +467,16 @@ public class Host {
     private void perfTick() {
         try {
             if (!mc.alive()) {
-                lastCpuTicks = -1;
+                lastCpuMs = -1;
                 return;
             }
-            long now = System.currentTimeMillis(), ticks = mc.cpuTicks(), cpu = -1;
-            if (ticks >= 0 && lastCpuTicks >= 0 && now > lastCpuAt) {
-                // ticks are 1/100 s: percent of one core = dTicks * 1000 / dMs
-                cpu = Math.min(100, (ticks - lastCpuTicks) * 1000 / (now - lastCpuAt) / Runtime.getRuntime().availableProcessors());
+            int pid = mc.pid();
+            long now = System.currentTimeMillis(), cpuMs = platform.processCpuMs(pid), cpu = -1;
+            if (cpuMs >= 0 && lastCpuMs >= 0 && now > lastCpuAt) {
+                // percent of all cores = CPU ms used / wall ms elapsed / cores
+                cpu = Math.min(100, (cpuMs - lastCpuMs) * 100 / (now - lastCpuAt) / Runtime.getRuntime().availableProcessors());
             }
-            lastCpuTicks = ticks;
+            lastCpuMs = cpuMs;
             lastCpuAt = now;
             long temp = -1;
             java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"temp\"\\s*:\\s*([0-9.]+)").matcher(platform.batteryJson());
@@ -483,7 +484,7 @@ public class Host {
             synchronized (perf) {
                 long[] r = perf[perfHead];
                 r[0] = now;
-                r[1] = mc.rssMb();
+                r[1] = platform.processRssMb(pid);
                 r[2] = cpu;
                 r[3] = temp;
                 r[4] = lagMs.getAndSet(0);

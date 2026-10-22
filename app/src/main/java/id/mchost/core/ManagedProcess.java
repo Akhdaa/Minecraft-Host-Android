@@ -130,40 +130,11 @@ public abstract class ManagedProcess {
         return alive() ? (System.currentTimeMillis() - startedAt) / 1000 : 0;
     }
 
-    /** Resident memory in MB (from /proc), or -1 if unknown. */
-    public long rssMb() {
-        int p;
+    /** OS process id of the running child, or -1 (stats are read through Platform with it). */
+    public int pid() {
         synchronized (this) {
             if (pid <= 0 && proc != null) pid = findPid(proc, pidHint);
-            p = pid;
-        }
-        if (p <= 0) return -1;
-        try {
-            for (String l : IO.readText(new File("/proc/" + p + "/status")).split("\n")) {
-                if (l.startsWith("VmRSS:")) {
-                    String kb = l.replaceAll("[^0-9]", "");
-                    return Long.parseLong(kb) / 1024;
-                }
-            }
-        } catch (Exception ignored) {
-        }
-        return -1;
-    }
-
-    /** CPU time used so far in clock ticks (utime + stime from /proc/<pid>/stat), or -1 if unknown. */
-    public long cpuTicks() {
-        int p;
-        synchronized (this) {
-            if (pid <= 0 && proc != null) pid = findPid(proc, pidHint);
-            p = pid;
-        }
-        if (p <= 0) return -1;
-        try {
-            String s = IO.readText(new File("/proc/" + p + "/stat"));
-            String[] f = s.substring(s.lastIndexOf(')') + 2).trim().split("\\s+"); // f[0] is field 3 (state)
-            return Long.parseLong(f[11]) + Long.parseLong(f[12]);
-        } catch (Exception e) {
-            return -1;
+            return proc == null ? -1 : pid;
         }
     }
 
