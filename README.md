@@ -223,9 +223,8 @@ This position covers every MC Host version, build, fork and distribution channel
 
 </div>
 
-**GPL-3.0-or-later**
 
-MC Host's own code is licensed under the [GNU GPL v3](LICENSE) or later. Third-party material keeps its own licenses and copyright notices; the APK bundles OpenJDK (GPLv2 with Classpath Exception) and playitd (BSD 2-Clause), see [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt) for the full texts.
+MC Host's is licensed under the [GNU GPL v3](LICENSE). Third-party material keeps its own licenses and copyright notices; the APK bundles OpenJDK (GPLv2 with Classpath Exception) and playitd (BSD 2-Clause), see [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt) for the full texts.
 
 You must own Minecraft and accept the [Minecraft EULA](https://aka.ms/MinecraftEULA) to run a server. MC Host does not bundle Minecraft: Vanilla, Paper, Purpur, Fabric, Forge and NeoForge are downloaded on the phone from their official sources and stay under their own licenses, and mods or plugins from Modrinth follow their authors' licenses. MC Host grants no Minecraft license, account or entitlement. Pirated copies, stolen accounts, and bypassing Mojang's or anyone else's license terms are not authorized. This guidance does not amend the GPL or third-party licenses.
 
