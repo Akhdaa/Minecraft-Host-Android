@@ -328,7 +328,7 @@ nav .fab svg{width:26px;height:26px}
 .usage{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
 .usage>div{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:9px 11px;min-width:0}
 .usage span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.usage b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
-.sbtns{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}.sbtns .btn{justify-content:center;padding:12px}
+.sbtns{display:grid;grid-template-columns:2fr 1fr;gap:8px}.sbtns .btn{justify-content:center;padding:12px}
 .sicons{display:flex;gap:8px;margin-top:10px}.sicons .ibtn{flex:1;width:auto;height:42px}.sicons svg{width:20px;height:20px}
 .sect{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:20px 2px 10px;display:flex;align-items:center;gap:6px;font-weight:700}
 .ocard{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;text-align:left;color:var(--text);width:100%;cursor:pointer}
@@ -446,8 +446,7 @@ nav .fab svg{width:26px;height:26px}
       <div class="hp-only"><span>Baterai HP</span><b id="sBatt">-</b></div>
     </div>
     <div class="sbtns">
-      <button class="btn primary" id="bStart"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg> Start</button>
-      <button class="btn" id="bStop">Stop</button>
+      <button class="btn primary" id="bPower"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg> <span>Start</span></button>
       <button class="btn" id="bRestart">Restart</button>
     </div>
   </div>
@@ -1302,7 +1301,11 @@ async function refresh(){
   const tb=$("#taskBanner");tb.classList.toggle("hide",!S.task);tb.textContent=S.task?"⏳ "+S.task+"…":"";
   const eb=$("#errBanner");eb.classList.toggle("hide",!S.taskError);eb.textContent=S.taskError||"";
   const alive=st==="running"||st==="starting"||st==="stopping";
-  $("#bStart").disabled=alive||!!S.task||!S.runtimeReady||!S.installed;$("#bStop").disabled=!alive&&st!=="sleeping";$("#bRestart").disabled=st!=="running";
+  // one power button: Start while off, Stop while on (a sleeping server still holds its port)
+  const pw=$("#bPower"),on=alive||st==="sleeping";
+  if(pw.dataset.on!==String(on)){pw.dataset.on=on;pw.classList.toggle("primary",!on);pw.classList.toggle("danger",on);
+    pw.querySelector("path").setAttribute("d",on?"M6 6h12v12H6z":"M7 4.5v15l13-7.5z");pw.querySelector("span").textContent=on?"Stop":"Start"}
+  pw.disabled=on?st==="stopping":!!S.task||!S.runtimeReady||!S.installed;$("#bRestart").disabled=st!=="running";
   $("#sPlayers").textContent=S.players.length+" / "+S.maxPlayers+" pemain";
   const P=S.players;
   $("#playerList").textContent=P.length?P.slice(0,3).join(", ")+(P.length>3?" +"+(P.length-3):""):st==="running"?"Belum ada yang online":"Server mati";
@@ -1463,8 +1466,7 @@ $("#srvDelete").onclick=async()=>{const n=await askText("Ketik nama server untuk
 document.addEventListener("click",e=>{const c=e.target.closest("[data-copy]");if(!c)return;const v=c.dataset.copy;
   (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast("Disalin: "+v)).catch(()=>{const t=document.createElement("textarea");t.value=v;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove();toast("Disalin: "+v)})});
 
-$("#bStart").onclick=()=>act("/api/start",null,"Server dinyalakan");
-$("#bStop").onclick=()=>act("/api/stop",null,"Mematikan server");
+$("#bPower").onclick=e=>e.currentTarget.dataset.on==="true"?act("/api/stop",null,"Mematikan server"):act("/api/start",null,"Server dinyalakan");
 $("#bRestart").onclick=()=>act("/api/restart",null,"Restart dimulai");
 $("#bKill").onclick=async()=>{if(await ask("Matikan paksa? World yang belum tersimpan bisa hilang."))act("/api/kill",null,"Dimatikan paksa")};
 
@@ -1884,7 +1886,7 @@ const TOUR=[
   {tab:"home",sel:"#activeCard .srow",t:"Kartu server",b:"Ini dashboard server kamu: status, versi Java, dan gerigi pengaturan server: nama, RAM, tidur kalau sepi, restart harian, Bedrock, dan ganti versi."},
   {tab:"home",sel:"#addrList",t:"Alamat untuk teman",b:"Teman join pakai alamat di sini. JAVA IP dan DOMAIN untuk dari internet, LAN untuk yang satu WiFi, PANEL untuk buka panel dari laptop. Tekan ikon salin lalu kirim ke teman."},
   {tab:"home",sel:"#activeCard .pbar",t:"Siapa yang main",b:"Pemain online tampil di sini. Tekan Kelola pemain untuk whitelist, OP, kick, atau ban."},
-  {tab:"home",sel:"#activeCard .sbtns",t:"Nyalakan server",b:"Start menyalakan server. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world."},
+  {tab:"home",sel:"#activeCard .sbtns",t:"Nyalakan server",b:"Satu tombol untuk menyalakan dan mematikan: Start berubah jadi Stop saat server jalan. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world."},
   {tab:()=>PERF_DESK.matches?"home":"console",sel:"#lagCard",t:"Grafik performa",b:"RAM, CPU, suhu HP, dan lonjakan lag selama 1 jam terakhir. Kalau sering lag, turunkan view distance atau tambah RAM."},
   {tab:"console",sel:"#tab-console .logwrap",t:"Membaca konsol",b:"Server melapor di sini: pemain masuk dan keluar, world tersimpan, dan alasannya kalau ada error. Pakai filter level dan tombol cari."},
   {tab:"console",sel:"#cmdForm",t:"Mengirim perintah",b:"Perintah yang diketik di sini langsung dijalankan server dengan izin penuh. Chip di atasnya jalan pintas: siang, cerah, difficulty, whitelist."},

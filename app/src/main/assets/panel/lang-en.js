@@ -713,7 +713,7 @@ window.EN = {
 "Siapa yang main": "Who's playing",
 "Pemain online tampil di sini. Tekan Kelola pemain untuk whitelist, OP, kick, atau ban.": "Online players show up here. Tap Manage players to whitelist, OP, kick or ban.",
 "Nyalakan server": "Starting the server",
-"Start menyalakan server. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world.": "Start boots the server. The first start takes longer because the world is generated. Stop always saves the world.",
+"Satu tombol untuk menyalakan dan mematikan: Start berubah jadi Stop saat server jalan. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world.": "One button turns the server on and off: Start becomes Stop while the server runs. The first start takes longer because the world is generated. Stop always saves the world.",
 "Membaca konsol": "Reading the console",
 "Server melapor di sini: pemain masuk dan keluar, world tersimpan, dan alasannya kalau ada error. Pakai filter level dan tombol cari.": "Your server talks to you here: players joining and leaving, worlds saving, and the exact reason if something breaks. Use the level filters and search.",
 "Mengirim perintah": "Sending commands",

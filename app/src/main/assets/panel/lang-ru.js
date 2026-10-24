@@ -682,7 +682,7 @@ window.RU = {
 "Siapa yang main":"Кто играет",
 "Pemain online tampil di sini. Tekan Kelola pemain untuk whitelist, OP, kick, atau ban.":"Игроки онлайн показываются здесь. Нажми «Управление игроками», чтобы добавить в белый список, дать OP, кикнуть или забанить.",
 "Nyalakan server":"Запуск сервера",
-"Start menyalakan server. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world.":"«Старт» запускает сервер. Первый запуск дольше, потому что создаётся мир. «Стоп» всегда сохраняет мир.",
+"Satu tombol untuk menyalakan dan mematikan: Start berubah jadi Stop saat server jalan. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world.":"Одна кнопка включает и выключает сервер: пока он работает, «Старт» становится «Стоп». Первый запуск дольше, потому что создаётся мир. «Стоп» всегда сохраняет мир.",
 "Membaca konsol":"Чтение консоли",
 "Server melapor di sini: pemain masuk dan keluar, world tersimpan, dan alasannya kalau ada error. Pakai filter level dan tombol cari.":"Здесь сервер сообщает обо всём: кто зашёл и вышел, сохранение мира и точную причину, если что-то сломалось. Используй фильтры уровней и поиск.",
 "Mengirim perintah":"Отправка команд",

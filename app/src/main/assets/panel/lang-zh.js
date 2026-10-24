@@ -682,7 +682,7 @@ window.ZH = {
 "Siapa yang main":"谁在玩",
 "Pemain online tampil di sini. Tekan Kelola pemain untuk whitelist, OP, kick, atau ban.":"在线玩家会显示在这里。点击“管理玩家”可以设置白名单、OP、踢出或封禁。",
 "Nyalakan server":"启动服务器",
-"Start menyalakan server. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world.":"点击启动来运行服务器。首次启动需要生成世界，所以更久。停止时总会保存世界。",
+"Satu tombol untuk menyalakan dan mematikan: Start berubah jadi Stop saat server jalan. Start pertama lebih lama karena world dibuat dulu. Stop selalu menyimpan world.":"同一个按钮负责开关：服务器运行时“启动”会变成“停止”。首次启动需要生成世界，所以更久。停止时总会保存世界。",
 "Membaca konsol":"阅读控制台",
 "Server melapor di sini: pemain masuk dan keluar, world tersimpan, dan alasannya kalau ada error. Pakai filter level dan tombol cari.":"服务器会在这里告诉你一切：玩家进出、世界保存，以及出错的具体原因。可以用级别筛选和搜索。",
 "Mengirim perintah":"发送命令",
